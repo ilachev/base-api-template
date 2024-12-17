@@ -39,7 +39,6 @@ while (true) {
         $handler = new $handlerClass();
         $requestHandler = new RequestHandler($handler);
 
-        // Добавляем параметры маршрута к атрибутам запроса
         $request = $request->withAttribute('routeParams', $routeResult->getParams());
 
         $response = $authMiddleware->process($request, $requestHandler);

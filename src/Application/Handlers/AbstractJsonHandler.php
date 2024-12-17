@@ -43,7 +43,6 @@ readonly abstract class AbstractJsonHandler implements HandlerInterface
                 json_encode(['error' => $message], JSON_THROW_ON_ERROR)
             );
         } catch (JsonException) {
-            // В случае если даже сообщение об ошибке не удалось закодировать
             return new Response(500, [], 'Internal Server Error');
         }
     }
