@@ -21,6 +21,7 @@ return static function (Container $container): void {
     $container->bind(ServerRequestFactoryInterface::class, Psr17Factory::class);
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
+
     $container->bind(StorageInterface::class, SQLiteStorage::class);
 
     $container->set(
