@@ -27,6 +27,9 @@ use Psr\Container\ContainerInterface;
 
 final class ContainerTest extends TestCase
 {
+    /**
+     * @var Container<object>
+     */
     private Container $container;
 
     protected function setUp(): void
@@ -135,10 +138,11 @@ final class ContainerTest extends TestCase
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessage('Class NonExistentClass does not exist');
 
-
         // Act
-        $this->container->get('NonExistentClass');}
-
+        /** @var class-string<object> $nonExistentClass */
+        $nonExistentClass = 'NonExistentClass';
+        $this->container->get($nonExistentClass);
+    }
     public function testGetWithUnresolvableBuiltinTypeThrowsException(): void
     {
         // Assert

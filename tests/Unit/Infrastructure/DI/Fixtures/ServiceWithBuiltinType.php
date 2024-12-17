@@ -6,7 +6,7 @@ namespace Tests\Unit\Infrastructure\DI\Fixtures;
 
 final readonly class ServiceWithBuiltinType
 {
-    public function __construct(string $value)
+    public function __construct(public string $value)
     {
     }
 }

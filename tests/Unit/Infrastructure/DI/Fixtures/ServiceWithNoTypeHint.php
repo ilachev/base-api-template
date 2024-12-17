@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\DI\Fixtures;
 
-final class ServiceWithNoTypeHint
+class ServiceWithNoTypeHint
 {
+    /**
+     * @param mixed $param
+     */
     public function __construct(
         public $param
     ) {
