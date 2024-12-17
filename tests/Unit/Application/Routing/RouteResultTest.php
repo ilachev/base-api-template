@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Routing;
+namespace Tests\Unit\Application\Routing;
 
 use App\Application\Routing\RouteResult;
 use FastRoute\Dispatcher;

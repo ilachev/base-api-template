@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Handlers;
+namespace Tests\Unit\Application\Handlers;
 
 use App\Application\Handlers\HomeHandler;
 use Nyholm\Psr7\ServerRequest;
