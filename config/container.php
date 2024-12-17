@@ -8,7 +8,9 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
+use Psr\Log\LoggerInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
+use Spiral\RoadRunner\Logger;
 use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
 
@@ -20,6 +22,11 @@ return static function (Container $container): void {
     $container->set(
         Worker::class,
         static fn(): WorkerInterface => Worker::create()
+    );
+
+    $container->set(
+        Logger::class,
+        static fn(): LoggerInterface => $container->get(Worker::class)->getLogger()
     );
 
     $container->set(

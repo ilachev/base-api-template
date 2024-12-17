@@ -9,7 +9,9 @@ use App\Infrastructure\DI\Container;
 use App\Application\Handlers\HandlerInterface;
 use App\Application\Http\RequestHandler;
 use App\Application\Http\JsonResponse;
+use App\Application\Middleware\Pipeline;
 use App\Application\Middleware\AuthMiddleware;
+use App\Application\Middleware\HttpLoggingMiddleware;
 use App\Application\Routing\Router;
 use Spiral\RoadRunner\Http\PSR7Worker;
 use Spiral\RoadRunner\Worker;
@@ -24,6 +26,7 @@ $worker = $container->get(Worker::class);
 $psr7 = $container->get(PSR7Worker::class);
 $router = $container->get(Router::class);
 $authMiddleware = $container->get(AuthMiddleware::class);
+$httpLoggingMiddleware = $container->get(HttpLoggingMiddleware::class);
 $jsonResponse = $container->get(JsonResponse::class);
 
 while (true) {
@@ -47,10 +50,16 @@ while (true) {
         $handlerClass = $routeResult->getHandler();
         /** @var HandlerInterface $handler */
         $handler = $container->get($handlerClass);
-        $requestHandler = new RequestHandler($handler);
-        $request = $request->withAttribute('routeParams', $routeResult->getParams());
+        $request = $request
+            ->withAttribute('requestId', uniqid())
+            ->withAttribute('routeParams', $routeResult->getParams())
+        ;
 
-        $response = $authMiddleware->process($request, $requestHandler);
+        $response = new Pipeline(
+            new RequestHandler($handler),
+            [$authMiddleware, $httpLoggingMiddleware]
+        )->handle($request);
+
         $psr7->respond($response);
     } catch (Throwable $e) {
         $response = $jsonResponse->error(ApiError::INTERNAL_ERROR, 500);
