@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Application\Handlers;
 
 use App\Application\Handlers\HomeHandler;
+use App\Application\Http\JsonResponse;
+use JsonException;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 
@@ -14,9 +16,12 @@ final class HomeHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new HomeHandler();
+        $this->handler = new HomeHandler(new JsonResponse());
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testHandleReturnsWelcomeMessage(): void
     {
         $request = new ServerRequest('GET', '/');
@@ -28,9 +33,13 @@ final class HomeHandlerTest extends TestCase
             $response->getHeaderLine('Content-Type')
         );
 
-        $body = json_decode((string)$response->getBody(), true);
+        $responseContent = (string)$response->getBody();
+        $body = json_decode($responseContent, true, 512, JSON_THROW_ON_ERROR);
+
         self::assertIsArray($body);
-        self::assertArrayHasKey('message', $body);
-        self::assertEquals('Welcome to our API', $body['message']);
+        self::assertArrayHasKey('data', $body);
+        self::assertIsArray($body['data']);
+        self::assertArrayHasKey('message', $body['data']);
+        self::assertEquals('Welcome to our API', $body['data']['message']);
     }
 }

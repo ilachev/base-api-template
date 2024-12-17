@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Application\Routing\Router;
-use App\Application\Middleware\AuthMiddleware;
 use App\Infrastructure\DI\Container;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
@@ -15,11 +13,6 @@ use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
 
 return static function (Container $container): void {
-    $container->set(
-        Psr17Factory::class,
-        static fn(): Psr17Factory => new Psr17Factory()
-    );
-
     $container->bind(ServerRequestFactoryInterface::class, Psr17Factory::class);
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
@@ -51,15 +44,5 @@ return static function (Container $container): void {
                 $uploadFactory
             );
         }
-    );
-
-    $container->set(
-        Router::class,
-        static fn(): Router => new Router()
-    );
-
-    $container->set(
-        AuthMiddleware::class,
-        static fn(): AuthMiddleware => new AuthMiddleware()
     );
 };

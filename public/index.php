@@ -2,27 +2,29 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
+use App\Application\Error\ApiError;
 use App\Infrastructure\DI\Container;
 use App\Application\Handlers\HandlerInterface;
 use App\Application\Http\RequestHandler;
+use App\Application\Http\JsonResponse;
 use App\Application\Middleware\AuthMiddleware;
 use App\Application\Routing\Router;
-use Nyholm\Psr7\Response;
 use Spiral\RoadRunner\Http\PSR7Worker;
 use Spiral\RoadRunner\Worker;
 
 /** @var callable(Container<object>): void $containerConfig */
-$containerConfig = require __DIR__ . '/config/container.php';
+$containerConfig = require __DIR__ . '/../config/container.php';
 
 $container = new Container();
 $containerConfig($container);
 
-$worker = Worker::create();
+$worker = $container->get(Worker::class);
 $psr7 = $container->get(PSR7Worker::class);
 $router = $container->get(Router::class);
 $authMiddleware = $container->get(AuthMiddleware::class);
+$jsonResponse = $container->get(JsonResponse::class);
 
 while (true) {
     try {
@@ -33,33 +35,26 @@ while (true) {
 
         $routeResult = $router->dispatch($request);
         if (!$routeResult->isFound()) {
-            $errorJson = json_encode(['error' => 'Route not found']);
-            if ($errorJson === false) {
-                $errorJson = '{"error":"Route not found"}';
-            }
-
-            $psr7->respond(new Response(
-                $routeResult->getStatusCode(),
-                ['Content-Type' => 'application/json'],
-                $errorJson
-            ));
+            $response = $jsonResponse->error(
+                ApiError::NOT_FOUND,
+                $routeResult->getStatusCode()
+            );
+            $psr7->respond($response);
             continue;
         }
 
         /** @var class-string<HandlerInterface> $handlerClass */
         $handlerClass = $routeResult->getHandler();
-
         /** @var HandlerInterface $handler */
         $handler = $container->get($handlerClass);
-
         $requestHandler = new RequestHandler($handler);
-
         $request = $request->withAttribute('routeParams', $routeResult->getParams());
-        $response = $authMiddleware->process($request, $requestHandler);
 
+        $response = $authMiddleware->process($request, $requestHandler);
         $psr7->respond($response);
-    } catch (\Throwable $e) {
-        $psr7->respond(new Response(500, [], 'Internal Server Error'));
+    } catch (Throwable $e) {
+        $response = $jsonResponse->error(ApiError::INTERNAL_ERROR, 500);
+        $psr7->respond($response);
         $worker->error((string)$e);
     }
 }
