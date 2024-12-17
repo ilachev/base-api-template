@@ -5,9 +5,10 @@ server:
 
 http:
   address: 0.0.0.0:8080
+  middleware: [ "http_metrics" ]
   pool:
     allocate_timeout: 10s
-    num_workers: 5
+    num_workers: 3
 
 rpc:
   listen: tcp://127.0.0.1:6001
@@ -19,3 +20,6 @@ logs:
 
 status:
   address: 127.0.0.1:2114
+
+metrics:
+  address: 127.0.0.1:2112

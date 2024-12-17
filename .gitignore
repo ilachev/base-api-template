@@ -1,4 +1,5 @@
 .pid
 .phpunit.result.cache
 
+db
 vendor

@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Infrastructure\DI\Container;
+use App\Infrastructure\Storage\Migration\MigrationRepository;
+use App\Infrastructure\Storage\SQLiteStorage;
+use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
@@ -18,6 +21,7 @@ return static function (Container $container): void {
     $container->bind(ServerRequestFactoryInterface::class, Psr17Factory::class);
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
+    $container->bind(StorageInterface::class, SQLiteStorage::class);
 
     $container->set(
         Worker::class,
@@ -50,6 +54,29 @@ return static function (Container $container): void {
                 $streamFactory,
                 $uploadFactory
             );
+        }
+    );
+
+    $container->set(
+        SQLiteStorage::class,
+        static function () {
+            $databasePath = __DIR__ . '/../db/app.sqlite';
+            $databaseDir = dirname($databasePath);
+
+            if (!is_dir($databaseDir)) {
+                mkdir($databaseDir, 0755, true);
+            }
+
+            return new SQLiteStorage($databasePath);
+        }
+    );
+
+    $container->set(
+        MigrationRepository::class,
+        static function (ContainerInterface $container) {
+            $storage = $container->get(StorageInterface::class);
+
+            return new MigrationRepository($storage);
         }
     );
 };
