@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Application\Handlers\HandlerFactoryInterface;
 use App\Infrastructure\DI\Container;
-use App\Infrastructure\Storage\Migration\MigrationRepository;
+use App\Infrastructure\DI\ContainerHandlerFactory;
+use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -13,7 +15,6 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
-use Spiral\RoadRunner\Logger;
 use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
 
@@ -22,7 +23,9 @@ return static function (Container $container): void {
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
 
+    $container->bind(LoggerInterface::class, RoadRunnerLogger::class);
     $container->bind(StorageInterface::class, SQLiteStorage::class);
+    $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
 
     $container->set(
         Worker::class,
@@ -30,13 +33,9 @@ return static function (Container $container): void {
     );
 
     $container->set(
-        Logger::class,
-        static fn(): LoggerInterface => $container->get(Worker::class)->getLogger()
-    );
-
-    $container->set(
         PSR7Worker::class,
-        static function (ContainerInterface $container): PSR7Worker {
+        static function (ContainerInterface $container): PSR7Worker
+        {
             /** @var WorkerInterface $worker */
             $worker = $container->get(Worker::class);
 
@@ -60,7 +59,8 @@ return static function (Container $container): void {
 
     $container->set(
         SQLiteStorage::class,
-        static function () {
+        static function (): SQLiteStorage
+        {
             $databasePath = __DIR__ . '/../db/app.sqlite';
             $databaseDir = dirname($databasePath);
 
@@ -69,16 +69,6 @@ return static function (Container $container): void {
             }
 
             return new SQLiteStorage($databasePath);
-        }
-    );
-
-    $container->set(
-        MigrationRepository::class,
-        static function (ContainerInterface $container) {
-            /** @var StorageInterface $storage */
-            $storage = $container->get(StorageInterface::class);
-
-            return new MigrationRepository($storage);
         }
     );
 };

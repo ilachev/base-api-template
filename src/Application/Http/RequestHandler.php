@@ -11,11 +11,9 @@ use App\Application\Handlers\HandlerInterface;
 
 final readonly class RequestHandler implements RequestHandlerInterface
 {
-    private HandlerInterface $handler;
-
-    public function __construct(HandlerInterface $handler)
-    {
-        $this->handler = $handler;
+    public function __construct(
+        private HandlerInterface $handler
+    ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface

@@ -8,14 +8,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Spiral\RoadRunner\Logger;
+use Psr\Log\LoggerInterface;
 
 final readonly class HttpLoggingMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private Logger $logger
-    ) {
-    }
+        private LoggerInterface $logger
+    ) {}
 
     public function process(
         ServerRequestInterface $request,
