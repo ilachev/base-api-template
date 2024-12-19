@@ -23,6 +23,6 @@ final readonly class RouteHandlerResolver implements RequestHandlerInterface
 
         $handler = $this->handlerFactory->create($handlerClass);
 
-        return new RequestHandler($handler)->handle($request);
+        return $handler->handle($request);
     }
 }
