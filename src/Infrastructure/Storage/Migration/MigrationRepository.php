@@ -8,8 +8,6 @@ use App\Infrastructure\Storage\StorageInterface;
 
 final readonly class MigrationRepository
 {
-    private const string TABLE_NAME = 'migrations';
-
     public function __construct(
         private StorageInterface $storage
     ) {
@@ -29,11 +27,12 @@ final readonly class MigrationRepository
     }
 
     /**
-     * @return array<string>
+     * @return list<scalar|null>
      */
     public function getExecutedMigrations(): array
     {
         $result = $this->storage->query('SELECT version FROM migrations ORDER BY version');
+
         return array_column($result, 'version');
     }
 

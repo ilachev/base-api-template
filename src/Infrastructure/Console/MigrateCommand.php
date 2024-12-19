@@ -18,7 +18,7 @@ final readonly class MigrateCommand
     }
 
     /**
-     * @return array<class-string<MigrationInterface>>
+     * @return list<class-string<MigrationInterface>>
      */
     private function findMigrations(): array
     {
@@ -46,7 +46,7 @@ final readonly class MigrateCommand
             if (!$reflection->implementsInterface(MigrationInterface::class)) {
                 continue;
             }
-
+            /** @var class-string<MigrationInterface> $className */
             $migrations[] = $className;
         }
 

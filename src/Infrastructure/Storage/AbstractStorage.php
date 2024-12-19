@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use PDO;
+use Throwable;
 
 abstract class AbstractStorage implements StorageInterface
 {
     protected PDO $connection;
 
+    /**
+     * @throws Throwable
+     */
     public function transaction(callable $callback): mixed
     {
         $this->connection->beginTransaction();
@@ -23,8 +27,17 @@ abstract class AbstractStorage implements StorageInterface
         }
     }
 
+    /**
+     * @throws StorageException
+     */
     public function lastInsertId(): string
     {
-        return $this->connection->lastInsertId();
+        $id = $this->connection->lastInsertId();
+
+        if ($id === false) {
+            throw new StorageException('Failed to get last insert ID');
+        }
+
+        return $id;
     }
 }

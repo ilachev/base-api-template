@@ -75,6 +75,7 @@ return static function (Container $container): void {
     $container->set(
         MigrationRepository::class,
         static function (ContainerInterface $container) {
+            /** @var StorageInterface $storage */
             $storage = $container->get(StorageInterface::class);
 
             return new MigrationRepository($storage);
