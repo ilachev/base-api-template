@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
-use App\Application\Error\ApiError;
+use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -34,7 +34,7 @@ final readonly class ErrorHandlerMiddleware implements MiddlewareInterface
             $this->logger->error((string)$e);
 
             return $this->jsonResponse->error(
-                ApiError::INTERNAL_ERROR,
+                Error::INTERNAL_ERROR,
                 500
             );
         }

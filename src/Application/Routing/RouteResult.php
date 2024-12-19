@@ -4,39 +4,30 @@ declare(strict_types=1);
 
 namespace App\Application\Routing;
 
-use FastRoute\Dispatcher;
-
 final readonly class RouteResult
 {
-    private const array STATUS_CODES = [
-        Dispatcher::FOUND => 200,
-        Dispatcher::METHOD_NOT_ALLOWED => 405,
-        Dispatcher::NOT_FOUND => 404
-    ];
-
-    /**
-     * @param array{0: int, 1?: string, 2?: array<string, string>} $routeInfo
-     */
     public function __construct(
-        private array $routeInfo
+        private RouteStatus $status,
+        private ?string $handler = null,
+        /** @var array<string, string> */
+        private array $params = []
     ) {}
 
     public function isFound(): bool
     {
-        return isset($this->routeInfo[0]) && $this->routeInfo[0] === Dispatcher::FOUND;
+        return $this->status === RouteStatus::FOUND;
     }
 
     public function getHandler(): string
     {
         if (!$this->isFound()) {
-            throw new \RuntimeException('Route not found');
+            throw RouteException::routeNotFound();
+        }
+        if ($this->handler === null) {
+            throw RouteException::handlerNotFound();
         }
 
-        if (!isset($this->routeInfo[1])) {
-            throw new \RuntimeException('Handler not found');
-        }
-
-        return $this->routeInfo[1];
+        return $this->handler;
     }
 
     /**
@@ -45,16 +36,14 @@ final readonly class RouteResult
     public function getParams(): array
     {
         if (!$this->isFound()) {
-            throw new \RuntimeException('Route not found');
+            throw RouteException::routeNotFound();
         }
 
-        return $this->routeInfo[2] ?? [];
+        return $this->params;
     }
 
     public function getStatusCode(): int
     {
-        $status = $this->routeInfo[0] ?? Dispatcher::NOT_FOUND;
-
-        return self::STATUS_CODES[$status] ?? 500;
+        return $this->status->getStatusCode();
     }
 }

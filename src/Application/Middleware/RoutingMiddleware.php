@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
-use App\Application\Error\ApiError;
+use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
-use App\Application\Routing\Router;
+use App\Application\Routing\RouterInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,7 +16,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 final readonly class RoutingMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private Router $router,
+        private RouterInterface $router,
         private JsonResponse $jsonResponse,
     ) {}
 
@@ -31,7 +31,7 @@ final readonly class RoutingMiddleware implements MiddlewareInterface
 
         if (!$routeResult->isFound()) {
             return $this->jsonResponse->error(
-                ApiError::NOT_FOUND,
+                Error::NOT_FOUND,
                 $routeResult->getStatusCode()
             );
         }

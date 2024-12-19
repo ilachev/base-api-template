@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handlers;
 
-use App\Application\Error\ApiError;
+use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -29,7 +29,7 @@ readonly abstract class AbstractJsonHandler implements HandlerInterface
     /**
      * @throws JsonException
      */
-    protected function jsonError(ApiError $error, int $status = 400): ResponseInterface
+    protected function jsonError(Error $error, int $status = 400): ResponseInterface
     {
         return $this->jsonResponse->error($error, $status);
     }

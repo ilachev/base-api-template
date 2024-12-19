@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 use App\Application\Handlers\HandlerFactoryInterface;
+use App\Application\Routing\RouteDefinition;
+use App\Application\Routing\RouteDefinitionInterface;
+use App\Application\Routing\RouterInterface;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
 use App\Infrastructure\Logger\RoadRunnerLogger;
+use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -26,6 +30,8 @@ return static function (Container $container): void {
     $container->bind(LoggerInterface::class, RoadRunnerLogger::class);
     $container->bind(StorageInterface::class, SQLiteStorage::class);
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
+    $container->bind(RouterInterface::class, FastRouteAdapter::class);
+    $container->bind(RouteDefinitionInterface::class, RouteDefinition::class);
 
     $container->set(
         Worker::class,

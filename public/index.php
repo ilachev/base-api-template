@@ -7,7 +7,6 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Application\Http\RouteHandlerResolver;
 use App\Infrastructure\DI\Container;
 use Spiral\RoadRunner\Http\PSR7Worker;
-use Spiral\RoadRunner\Worker;
 use App\Application\Middleware\Pipeline;
 use App\Application\Middleware\ErrorHandlerMiddleware;
 use App\Application\Middleware\RoutingMiddleware;
@@ -21,7 +20,6 @@ $containerConfig = require __DIR__ . '/../config/container.php';
 $container = new Container();
 $containerConfig($container);
 
-$worker = $container->get(Worker::class);
 $psr7 = $container->get(PSR7Worker::class);
 
 $middlewares = [

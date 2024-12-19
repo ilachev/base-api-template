@@ -7,7 +7,7 @@ namespace App\Application\Http;
 use JsonException;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
-use App\Application\Error\ApiError;
+use App\Application\Error\Error;
 
 final readonly class JsonResponse
 {
@@ -23,7 +23,7 @@ final readonly class JsonResponse
     /**
      * @throws JsonException
      */
-    public function error(ApiError $error, int $status): ResponseInterface
+    public function error(Error $error, int $status): ResponseInterface
     {
         return $this->encode(['error' => ['message' => $error->text()]], $status);
     }
