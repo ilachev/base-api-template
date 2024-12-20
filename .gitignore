@@ -1,5 +1,5 @@
 .pid
 .phpunit.result.cache
 
-db
+db/app.sqlite
 vendor

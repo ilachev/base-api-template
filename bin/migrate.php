@@ -7,6 +7,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Infrastructure\Console\MigrateCommand;
 use App\Infrastructure\DI\Container;
+use App\Infrastructure\Storage\Migration\MigrationService;
 
 /** @var callable(Container<object>): void $containerConfig */
 $containerConfig = require __DIR__ . '/../config/container.php';
@@ -14,7 +15,7 @@ $containerConfig = require __DIR__ . '/../config/container.php';
 $container = new Container();
 $containerConfig($container);
 
-$service = $container->get(\App\Infrastructure\Storage\Migration\MigrationService::class);
+$service = $container->get(MigrationService::class);
 $command = new MigrateCommand($service);
 
 $action = $argv[1] ?? 'migrate';
