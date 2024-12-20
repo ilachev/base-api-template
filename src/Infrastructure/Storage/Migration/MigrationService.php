@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Migration;
@@ -34,8 +33,15 @@ final class MigrationService
         foreach ($this->migrations as $migration) {
             $version = $migration->getVersion();
             if (!in_array($version, $executedMigrations, true)) {
-                $sql = $migration->up();
-                $this->storage->execute($sql);
+                $sqlQueries = array_filter(
+                    array_map('trim', explode(';', $migration->up())),
+                    static fn(string $sql): bool => !empty($sql)
+                );
+
+                foreach ($sqlQueries as $sql) {
+                    $this->storage->execute($sql);
+                }
+
                 $this->repository->add($version);
             }
         }
@@ -59,8 +65,15 @@ final class MigrationService
 
         foreach ($migrations as $migration) {
             $version = $migration->getVersion();
-            $sql = $migration->down();
-            $this->storage->execute($sql);
+            $sqlQueries = array_filter(
+                array_map('trim', explode(';', $migration->down())),
+                static fn(string $sql): bool => !empty($sql)
+            );
+
+            foreach ($sqlQueries as $sql) {
+                $this->storage->execute($sql);
+            }
+
             $this->repository->remove($version);
         }
     }
