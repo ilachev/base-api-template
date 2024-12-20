@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Migration;
@@ -23,6 +24,7 @@ final class MigrationService
     public function migrate(): void
     {
         $executedMigrations = $this->repository->getExecutedMigrations();
+        $processedVersions = [];
 
         usort(
             $this->migrations,
@@ -32,6 +34,10 @@ final class MigrationService
 
         foreach ($this->migrations as $migration) {
             $version = $migration->getVersion();
+            if (in_array($version, $processedVersions, true)) {
+                continue;
+            }
+
             if (!in_array($version, $executedMigrations, true)) {
                 $sqlQueries = array_filter(
                     array_map('trim', explode(';', $migration->up())),
@@ -44,6 +50,8 @@ final class MigrationService
 
                 $this->repository->add($version);
             }
+
+            $processedVersions[] = $version;
         }
     }
 

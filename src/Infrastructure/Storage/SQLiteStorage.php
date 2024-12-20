@@ -1,9 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
 use PDO;
+use PDOException;
 
 final class SQLiteStorage extends AbstractStorage
 {
@@ -17,24 +19,34 @@ final class SQLiteStorage extends AbstractStorage
     /**
      * @param array<string, scalar|null> $params
      * @return list<array<string, scalar|null>>
+     * @throws StorageException
      */
     public function query(string $sql, array $params = []): array
     {
-        $statement = $this->connection->prepare($sql);
-        $statement->execute($params);
-        /** @var array<array-key, array<string, scalar|null>> $result */
-        $result = $statement->fetchAll();
+        try {
+            $statement = $this->connection->prepare($sql);
+            $statement->execute($params);
+            /** @var array<array-key, array<string, scalar|null>> $result */
+            $result = $statement->fetchAll();
 
-        return array_values($result);
+            return array_values($result);
+        } catch (PDOException $e) {
+            throw new StorageException($e->getMessage(), 0, $e);
+        }
     }
 
     /**
      * @param array<string, scalar|null> $params
+     * @throws StorageException
      */
     public function execute(string $sql, array $params = []): bool
     {
-        $statement = $this->connection->prepare($sql);
+        try {
+            $statement = $this->connection->prepare($sql);
 
-        return $statement->execute($params);
+            return $statement->execute($params);
+        } catch (PDOException $e) {
+            throw new StorageException($e->getMessage(), 0, $e);
+        }
     }
 }
