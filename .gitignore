@@ -2,4 +2,5 @@
 .phpunit.result.cache
 
 db/app.sqlite
-vendor
+vendor/
+.task/

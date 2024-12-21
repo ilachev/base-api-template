@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  verify:
+    desc: Run all checks
+    deps: [phpstan, test]
+
+  phpstan:
+    desc: Run static analysis
+    cmds:
+      - vendor/bin/phpstan analyse
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - vendor/bin/phpunit --colors=always
