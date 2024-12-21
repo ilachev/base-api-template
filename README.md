@@ -1,7 +1,7 @@
 ## Conventions
 
 ### DTO
-The project uses a unified approach to creating DTOs - only public properties through promoted constructor:
+All DTOs are final readonly classes with public promoted properties:
 
 ```php
 final readonly class Session
