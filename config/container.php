@@ -8,6 +8,8 @@ use App\Application\Routing\RouteDefinitionInterface;
 use App\Application\Routing\RouterInterface;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
+use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\SQLiteStorage;
@@ -32,6 +34,7 @@ return static function (Container $container): void {
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
     $container->bind(RouterInterface::class, FastRouteAdapter::class);
     $container->bind(RouteDefinitionInterface::class, RouteDefinition::class);
+    $container->bind(HydratorInterface::class, Hydrator::class);
 
     $container->set(
         Worker::class,
