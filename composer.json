@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": ["src/", "protos/gen/App/"]
         }
     },
     "autoload-dev": {

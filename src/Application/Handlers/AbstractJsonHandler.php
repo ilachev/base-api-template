@@ -18,10 +18,9 @@ readonly abstract class AbstractJsonHandler implements HandlerInterface
 
     /**
      * /**
-     * @param array<string, mixed> $data
      * @throws JsonException
      */
-    protected function jsonResponse(array $data, int $status = 200): ResponseInterface
+    protected function jsonResponse(string $data, int $status = 200): ResponseInterface
     {
         return $this->jsonResponse->success($data, $status);
     }

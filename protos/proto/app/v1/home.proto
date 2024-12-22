@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package app.v1;
+
+import "google/api/annotations.proto";
+
+option php_namespace = "App\\Api\\V1";
+option php_metadata_namespace = "App\\Api\\V1\\Metadata";
+
+service HomeService {
+  rpc Home (HomeRequest) returns (HomeResponse) {
+    option (google.api.http) = {
+      get: "/v1"
+    };
+  }
+}
+
+message HomeRequest {
+}
+
+message HomeResponse {
+  HomeData data = 2;
+}
+
+message HomeData {
+  string message = 1;
+}
