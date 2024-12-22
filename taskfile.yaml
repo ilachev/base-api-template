@@ -29,3 +29,13 @@ tasks:
         --php_opt=aggregate_metadata
         {{.PROTO_DIR}}/app/v1/*.proto
         {{.PROTO_DIR}}/google/api/*.proto
+
+  perf:test:
+    desc: Run performance tests
+    cmds:
+      - k6 run load-tests/scenarios/{{.CLI_ARGS | default "home.js"}}
+
+  perf:test:all:
+    desc: Run all performance tests
+    cmds:
+      - for f in load-tests/scenarios/*.js; do k6 run "$f"; done
