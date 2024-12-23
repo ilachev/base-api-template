@@ -105,8 +105,12 @@ class Container implements ContainerInterface
      */
     private function resolve(string $id): object
     {
-        if (!class_exists($id)) {
-            throw new ContainerException("Class $id does not exist");
+        if (!interface_exists($id) && !class_exists($id)) {
+            throw new ContainerException("Class or interface $id does not exist");
+        }
+
+        if (interface_exists($id) && !isset($this->aliases[$id])) {
+            throw new ContainerException("No binding found for interface $id");
         }
 
         $reflection = new ReflectionClass($id);

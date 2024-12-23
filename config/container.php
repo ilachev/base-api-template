@@ -25,6 +25,8 @@ use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
 
 return static function (Container $container): void {
+    $container->bind(ContainerInterface::class, Container::class);
+
     $container->bind(ServerRequestFactoryInterface::class, Psr17Factory::class);
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
@@ -80,4 +82,6 @@ return static function (Container $container): void {
             return new SQLiteStorage($databasePath);
         }
     );
+
+    $container->set(Container::class, static fn() => $container);
 };
