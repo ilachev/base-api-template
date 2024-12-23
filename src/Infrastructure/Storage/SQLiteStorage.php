@@ -12,6 +12,14 @@ final class SQLiteStorage extends AbstractStorage
     public function __construct(string $path)
     {
         $this->connection = new PDO("sqlite:{$path}");
+
+        $this->connection->exec('PRAGMA journal_mode = WAL');
+        $this->connection->exec('PRAGMA read_uncommitted = ON');
+        $this->connection->exec('PRAGMA cache_size = -4000');
+        $this->connection->exec('PRAGMA synchronous = NORMAL');
+        $this->connection->exec('PRAGMA page_size = 4096');
+        $this->connection->exec('PRAGMA wal_autocheckpoint = 1000');
+
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     }
