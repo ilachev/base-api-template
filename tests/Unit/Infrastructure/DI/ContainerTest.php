@@ -136,7 +136,7 @@ final class ContainerTest extends TestCase
     {
         // Assert
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Class NonExistentClass does not exist');
+        $this->expectExceptionMessage('Class or interface NonExistentClass does not exist');
 
         // Act
         /** @var class-string<object> $nonExistentClass */
