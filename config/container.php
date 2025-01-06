@@ -37,19 +37,18 @@ return static function (Container $container): void {
     $container->bind(RouterInterface::class, FastRouteAdapter::class);
     $container->set(
         RouteDefinitionInterface::class,
-        static fn() => new RouteDefinition(__DIR__ . '/routes.php')
+        static fn() => new RouteDefinition(__DIR__ . '/routes.php'),
     );
     $container->bind(HydratorInterface::class, Hydrator::class);
 
     $container->set(
         Worker::class,
-        static fn(): WorkerInterface => Worker::create()
+        static fn(): WorkerInterface => Worker::create(),
     );
 
     $container->set(
         PSR7Worker::class,
-        static function (ContainerInterface $container): PSR7Worker
-        {
+        static function (ContainerInterface $container): PSR7Worker {
             /** @var WorkerInterface $worker */
             $worker = $container->get(Worker::class);
 
@@ -66,24 +65,23 @@ return static function (Container $container): void {
                 $worker,
                 $requestFactory,
                 $streamFactory,
-                $uploadFactory
+                $uploadFactory,
             );
-        }
+        },
     );
 
     $container->set(
         SQLiteStorage::class,
-        static function (): SQLiteStorage
-        {
+        static function (): SQLiteStorage {
             $databasePath = __DIR__ . '/../db/app.sqlite';
             $databaseDir = dirname($databasePath);
 
             if (!is_dir($databaseDir)) {
-                mkdir($databaseDir, 0755, true);
+                mkdir($databaseDir, 0o755, true);
             }
 
             return new SQLiteStorage($databasePath);
-        }
+        },
     );
 
     $container->set(Container::class, static fn() => $container);

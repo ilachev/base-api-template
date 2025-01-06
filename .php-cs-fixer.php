@@ -15,6 +15,14 @@ $config = new Config()
             ])
             ->append(
                 Finder::create()
+                    ->in(__DIR__ . '/bin'),
+            )
+            ->append(
+                Finder::create()
+                    ->in(__DIR__ . '/config'),
+            )
+            ->append(
+                Finder::create()
                     ->in(__DIR__ . '/tests'),
             ),
     )
