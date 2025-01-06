@@ -6,19 +6,17 @@ namespace App\Application\Handlers;
 
 use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 
-readonly abstract class AbstractJsonHandler implements HandlerInterface
+abstract readonly class AbstractJsonHandler implements HandlerInterface
 {
     public function __construct(
-        private JsonResponse $jsonResponse
-    ) {
-    }
+        private JsonResponse $jsonResponse,
+    ) {}
 
     /**
      * /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     protected function jsonResponse(string $data, int $status = 200): ResponseInterface
     {
@@ -26,7 +24,7 @@ readonly abstract class AbstractJsonHandler implements HandlerInterface
     }
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     protected function jsonError(Error $error, int $status = 400): ResponseInterface
     {

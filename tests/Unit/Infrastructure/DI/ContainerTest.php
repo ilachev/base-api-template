@@ -7,23 +7,23 @@ namespace Tests\Unit\Infrastructure\DI;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerException;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Tests\Unit\Infrastructure\DI\Fixtures\{
-    SimpleClass,
+    Circular1,
     Dependency,
-    ServiceWithDependency,
+    Implementation1,
+    Implementation2,
     NestedDependency,
     ParentDependency,
-    ServiceWithNestedDependency,
-    ServiceWithDefaultValue,
     ServiceWithBuiltinType,
-    ServiceWithUnionType,
+    ServiceWithDefaultValue,
+    ServiceWithDependency,
+    ServiceWithNestedDependency,
     ServiceWithNoTypeHint,
-    Circular1,
-    TestInterface,
-    Implementation1,
-    Implementation2
+    ServiceWithUnionType,
+    SimpleClass,
+    TestInterface
 };
-use Psr\Container\ContainerInterface;
 
 final class ContainerTest extends TestCase
 {
@@ -41,7 +41,7 @@ final class ContainerTest extends TestCase
     {
         // Arrange
         $service = new \stdClass();
-        $this->container->set(\stdClass::class, fn() => $service);
+        $this->container->set(\stdClass::class, static fn() => $service);
 
         // Act
         $result = $this->container->get(\stdClass::class);
@@ -53,7 +53,7 @@ final class ContainerTest extends TestCase
     public function testServiceIsSingleton(): void
     {
         // Arrange
-        $this->container->set(\stdClass::class, fn() => new \stdClass());
+        $this->container->set(\stdClass::class, static fn() => new \stdClass());
 
         // Act
         $first = $this->container->get(\stdClass::class);
@@ -67,7 +67,7 @@ final class ContainerTest extends TestCase
     {
         // Arrange
         $implementation = new Implementation1();
-        $this->container->set(Implementation1::class, fn() => $implementation);
+        $this->container->set(Implementation1::class, static fn() => $implementation);
         $this->container->bind(TestInterface::class, Implementation1::class);
 
         // Act
@@ -80,7 +80,7 @@ final class ContainerTest extends TestCase
     public function testHasReturnsTrueForRegisteredService(): void
     {
         // Arrange
-        $this->container->set(\stdClass::class, fn() => new \stdClass());
+        $this->container->set(\stdClass::class, static fn() => new \stdClass());
 
         // Act & Assert
         self::assertTrue($this->container->has(\stdClass::class));
@@ -143,6 +143,7 @@ final class ContainerTest extends TestCase
         $nonExistentClass = 'NonExistentClass';
         $this->container->get($nonExistentClass);
     }
+
     public function testGetWithUnresolvableBuiltinTypeThrowsException(): void
     {
         // Assert
@@ -186,8 +187,9 @@ final class ContainerTest extends TestCase
     {
         // Arrange
         $containerPassed = null;
-        $this->container->set(\stdClass::class, function (ContainerInterface $container) use (&$containerPassed) {
+        $this->container->set(\stdClass::class, static function (ContainerInterface $container) use (&$containerPassed) {
             $containerPassed = $container;
+
             return new \stdClass();
         });
 

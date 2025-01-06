@@ -6,13 +6,11 @@ namespace App\Application\Middleware;
 
 use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 final readonly class ErrorHandlerMiddleware implements MiddlewareInterface
 {
@@ -22,20 +20,20 @@ final readonly class ErrorHandlerMiddleware implements MiddlewareInterface
     ) {}
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler
+        RequestHandlerInterface $handler,
     ): ResponseInterface {
         try {
             return $handler->handle($request);
-        } catch (Throwable $e) {
-            $this->logger->error((string)$e);
+        } catch (\Throwable $e) {
+            $this->logger->error((string) $e);
 
             return $this->jsonResponse->error(
                 Error::INTERNAL_ERROR,
-                500
+                500,
             );
         }
     }

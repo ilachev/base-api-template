@@ -8,8 +8,7 @@ final readonly class EntityWithPrivateProperty
 {
     public function __construct(
         private string $privateField = '',
-    ) {
-    }
+    ) {}
 
     public function getPrivateField(): string
     {

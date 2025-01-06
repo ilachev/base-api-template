@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Http;
 
-use JsonException;
+use App\Application\Error\Error;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
-use App\Application\Error\Error;
 
 final readonly class JsonResponse
 {
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function success(string $data, int $status = 200): ResponseInterface
     {
@@ -20,7 +19,7 @@ final readonly class JsonResponse
     }
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function error(Error $error, int $status): ResponseInterface
     {
@@ -28,7 +27,7 @@ final readonly class JsonResponse
     }
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     private function encode(string $data, int $status): ResponseInterface
     {
@@ -36,16 +35,16 @@ final readonly class JsonResponse
             return new Response(
                 $status,
                 ['Content-Type' => 'application/json'],
-                $data
+                $data,
             );
-        } catch (JsonException) {
+        } catch (\JsonException) {
             return new Response(
                 500,
                 ['Content-Type' => 'application/json'],
                 json_encode(
                     ['error' => $data],
-                    JSON_THROW_ON_ERROR
-                )
+                    JSON_THROW_ON_ERROR,
+                ),
             );
         }
     }

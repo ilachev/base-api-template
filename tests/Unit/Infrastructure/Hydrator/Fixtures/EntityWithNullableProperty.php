@@ -8,6 +8,5 @@ final readonly class EntityWithNullableProperty
 {
     public function __construct(
         public ?string $nullableField,
-    ) {
-    }
+    ) {}
 }

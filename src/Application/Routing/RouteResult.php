@@ -10,7 +10,7 @@ final readonly class RouteResult
         private RouteStatus $status,
         private ?string $handler = null,
         /** @var array<string, string> */
-        private array $params = []
+        private array $params = [],
     ) {}
 
     public function isFound(): bool

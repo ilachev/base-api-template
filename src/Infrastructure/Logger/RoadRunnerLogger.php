@@ -11,7 +11,7 @@ use Spiral\RoadRunner\Logger;
 final readonly class RoadRunnerLogger implements LoggerInterface
 {
     public function __construct(
-        private Logger $logger
+        private Logger $logger,
     ) {}
 
     public function emergency(string|\Stringable $message, array $context = []): void
@@ -56,6 +56,6 @@ final readonly class RoadRunnerLogger implements LoggerInterface
 
     public function log($level, string|\Stringable $message, array $context = []): void
     {
-        $this->logger->log($level, (string)$message, $context);
+        $this->logger->log($level, (string) $message, $context);
     }
 }

@@ -10,6 +10,5 @@ final readonly class TestEntity
         public int $id,
         public string $name,
         public bool $initialized = false,
-    ) {
-    }
+    ) {}
 }

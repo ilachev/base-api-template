@@ -13,7 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 final readonly class RouteHandlerResolver implements RequestHandlerInterface
 {
     public function __construct(
-        private HandlerFactoryInterface $handlerFactory
+        private HandlerFactoryInterface $handlerFactory,
     ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface

@@ -3,21 +3,47 @@ version: '3'
 vars:
   PROTO_DIR: protos/proto
   GEN_DIR: protos/gen
+  PHP: php
+  COMPOSER: composer
 
 tasks:
+  install:
+    cmd: "{{.COMPOSER}} install"
+    sources:
+      - composer.json
+    generates:
+      - vendor/autoload.php
+
+  var:
+    cmd: mkdir -p var
+    status:
+      - test -d var
+    silent: true
+    internal: true
+
+  fixcs:
+    deps: [ var, install ]
+    cmds:
+      - "PHP_CS_FIXER_IGNORE_ENV=true {{.PHP}} vendor/bin/php-cs-fixer fix --verbose {{.CLI_ARGS}}"
+
+  lint:
+    cmds:
+      - task: fixcs
+        vars:
+          CLI_ARGS: "--dry-run {{.CLI_ARGS}}"
+
   verify:
-    desc: Run all checks
-    deps: [phpstan, test]
+    deps: [ var, install, phpstan, test ]
 
   phpstan:
-    desc: Run static analysis
+    deps: [ var, install ]
     cmds:
-      - vendor/bin/phpstan analyse
+      - "{{.PHP}} vendor/bin/phpstan analyse {{.CLI_ARGS}}"
 
   test:
-    desc: Run unit tests
+    deps: [ var, install ]
     cmds:
-      - vendor/bin/phpunit --colors=always
+      - "{{.PHP}} vendor/bin/phpunit --colors=always {{.CLI_ARGS}}"
 
   proto:gen:
     desc: Generate PHP classes from proto files
@@ -31,11 +57,11 @@ tasks:
         {{.PROTO_DIR}}/google/api/*.proto
 
   perf:test:
-    desc: Run performance tests
+    deps: [ var, install ]
     cmds:
       - k6 run load-tests/scenarios/{{.CLI_ARGS | default "home.js"}}
 
   perf:test:all:
-    desc: Run all performance tests
+    deps: [ var, install ]
     cmds:
       - for f in load-tests/scenarios/*.js; do k6 run "$f"; done

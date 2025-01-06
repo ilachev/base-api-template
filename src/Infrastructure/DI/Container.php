@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\DI;
 
 use Psr\Container\ContainerInterface;
-use ReflectionClass;
-use ReflectionParameter;
-use ReflectionNamedType;
 
 /**
  * @template-covariant T of object
  */
-class Container implements ContainerInterface
+final class Container implements ContainerInterface
 {
     /**
      * @var array<string, object>
@@ -70,7 +67,7 @@ class Container implements ContainerInterface
         }
 
         if (isset($this->resolving[$concrete])) {
-            throw new ContainerException("Circular dependency detected for $concrete");
+            throw new ContainerException("Circular dependency detected for {$concrete}");
         }
 
         $this->resolving[$concrete] = true;
@@ -84,6 +81,7 @@ class Container implements ContainerInterface
             }
 
             $this->instances[$concrete] = $instance;
+
             /** @var U */
             return $instance;
         } finally {
@@ -94,6 +92,7 @@ class Container implements ContainerInterface
     public function has(string $id): bool
     {
         $concrete = $this->aliases[$id] ?? $id;
+
         return isset($this->instances[$concrete]) || isset($this->definitions[$concrete]);
     }
 
@@ -106,17 +105,17 @@ class Container implements ContainerInterface
     private function resolve(string $id): object
     {
         if (!interface_exists($id) && !class_exists($id)) {
-            throw new ContainerException("Class or interface $id does not exist");
+            throw new ContainerException("Class or interface {$id} does not exist");
         }
 
         if (interface_exists($id) && !isset($this->aliases[$id])) {
-            throw new ContainerException("No binding found for interface $id");
+            throw new ContainerException("No binding found for interface {$id}");
         }
 
-        $reflection = new ReflectionClass($id);
+        $reflection = new \ReflectionClass($id);
 
         if (!$reflection->isInstantiable()) {
-            throw new ContainerException("Class $id is not instantiable");
+            throw new ContainerException("Class {$id} is not instantiable");
         }
 
         $constructor = $reflection->getConstructor();
@@ -133,12 +132,12 @@ class Container implements ContainerInterface
             /** @var U */
             return new $id(...$dependencies);
         } catch (\Throwable $e) {
-            throw new ContainerException("Cannot instantiate $id", 0, $e);
+            throw new ContainerException("Cannot instantiate {$id}", 0, $e);
         }
     }
 
     /**
-     * @param ReflectionParameter[] $parameters
+     * @param \ReflectionParameter[] $parameters
      * @return array<int, mixed>
      * @throws ContainerException
      */
@@ -152,28 +151,30 @@ class Container implements ContainerInterface
             if ($dependency === null) {
                 if ($parameter->isDefaultValueAvailable()) {
                     $dependencies[] = $parameter->getDefaultValue();
+
                     continue;
                 }
 
                 throw new ContainerException(
-                    "Cannot resolve parameter {$parameter->getName()}: no type hint"
+                    "Cannot resolve parameter {$parameter->getName()}: no type hint",
                 );
             }
 
-            if (!$dependency instanceof ReflectionNamedType) {
+            if (!$dependency instanceof \ReflectionNamedType) {
                 throw new ContainerException(
-                    "Cannot resolve union or intersection type for parameter {$parameter->getName()}"
+                    "Cannot resolve union or intersection type for parameter {$parameter->getName()}",
                 );
             }
 
             if ($dependency->isBuiltin()) {
                 if ($parameter->isDefaultValueAvailable()) {
                     $dependencies[] = $parameter->getDefaultValue();
+
                     continue;
                 }
 
                 throw new ContainerException(
-                    "Cannot resolve built-in type for parameter {$parameter->getName()}"
+                    "Cannot resolve built-in type for parameter {$parameter->getName()}",
                 );
             }
 

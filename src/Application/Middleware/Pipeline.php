@@ -12,14 +12,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 final readonly class Pipeline implements RequestHandlerInterface
 {
     /**
-     * @param RequestHandlerInterface $handler
      * @param MiddlewareInterface[] $middlewares
      */
     public function __construct(
         private RequestHandlerInterface $handler,
         private array $middlewares = [],
-    ) {
-    }
+    ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -32,7 +30,7 @@ final readonly class Pipeline implements RequestHandlerInterface
 
         return $middleware->process(
             $request,
-            new self($this->handler, $middlewares)
+            new self($this->handler, $middlewares),
         );
     }
 }

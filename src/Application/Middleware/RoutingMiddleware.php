@@ -7,7 +7,6 @@ namespace App\Application\Middleware;
 use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
 use App\Application\Routing\RouterInterface;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -21,24 +20,24 @@ final readonly class RoutingMiddleware implements MiddlewareInterface
     ) {}
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler
+        RequestHandlerInterface $handler,
     ): ResponseInterface {
         $routeResult = $this->router->dispatch($request);
 
         if (!$routeResult->isFound()) {
             return $this->jsonResponse->error(
                 Error::NOT_FOUND,
-                $routeResult->getStatusCode()
+                $routeResult->getStatusCode(),
             );
         }
 
         return $handler->handle(
             $request->withAttribute('routeParams', $routeResult->getParams())
-                ->withAttribute('handler', $routeResult->getHandler())
+                ->withAttribute('handler', $routeResult->getHandler()),
         );
     }
 }

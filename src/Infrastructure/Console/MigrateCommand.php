@@ -10,7 +10,7 @@ use App\Infrastructure\Storage\Migration\MigrationService;
 final readonly class MigrateCommand
 {
     public function __construct(
-        private MigrationService $migrationService
+        private MigrationService $migrationService,
     ) {
         foreach ($this->findMigrations() as $migrationClass) {
             $this->migrationService->addMigration(new $migrationClass());
@@ -35,7 +35,7 @@ final readonly class MigrateCommand
         }
 
         foreach ($files as $file) {
-            $className = 'App\\Infrastructure\\Storage\\Migration\\' .
+            $className = 'App\Infrastructure\Storage\Migration\\' .
                 basename($file, '.php');
 
             if (!class_exists($className)) {

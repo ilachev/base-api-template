@@ -7,7 +7,6 @@ namespace Tests\Unit\Infrastructure\DI\Fixtures;
 final readonly class ServiceWithDefaultValue
 {
     public function __construct(
-        public string $param = 'default'
-    ) {
-    }
+        public string $param = 'default',
+    ) {}
 }

@@ -7,7 +7,6 @@ namespace Tests\Unit\Infrastructure\DI\Fixtures;
 final readonly class ServiceWithDependency
 {
     public function __construct(
-        public Dependency $dependency
-    ) {
-    }
+        public Dependency $dependency,
+    ) {}
 }

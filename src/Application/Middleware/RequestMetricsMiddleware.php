@@ -13,20 +13,20 @@ final class RequestMetricsMiddleware implements MiddlewareInterface
 {
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler
+        RequestHandlerInterface $handler,
     ): ResponseInterface {
         $startTime = hrtime(true);
         $requestId = uniqid();
 
         $response = $handler->handle(
-            $request->withAttribute('requestId', $requestId)
+            $request->withAttribute('requestId', $requestId),
         );
 
         $executionTime = (hrtime(true) - $startTime) / 1_000_000;
 
         return $response
             ->withHeader('X-Request-ID', $requestId)
-            ->withHeader('X-Response-Time', sprintf('%.2f ms', $executionTime))
-            ->withHeader('Server-Timing', sprintf('app;dur=%.2f', $executionTime));
+            ->withHeader('X-Response-Time', \sprintf('%.2f ms', $executionTime))
+            ->withHeader('Server-Timing', \sprintf('app;dur=%.2f', $executionTime));
     }
 }

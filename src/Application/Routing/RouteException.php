@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Application\Routing;
 
 use App\Application\Error\Error;
-use RuntimeException;
 
-final class RouteException extends RuntimeException
+final class RouteException extends \RuntimeException
 {
     public function __construct(
         private Error $error,
-        string $message
+        string $message,
     ) {
         parent::__construct($message);
     }
@@ -25,7 +24,7 @@ final class RouteException extends RuntimeException
     {
         return new self(
             Error::NOT_FOUND,
-            'Route not found'
+            'Route not found',
         );
     }
 
@@ -33,7 +32,7 @@ final class RouteException extends RuntimeException
     {
         return new self(
             Error::INTERNAL_ERROR,
-            'Handler not found'
+            'Handler not found',
         );
     }
 }

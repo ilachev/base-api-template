@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use Nyholm\Psr7\Response;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -14,7 +14,7 @@ final readonly class AuthMiddleware implements MiddlewareInterface
 {
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler
+        RequestHandlerInterface $handler,
     ): ResponseInterface {
         $token = $request->getHeaderLine('Authorization');
 
@@ -22,7 +22,7 @@ final readonly class AuthMiddleware implements MiddlewareInterface
             return new Response(
                 401,
                 [],
-                'Unauthorized'
+                'Unauthorized',
             );
         }
 

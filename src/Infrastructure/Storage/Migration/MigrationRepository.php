@@ -9,19 +9,19 @@ use App\Infrastructure\Storage\StorageInterface;
 final readonly class MigrationRepository
 {
     public function __construct(
-        private StorageInterface $storage
+        private StorageInterface $storage,
     ) {
         $this->createMigrationsTable();
     }
 
     public function createMigrationsTable(): void
     {
-        $sql = <<<SQL
-            CREATE TABLE IF NOT EXISTS migrations (
-                version TEXT PRIMARY KEY,
-                executed_at INTEGER NOT NULL
-            )
-        SQL;
+        $sql = <<<'SQL'
+                CREATE TABLE IF NOT EXISTS migrations (
+                    version TEXT PRIMARY KEY,
+                    executed_at INTEGER NOT NULL
+                )
+            SQL;
 
         $this->storage->execute($sql);
     }
@@ -43,7 +43,7 @@ final readonly class MigrationRepository
             [
                 'version' => $version,
                 'executed_at' => time(),
-            ]
+            ],
         );
     }
 
@@ -51,7 +51,7 @@ final readonly class MigrationRepository
     {
         $this->storage->execute(
             'DELETE FROM migrations WHERE version = :version',
-            ['version' => $version]
+            ['version' => $version],
         );
     }
 }

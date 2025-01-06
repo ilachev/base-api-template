@@ -10,7 +10,7 @@ use FastRoute\RouteCollector;
 final readonly class FastRouteCollector implements RouteCollectorInterface
 {
     public function __construct(
-        private RouteCollector $collector
+        private RouteCollector $collector,
     ) {}
 
     public function addRoute(string $method, string $path, string $handler): void

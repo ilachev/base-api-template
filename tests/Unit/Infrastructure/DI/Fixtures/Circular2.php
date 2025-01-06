@@ -6,7 +6,5 @@ namespace Tests\Unit\Infrastructure\DI\Fixtures;
 
 final readonly class Circular2
 {
-    public function __construct(public Circular1 $c1)
-    {
-    }
+    public function __construct(public Circular1 $c1) {}
 }

@@ -8,11 +8,11 @@ use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorException;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Infrastructure\Hydrator\Fixtures\{
-    TestEntity,
     EmptyEntity,
     EntityWithNullableProperty,
     EntityWithPrivateProperty,
-    EntityWithProtectedProperty
+    EntityWithProtectedProperty,
+    TestEntity
 };
 
 final class HydratorTest extends TestCase
@@ -52,7 +52,7 @@ final class HydratorTest extends TestCase
             'id' => 1,
             'name' => 'Test',
             'initialized' => true,
-            'extraField' => 'extra'
+            'extraField' => 'extra',
         ];
         $object = $this->hydrator->hydrate(TestEntity::class, $data);
 
@@ -83,7 +83,7 @@ final class HydratorTest extends TestCase
         $this->expectException(HydratorException::class);
         $this->expectExceptionMessage(
             'Class Tests\Unit\Infrastructure\Hydrator\Fixtures\EntityWithPrivateProperty ' .
-            'contains non-public properties: privateField. Only public properties are allowed.'
+            'contains non-public properties: privateField. Only public properties are allowed.',
         );
 
         $this->hydrator->hydrate(EntityWithPrivateProperty::class, ['privateField' => 'test']);
@@ -94,7 +94,7 @@ final class HydratorTest extends TestCase
         $this->expectException(HydratorException::class);
         $this->expectExceptionMessage(
             'Class Tests\Unit\Infrastructure\Hydrator\Fixtures\EntityWithProtectedProperty ' .
-            'contains non-public properties: protectedField. Only public properties are allowed.'
+            'contains non-public properties: protectedField. Only public properties are allowed.',
         );
 
         $this->hydrator->hydrate(EntityWithProtectedProperty::class, ['protectedField' => 'test']);
@@ -123,12 +123,12 @@ final class HydratorTest extends TestCase
         $this->expectException(HydratorException::class);
         $this->expectExceptionMessage(
             'Tests\Unit\Infrastructure\Hydrator\Fixtures\TestEntity::__construct(): ' .
-            'Argument #1 ($id) must be of type int, string given'
+            'Argument #1 ($id) must be of type int, string given',
         );
 
         $this->hydrator->hydrate(TestEntity::class, [
             'id' => 'not an integer',
-            'name' => 'Test'
+            'name' => 'Test',
         ]);
     }
 
@@ -140,7 +140,7 @@ final class HydratorTest extends TestCase
         self::assertSame([
             'id' => 1,
             'name' => 'Test',
-            'initialized' => false
+            'initialized' => false,
         ], $data);
     }
 
@@ -166,7 +166,7 @@ final class HydratorTest extends TestCase
         $this->expectException(HydratorException::class);
         $this->expectExceptionMessage(
             'Class Tests\Unit\Infrastructure\Hydrator\Fixtures\EntityWithPrivateProperty ' .
-            'contains non-public properties: privateField. Only public properties are allowed.'
+            'contains non-public properties: privateField. Only public properties are allowed.',
         );
 
         $object = new EntityWithPrivateProperty();
@@ -178,7 +178,7 @@ final class HydratorTest extends TestCase
         $this->expectException(HydratorException::class);
         $this->expectExceptionMessage(
             'Class Tests\Unit\Infrastructure\Hydrator\Fixtures\EntityWithProtectedProperty ' .
-            'contains non-public properties: protectedField. Only public properties are allowed.'
+            'contains non-public properties: protectedField. Only public properties are allowed.',
         );
 
         $object = new EntityWithProtectedProperty();

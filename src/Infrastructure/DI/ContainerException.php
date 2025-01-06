@@ -6,6 +6,4 @@ namespace App\Infrastructure\DI;
 
 use Psr\Container\ContainerExceptionInterface;
 
-class ContainerException extends \Exception implements ContainerExceptionInterface
-{
-}
+final class ContainerException extends \Exception implements ContainerExceptionInterface {}

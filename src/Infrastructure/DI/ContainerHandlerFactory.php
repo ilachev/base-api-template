@@ -13,7 +13,7 @@ final readonly class ContainerHandlerFactory implements HandlerFactoryInterface
      * @param Container<object> $container
      */
     public function __construct(
-        private Container $container
+        private Container $container,
     ) {}
 
     /**

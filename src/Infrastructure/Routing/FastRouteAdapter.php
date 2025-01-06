@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Routing;
 
-use App\Application\Routing\RouterInterface;
 use App\Application\Routing\RouteDefinitionInterface;
 use App\Application\Routing\RouteResult;
+use App\Application\Routing\RouterInterface;
 use App\Application\Routing\RouteStatus;
-use FastRoute\RouteCollector;
 use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
 use Psr\Http\Message\ServerRequestInterface;
-
 use function FastRoute\simpleDispatcher;
 
 final readonly class FastRouteAdapter implements RouterInterface
@@ -20,7 +19,7 @@ final readonly class FastRouteAdapter implements RouterInterface
 
     public function __construct(private RouteDefinitionInterface $routeDefinition)
     {
-        $this->dispatcher = simpleDispatcher(function (RouteCollector $r) {
+        $this->dispatcher = simpleDispatcher(function (RouteCollector $r): void {
             $this->routeDefinition->defineRoutes(new FastRouteCollector($r));
         });
     }
@@ -29,7 +28,7 @@ final readonly class FastRouteAdapter implements RouterInterface
     {
         $routeInfo = $this->dispatcher->dispatch(
             $request->getMethod(),
-            $request->getUri()->getPath()
+            $request->getUri()->getPath(),
         );
 
         /** @var array{0: int, 1?: string, 2?: array<string, string>} $routeInfo */
@@ -42,7 +41,7 @@ final readonly class FastRouteAdapter implements RouterInterface
         return new RouteResult(
             status: $status,
             handler: $routeInfo[1] ?? null,
-            params: $routeInfo[2] ?? []
+            params: $routeInfo[2] ?? [],
         );
     }
 }

@@ -1,6 +1,6 @@
 .pid
-.phpunit.result.cache
 
 db/app.sqlite
 vendor/
 .task/
+var/

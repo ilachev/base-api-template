@@ -13,12 +13,12 @@ use Psr\Log\LoggerInterface;
 final readonly class HttpLoggingMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {}
 
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler
+        RequestHandlerInterface $handler,
     ): ResponseInterface {
         $requestId = $request->getAttribute('requestId');
 

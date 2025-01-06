@@ -8,6 +8,5 @@ final readonly class EntityWithProtectedProperty
 {
     public function __construct(
         protected string $protectedField = '',
-    ) {
-    }
+    ) {}
 }

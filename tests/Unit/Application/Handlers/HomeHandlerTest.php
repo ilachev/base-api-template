@@ -6,7 +6,6 @@ namespace Tests\Unit\Application\Handlers;
 
 use App\Application\Handlers\HomeHandler;
 use App\Application\Http\JsonResponse;
-use JsonException;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +19,7 @@ final class HomeHandlerTest extends TestCase
     }
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function testHandleReturnsWelcomeMessage(): void
     {
@@ -30,10 +29,10 @@ final class HomeHandlerTest extends TestCase
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals(
             'application/json',
-            $response->getHeaderLine('Content-Type')
+            $response->getHeaderLine('Content-Type'),
         );
 
-        $responseContent = (string)$response->getBody();
+        $responseContent = (string) $response->getBody();
         $body = json_decode($responseContent, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertIsArray($body);

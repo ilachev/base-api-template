@@ -6,7 +6,5 @@ namespace Tests\Unit\Infrastructure\Hydrator\Fixtures;
 
 final readonly class EmptyEntity
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

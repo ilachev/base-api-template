@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\Storage\Migration;
 
-use App\Infrastructure\Storage\StorageException;
-use PHPUnit\Framework\TestCase;
-use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\Migration\MigrationInterface;
 use App\Infrastructure\Storage\Migration\MigrationRepository;
+use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\SQLiteStorage;
+use App\Infrastructure\Storage\StorageException;
+use PHPUnit\Framework\TestCase;
 
 final class MigrationServiceTest extends TestCase
 {
     private const TEST_DB = ':memory:';
+
     private SQLiteStorage $storage;
+
     private MigrationRepository $repository;
+
     private MigrationService $service;
 
     protected function setUp(): void
@@ -23,12 +26,12 @@ final class MigrationServiceTest extends TestCase
         $this->storage = new SQLiteStorage(self::TEST_DB);
 
         // Create migrations table
-        $this->storage->execute(<<<SQL
-            CREATE TABLE IF NOT EXISTS migrations (
-                version TEXT PRIMARY KEY,
-                executed_at INTEGER NOT NULL
-            )
-        SQL);
+        $this->storage->execute(<<<'SQL'
+                CREATE TABLE IF NOT EXISTS migrations (
+                    version TEXT PRIMARY KEY,
+                    executed_at INTEGER NOT NULL
+                )
+            SQL);
 
         $this->repository = new MigrationRepository($this->storage);
         $this->service = new MigrationService($this->storage, $this->repository);
@@ -100,22 +103,22 @@ final class MigrationServiceTest extends TestCase
 
             public function up(): string
             {
-                return <<<SQL
-                    CREATE TABLE test1 (
-                        id INTEGER PRIMARY KEY,
-                        name TEXT NOT NULL
-                    );
-                    CREATE INDEX idx_test1_name ON test1(name);
-                    CREATE TABLE test2 (id INTEGER PRIMARY KEY);
-                SQL;
+                return <<<'SQL'
+                        CREATE TABLE test1 (
+                            id INTEGER PRIMARY KEY,
+                            name TEXT NOT NULL
+                        );
+                        CREATE INDEX idx_test1_name ON test1(name);
+                        CREATE TABLE test2 (id INTEGER PRIMARY KEY);
+                    SQL;
             }
 
             public function down(): string
             {
-                return <<<SQL
-                    DROP TABLE test2;
-                    DROP TABLE test1;
-                SQL;
+                return <<<'SQL'
+                        DROP TABLE test2;
+                        DROP TABLE test1;
+                    SQL;
             }
         };
 
@@ -378,18 +381,18 @@ final class MigrationServiceTest extends TestCase
 
             public function up(): string
             {
-                return <<<SQL
-                    CREATE TABLE sessions (
-                        id TEXT PRIMARY KEY,
-                        user_id INTEGER NOT NULL,
-                        payload TEXT NOT NULL,
-                        expires_at INTEGER NOT NULL,
-                        created_at INTEGER NOT NULL,
-                        updated_at INTEGER NOT NULL
-                    );
-                    CREATE INDEX idx_sessions_user_id ON sessions(user_id);
-                    CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
-                SQL;
+                return <<<'SQL'
+                        CREATE TABLE sessions (
+                            id TEXT PRIMARY KEY,
+                            user_id INTEGER NOT NULL,
+                            payload TEXT NOT NULL,
+                            expires_at INTEGER NOT NULL,
+                            created_at INTEGER NOT NULL,
+                            updated_at INTEGER NOT NULL
+                        );
+                        CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+                        CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
+                    SQL;
             }
 
             public function down(): string
@@ -404,12 +407,12 @@ final class MigrationServiceTest extends TestCase
 
         // Assert
         $tables = $this->storage->query(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'",
         );
         self::assertCount(1, $tables, 'Table sessions should be created');
 
         $indexes = $this->storage->query(
-            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='sessions'"
+            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='sessions'",
         );
         $indexNames = array_column($indexes, 'name');
         sort($indexNames);
@@ -417,17 +420,17 @@ final class MigrationServiceTest extends TestCase
         self::assertEquals(
             ['idx_sessions_expires_at', 'idx_sessions_user_id', 'sqlite_autoindex_sessions_1'],
             $indexNames,
-            'Both indexes should be created'
+            'Both indexes should be created',
         );
 
         // Test column definitions
-        $columns = $this->storage->query("PRAGMA table_info(sessions)");
+        $columns = $this->storage->query('PRAGMA table_info(sessions)');
         $columnInfo = [];
         foreach ($columns as $column) {
             $columnInfo[$column['name']] = [
                 'type' => $column['type'],
-                'notnull' => (bool)$column['notnull'],
-                'pk' => (bool)$column['pk'],
+                'notnull' => (bool) $column['notnull'],
+                'pk' => (bool) $column['pk'],
             ];
         }
 
@@ -438,7 +441,7 @@ final class MigrationServiceTest extends TestCase
                 'pk' => true,
             ],
             $columnInfo['id'],
-            'ID column should be TEXT PRIMARY KEY'
+            'ID column should be TEXT PRIMARY KEY',
         );
 
         self::assertEquals(
@@ -448,14 +451,14 @@ final class MigrationServiceTest extends TestCase
                 'pk' => false,
             ],
             $columnInfo['user_id'],
-            'user_id column should be INTEGER NOT NULL'
+            'user_id column should be INTEGER NOT NULL',
         );
 
         // Test rollback
         $this->service->rollback();
 
         $tablesAfterRollback = $this->storage->query(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'",
         );
         self::assertEmpty($tablesAfterRollback, 'Table should be dropped after rollback');
     }

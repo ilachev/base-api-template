@@ -6,14 +6,13 @@ namespace App\Application\Handlers;
 
 use App\Api\V1\HomeData;
 use App\Api\V1\HomeResponse;
-use JsonException;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final readonly class HomeHandler extends AbstractJsonHandler
 {
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {

@@ -7,7 +7,7 @@ namespace App\Application\Routing;
 final readonly class RouteDefinition implements RouteDefinitionInterface
 {
     public function __construct(
-        private string $configPath
+        private string $configPath,
     ) {}
 
     public function defineRoutes(RouteCollectorInterface $collector): void

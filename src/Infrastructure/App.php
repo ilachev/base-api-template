@@ -6,12 +6,13 @@ namespace App\Infrastructure;
 
 use App\Application\Http\RouteHandlerResolver;
 use App\Application\Middleware\{
-    Pipeline,
-    ErrorHandlerMiddleware,
-    RoutingMiddleware,
-    RequestMetricsMiddleware,
     AuthMiddleware,
-    HttpLoggingMiddleware};
+    ErrorHandlerMiddleware,
+    HttpLoggingMiddleware,
+    Pipeline,
+    RequestMetricsMiddleware,
+    RoutingMiddleware
+};
 use App\Infrastructure\DI\Container;
 use Spiral\RoadRunner\Http\PSR7Worker;
 
@@ -20,7 +21,9 @@ final readonly class App
 {
     /** @var Container<T> */
     private Container $container;
+
     private PSR7Worker $worker;
+
     private Pipeline $pipeline;
 
     public function __construct(string $configPath)
@@ -58,7 +61,7 @@ final readonly class App
                 $this->container->get(RequestMetricsMiddleware::class),
                 $this->container->get(AuthMiddleware::class),
                 $this->container->get(HttpLoggingMiddleware::class),
-            ]
+            ],
         );
     }
 }

@@ -12,7 +12,7 @@ enum RouteStatus: int
 
     public function getStatusCode(): int
     {
-        return match($this) {
+        return match ($this) {
             self::FOUND => 200,
             self::METHOD_NOT_ALLOWED => 405,
             self::NOT_FOUND => 404,
