@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Application\Routing;
 
-use App\Application\Handlers\HomeHandler;
-
 final readonly class RouteDefinition implements RouteDefinitionInterface
 {
+    public function __construct(
+        private string $configPath
+    ) {}
+
     public function defineRoutes(RouteCollectorInterface $collector): void
     {
-        $collector->addRoute('GET', '/home', HomeHandler::class);
+        /** @var array<array{method: string, path: string, handler: class-string}> $routes */
+        $routes = require $this->configPath;
+
+        foreach ($routes as $route) {
+            $collector->addRoute($route['method'], $route['path'], $route['handler']);
+        }
     }
 }

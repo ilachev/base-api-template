@@ -35,7 +35,10 @@ return static function (Container $container): void {
     $container->bind(StorageInterface::class, SQLiteStorage::class);
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
     $container->bind(RouterInterface::class, FastRouteAdapter::class);
-    $container->bind(RouteDefinitionInterface::class, RouteDefinition::class);
+    $container->set(
+        RouteDefinitionInterface::class,
+        static fn() => new RouteDefinition(__DIR__ . '/routes.php')
+    );
     $container->bind(HydratorInterface::class, Hydrator::class);
 
     $container->set(
