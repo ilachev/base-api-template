@@ -4,3 +4,4 @@ db/app.sqlite
 vendor/
 .task/
 var/
+/nbproject/private/

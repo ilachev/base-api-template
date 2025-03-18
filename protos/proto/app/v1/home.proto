@@ -3,25 +3,102 @@ syntax = "proto3";
 package app.v1;
 
 import "google/api/annotations.proto";
+// Добавляем импорт для OpenAPI аннотаций
+import "protoc-gen-openapiv2/options/annotations.proto";
 
-option php_namespace = "App\\Api\\V1";
-option php_metadata_namespace = "App\\Api\\V1\\Metadata";
+option go_package = "app/api/v1";
 
+// Определяем глобальные настройки для OpenAPI
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "API Service"
+    version: "1.0"
+    contact: {
+      name: "Developer Team"
+      url: "https://example.com"
+      email: "dev@example.com"
+    }
+  }
+  schemes: HTTP
+  schemes: HTTPS
+  consumes: "application/json"
+  produces: "application/json"
+  security_definitions: {
+    security: {
+      key: "Bearer"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Authentication token, prefixed by Bearer: Bearer <token>"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "Bearer"
+      value: {}
+    }
+  }
+};
+
+// Определяем сервис с аннотациями
 service HomeService {
-  rpc Home (HomeRequest) returns (HomeResponse) {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "API для работы с домашней страницей"
+    external_docs: {
+      url: "https://example.com/docs"
+      description: "Документация по API"
+    }
+  };
+
+  // Home возвращает данные домашней страницы
+  rpc Home(HomeRequest) returns (HomeResponse) {
     option (google.api.http) = {
-      get: "/v1"
+      get: "/api/v1/home"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получить данные домашней страницы"
+      description: "Возвращает приветственное сообщение и другие данные"
+      tags: "Home"
+      responses: {
+        key: "200"
+        value: {
+          description: "Успешный ответ"
+          examples: {
+            key: "application/json"
+            value: "{\"data\":{\"message\":\"Добро пожаловать\"}}"
+          }
+        }
+      }
+      responses: {
+        key: "500"
+        value: {
+          description: "Внутренняя ошибка сервера"
+        }
+      }
     };
   }
 }
 
+// HomeRequest запрос для получения данных домашней страницы
 message HomeRequest {
+  // Пустой запрос
 }
 
+// HomeResponse ответ с данными домашней страницы
 message HomeResponse {
-  HomeData data = 2;
+  // Данные домашней страницы
+  HomeData data = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Данные для отображения на домашней странице"
+  }];
 }
 
+// HomeData содержит информацию для отображения на домашней странице
 message HomeData {
-  string message = 1;
+  // Приветственное сообщение
+  string message = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Приветственное сообщение для пользователя"
+    example: "\"Добро пожаловать\""
+  }];
 }

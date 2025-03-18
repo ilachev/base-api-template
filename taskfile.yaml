@@ -2,7 +2,8 @@ version: '3'
 
 vars:
   PROTO_DIR: protos/proto
-  GEN_DIR: protos/gen
+  SDK_GEN_DIR: protos/gen
+  DOCS_GEN_DIR: docs
   PHP: php
   COMPOSER: composer
 
@@ -45,16 +46,27 @@ tasks:
     cmds:
       - "{{.PHP}} vendor/bin/phpunit --colors=always {{.CLI_ARGS}}"
 
-  proto:gen:
+  proto:gen:sdk:
     desc: Generate PHP classes from proto files
     cmds:
-      - rm -rf {{.GEN_DIR}}/*
+      - rm -rf {{.SDK_GEN_DIR}}/*
       - >
         protoc -I={{.PROTO_DIR}}
-        --php_out={{.GEN_DIR}}
+        --php_out={{.SDK_GEN_DIR}}
         --php_opt=aggregate_metadata
         {{.PROTO_DIR}}/app/v1/*.proto
         {{.PROTO_DIR}}/google/api/*.proto
+
+  proto:gen:docs:
+   desc: Generate OpenApi spec
+   cmds:
+     - rm -rf {{.DOCS_GEN_DIR}}/*
+     - >
+       protoc -I={{.PROTO_DIR}}
+       --openapiv2_out=logtostderr=true:{{.DOCS_GEN_DIR}}
+       --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api
+       {{.PROTO_DIR}}/app/v1/*.proto
+       
 
   perf:test:
     deps: [ var, install ]
