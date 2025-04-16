@@ -34,7 +34,7 @@ tasks:
           CLI_ARGS: "--dry-run {{.CLI_ARGS}}"
 
   verify:
-    deps: [ var, install, phpstan, test ]
+    deps: [ var, install, lint, phpstan, test ]
 
   phpstan:
     deps: [ var, install ]
