@@ -37,6 +37,13 @@ jobs:
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
           rm -f "${PROTOC_ZIP}"
+          
+          # Verify protoc installation
+          protoc --version
+          
+          # Increase system limits for more stability
+          ulimit -c unlimited
+          ulimit -s 16384
       
       - name: Install Go
         uses: actions/setup-go@v4
@@ -49,7 +56,11 @@ jobs:
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
       
       - name: Generate proto artifacts
-        run: PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:all
+        run: |
+          # Run each proto generation step separately with increased memory limit
+          PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:sdk || (echo "SDK generation failed" && exit 1)
+          PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:docs || (echo "Docs generation failed" && exit 1)
+          PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:routes || (echo "Routes generation failed" && exit 1)
       
       - name: Prepare release assets
         run: |
