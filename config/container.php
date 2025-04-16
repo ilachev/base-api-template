@@ -17,6 +17,7 @@ use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
+use App\Infrastructure\Storage\Query\QueryFactory;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageInterface;
@@ -49,6 +50,7 @@ return static function (Container $container): void {
 
     // QueryBuilder factory
     $container->bind(QueryBuilderFactory::class, QueryBuilderFactory::class);
+    $container->bind(QueryFactory::class, QueryBuilderFactory::class);
 
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
