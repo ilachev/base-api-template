@@ -46,7 +46,7 @@ jobs:
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
 
       - name: Check code style
-        run: task lint
+        run: PHP_CS_FIXER_IGNORE_ENV=true task lint
       
       - name: Static analysis
         run: task phpstan
