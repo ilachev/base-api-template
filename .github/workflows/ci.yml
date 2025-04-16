@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  PHP_CS_FIXER_IGNORE_ENV: true
+  PHP_CS_FIXER_FUTURE_MODE: true
+
 jobs:
   validate:
     name: Validate and Test
@@ -31,25 +35,16 @@ jobs:
           version: '3.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Install Protoc
+      - name: Debug PHP and environment
         run: |
-          PROTOC_VERSION="3.20.0"
-          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
-          curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
-          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
-          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
-          rm -f "${PROTOC_ZIP}"
+          php --version
+          echo "PHP_CS_FIXER_IGNORE_ENV=$PHP_CS_FIXER_IGNORE_ENV"
+          echo "PHP_CS_FIXER_FUTURE_MODE=$PHP_CS_FIXER_FUTURE_MODE"
+          php -r "var_dump(get_loaded_extensions());"
+          php -r "var_dump(ini_get_all());" | grep -i "memor"
       
-      - name: Install protoc-gen-openapiv2
-        run: |
-          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-          echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
-
-      - name: Check code style
-        run: PHP_CS_FIXER_IGNORE_ENV=true task lint
-      
-      - name: Static analysis
-        run: task phpstan
+      - name: Lint and Static analysis
+        run: bin/ci-lint.sh
       
       - name: Run tests
         run: task test
@@ -58,6 +53,9 @@ jobs:
     name: Build Artifacts
     runs-on: ubuntu-latest
     needs: validate
+    env:
+      PHP_CS_FIXER_IGNORE_ENV: true
+      PHP_CS_FIXER_FUTURE_MODE: true
     
     steps:
       - uses: actions/checkout@v3
@@ -88,13 +86,18 @@ jobs:
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
           rm -f "${PROTOC_ZIP}"
       
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      
       - name: Install protoc-gen-openapiv2
         run: |
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
       
       - name: Generate proto artifacts
-        run: PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:all
+        run: task proto:gen:all
       
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
