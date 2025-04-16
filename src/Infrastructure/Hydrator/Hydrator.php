@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Hydrator;
 
+use Google\Protobuf\Internal\Message;
+
 final readonly class Hydrator implements HydratorInterface
 {
     /**
@@ -15,6 +17,15 @@ final readonly class Hydrator implements HydratorInterface
      */
     public function hydrate(string $className, array $data): object
     {
+        // Check if this is a Protobuf object (has Message in inheritance chain)
+        if ($this->isProtobufMessage($className)) {
+            /** @var array<string, mixed> $typedData */
+            $typedData = $data;
+
+            return $this->hydrateProtobuf($className, $typedData);
+        }
+
+        // Standard hydration for regular objects with public properties
         try {
             /** @var \ReflectionClass<T> $reflection */
             $reflection = new \ReflectionClass($className);
@@ -53,6 +64,65 @@ final readonly class Hydrator implements HydratorInterface
                 previous: $e,
             );
         }
+    }
+
+    /**
+     * Maximum number of class inheritance lookups to cache.
+     */
+    private const int MAX_INHERITANCE_CACHE_SIZE = 100;
+
+    /**
+     * Checks if a class is a Protobuf Message.
+     *
+     * @param class-string $className
+     */
+    private function isProtobufMessage(string $className): bool
+    {
+        if (!class_exists($className)) {
+            return false;
+        }
+
+        /** @var array<class-string, bool> $cache */
+        static $cache = [];
+
+        if (isset($cache[$className])) {
+            return $cache[$className];
+        }
+
+        // Prevent unlimited growth of the cache in long-running processes
+        if (\count($cache) >= self::MAX_INHERITANCE_CACHE_SIZE) {
+            // Discard oldest entry
+            reset($cache);
+            $firstKey = key($cache);
+            // First key can never be null in a non-empty array
+            unset($cache[$firstKey]);
+        }
+
+        $isProtobuf = is_subclass_of($className, Message::class);
+        $cache[$className] = $isProtobuf;
+
+        return $isProtobuf;
+    }
+
+    /**
+     * Hydrates a Protobuf message using its setter methods.
+     *
+     * @template T of object
+     * @param class-string<T> $className
+     * @param array<string, mixed> $data
+     * @return T
+     */
+    private function hydrateProtobuf(string $className, array $data): object
+    {
+        /** @var ProtobufAdapter|null $adapter */
+        static $adapter = null;
+
+        if ($adapter === null) {
+            $adapter = new ProtobufAdapter();
+        }
+
+        /** @var T */
+        return $adapter->hydrate($className, $data);
     }
 
     /**

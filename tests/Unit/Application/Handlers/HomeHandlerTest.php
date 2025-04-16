@@ -6,6 +6,9 @@ namespace Tests\Unit\Application\Handlers;
 
 use App\Application\Handlers\HomeHandler;
 use App\Application\Http\JsonResponse;
+use App\Application\Mappers\HomeMapper;
+use App\Domain\Home\HomeService;
+use App\Infrastructure\Hydrator\Hydrator;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +18,10 @@ final class HomeHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new HomeHandler(new JsonResponse());
+        $homeService = new HomeService();
+        $hydrator = new Hydrator();
+        $homeMapper = new HomeMapper($hydrator);
+        $this->handler = new HomeHandler($homeService, $homeMapper, new JsonResponse());
     }
 
     /**

@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Application\Handlers\HandlerFactoryInterface;
+use App\Application\Mappers\HomeMapper;
 use App\Application\Routing\RouteDefinition;
 use App\Application\Routing\RouteDefinitionInterface;
 use App\Application\Routing\RouterInterface;
+use App\Domain\Home\HomeService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
 use App\Infrastructure\Hydrator\Hydrator;
@@ -40,6 +42,12 @@ return static function (Container $container): void {
         static fn() => new RouteDefinition(__DIR__ . '/routes.php'),
     );
     $container->bind(HydratorInterface::class, Hydrator::class);
+
+    // Domain services
+    $container->bind(HomeService::class, HomeService::class);
+
+    // Application services and mappers
+    $container->bind(HomeMapper::class, HomeMapper::class);
 
     $container->set(
         Worker::class,

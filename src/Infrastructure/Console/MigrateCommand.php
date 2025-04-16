@@ -35,8 +35,8 @@ final readonly class MigrateCommand
         }
 
         foreach ($files as $file) {
-            $className = 'App\Infrastructure\Storage\Migration\\' .
-                basename($file, '.php');
+            $className = 'App\Infrastructure\Storage\Migration\\'
+                . basename($file, '.php');
 
             if (!class_exists($className)) {
                 continue;

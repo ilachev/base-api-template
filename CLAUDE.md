@@ -13,6 +13,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Always run `task verify` before committing to ensure code quality
 - Generate proto artifacts: `task proto:gen:all`
 
+## Architecture
+- Clean Architecture approach with strict separation of concerns
+- Three primary layers:
+  - **Domain**: Pure business logic and domain models
+  - **Application**: Use cases, mappers, and coordination between layers
+  - **Infrastructure**: Framework and external systems integration
+- Business logic should reside in the Domain layer, never in Infrastructure
+- Application layer coordinates between Domain and Infrastructure
+- Handlers should be thin adapters delegating to Domain services
+- Use Mappers (not Builders or DTOs) for transforming between layers
+- Domain objects should never depend on infrastructure or protocol-specific types
+- Infrastructure components (like Hydrator) should be used by mappers to transform data
+- Each layer should have its own tests focused on its responsibilities
+
+## Performance and Memory Management
+- Application runs on RoadRunner server - be careful with static caches and memory management
+- Avoid using static arrays that grow indefinitely, use bounded caches or reset mechanisms
+- Be careful with circular references that prevent garbage collection
+- All services should be stateless when possible
+- Reset any accumulated state between requests where needed
+- Consider memory impacts of caching in long-running processes
+- Prefer limited, time-bound, or LRU caches over unbounded storage
+- Test memory usage with load tests before production deployment
+- Never ignore static analysis warnings - fix underlying issues in code instead
+- Use correct types to prevent type-related static analysis warnings
+- Avoid relying on PHPDoc types for runtime conditions (use instanceof checks instead)
+
 ## Code Style
 - PHP 8.4, strict typing required (`declare(strict_types=1)`)
 - PSR-4 autoloading: `App\` namespace for src/ and generated proto files
