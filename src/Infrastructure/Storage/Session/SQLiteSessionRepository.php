@@ -32,6 +32,16 @@ final class SQLiteSessionRepository extends AbstractRepository implements Sessio
         return $this->fetchAll(Session::class, $query);
     }
 
+    /**
+     * @return array<Session>
+     */
+    public function findAll(): array
+    {
+        $query = $this->query(self::TABLE);
+
+        return $this->fetchAll(Session::class, $query);
+    }
+
     public function save(Session $session): void
     {
         $this->saveEntity($session, self::TABLE, self::PRIMARY_KEY, $session->id);

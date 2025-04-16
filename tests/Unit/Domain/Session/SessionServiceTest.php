@@ -268,6 +268,14 @@ final class TestSessionRepository implements SessionRepository
         unset($this->sessions[$id]);
     }
 
+    /**
+     * @return array<Session>
+     */
+    public function findAll(): array
+    {
+        return array_values($this->sessions);
+    }
+
     public function deleteExpired(): void
     {
         $now = time();

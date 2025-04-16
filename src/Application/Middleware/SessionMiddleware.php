@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Client\ClientDataFactory;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
+use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -19,6 +21,8 @@ final readonly class SessionMiddleware implements MiddlewareInterface
         private SessionService $sessionService,
         private LoggerInterface $logger,
         private SessionConfig $config,
+        private ClientDataFactory $clientDataFactory,
+        private JsonFieldAdapter $jsonAdapter,
     ) {}
 
     public function process(
@@ -35,7 +39,10 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
         // Если сессия не найдена или истекла, создаем новую
         if ($session === null) {
-            $payload = $this->generateClientFingerprint($request);
+            // Создаем ClientData и сериализуем его через JsonFieldAdapter
+            $clientData = $this->clientDataFactory->createFromRequest($request);
+            $payload = $this->jsonAdapter->serialize($clientData);
+
             $session = $this->sessionService->createSession(
                 userId: null,
                 payload: $payload,
@@ -94,21 +101,5 @@ final readonly class SessionMiddleware implements MiddlewareInterface
                 $expires,
             ),
         );
-    }
-
-    private function generateClientFingerprint(ServerRequestInterface $request): string
-    {
-        $data = [
-            'ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
-        ];
-
-        if ($this->config->useFingerprint) {
-            $data['user_agent'] = $request->getHeaderLine('User-Agent');
-            $data['accept_language'] = $request->getHeaderLine('Accept-Language');
-            $data['accept_encoding'] = $request->getHeaderLine('Accept-Encoding');
-            $data['x_forwarded_for'] = $request->getHeaderLine('X-Forwarded-For');
-        }
-
-        return (string) json_encode($data);
     }
 }

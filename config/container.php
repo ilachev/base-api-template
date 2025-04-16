@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Application\Client\ClientConfig;
+use App\Application\Client\ClientDataFactory;
+use App\Application\Client\ClientDetector;
+use App\Application\Client\DefaultClientDataFactory;
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
 use App\Application\Middleware\SessionMiddleware;
@@ -14,8 +18,10 @@ use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
+use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
@@ -50,6 +56,18 @@ return static function (Container $container): void {
     );
     $container->bind(HydratorInterface::class, Hydrator::class);
 
+    // JSON field adapter
+    $container->bind(JsonFieldAdapter::class, DefaultJsonFieldAdapter::class);
+    $container->set(
+        DefaultJsonFieldAdapter::class,
+        static function (ContainerInterface $container): DefaultJsonFieldAdapter {
+            /** @var HydratorInterface $hydrator */
+            $hydrator = $container->get(HydratorInterface::class);
+
+            return new DefaultJsonFieldAdapter($hydrator);
+        },
+    );
+
     // QueryBuilder factory
     $container->bind(QueryBuilderFactory::class, QueryBuilderFactory::class);
     $container->bind(QueryFactory::class, QueryBuilderFactory::class);
@@ -62,6 +80,48 @@ return static function (Container $container): void {
             $sessionConfig = require __DIR__ . '/session.php';
 
             return SessionConfig::fromArray($sessionConfig);
+        },
+    );
+
+    // Client detection config
+    $container->set(
+        ClientConfig::class,
+        static function (): ClientConfig {
+            /** @var array{
+             *     similarity_threshold: float,
+             *     max_sessions_per_ip: int,
+             *     ip_match_weight: float,
+             *     user_agent_match_weight: float,
+             *     attributes_match_weight: float,
+             * } $clientConfig
+             */
+            $clientConfig = require __DIR__ . '/client.php';
+
+            return ClientConfig::fromArray($clientConfig);
+        },
+    );
+
+    // Client data factory
+    $container->bind(ClientDataFactory::class, DefaultClientDataFactory::class);
+    $container->set(
+        DefaultClientDataFactory::class,
+        static fn(): DefaultClientDataFactory => new DefaultClientDataFactory(),
+    );
+
+    // Client detector service
+    $container->set(
+        ClientDetector::class,
+        static function (ContainerInterface $container): ClientDetector {
+            /** @var SessionRepository $sessionRepository */
+            $sessionRepository = $container->get(SessionRepository::class);
+
+            /** @var ClientConfig $clientConfig */
+            $clientConfig = $container->get(ClientConfig::class);
+
+            return new ClientDetector(
+                $sessionRepository,
+                $clientConfig,
+            );
         },
     );
 
@@ -88,7 +148,19 @@ return static function (Container $container): void {
             /** @var SessionConfig $config */
             $config = $container->get(SessionConfig::class);
 
-            return new SessionMiddleware($sessionService, $logger, $config);
+            /** @var ClientDataFactory $clientDataFactory */
+            $clientDataFactory = $container->get(ClientDataFactory::class);
+
+            /** @var JsonFieldAdapter $jsonAdapter */
+            $jsonAdapter = $container->get(JsonFieldAdapter::class);
+
+            return new SessionMiddleware(
+                $sessionService,
+                $logger,
+                $config,
+                $clientDataFactory,
+                $jsonAdapter,
+            );
         },
     );
 

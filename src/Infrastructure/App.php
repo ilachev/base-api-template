@@ -26,6 +26,14 @@ final readonly class App
 
     private Pipeline $pipeline;
 
+    /**
+     * @return Container<T>
+     */
+    public function getContainer(): Container
+    {
+        return $this->container;
+    }
+
     public function __construct(string $configPath)
     {
         /** @var callable(Container<T>): void $containerConfig */

@@ -27,6 +27,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Infrastructure components (like Hydrator) should be used by mappers to transform data
 - Each layer should have its own tests focused on its responsibilities
 - Do not use mocks for internal services - use real implementations in tests
+- Always consider creating reusable components instead of narrow-focused solutions
+- Before implementing specific functionality, think about designing more general abstractions that can be reused
 
 ## Performance and Memory Management
 - Application runs on RoadRunner server - be careful with static caches and memory management
@@ -40,6 +42,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Never ignore static analysis warnings - fix underlying issues in code instead
 - Use correct types to prevent type-related static analysis warnings
 - Avoid relying on PHPDoc types for runtime conditions (use instanceof checks instead)
+- Never modify the PHPStan configuration - always fix the actual code issues
+- If you consider modifying the PHPStan configuration, stop and re-read CLAUDE.md
 
 ## Code Style
 - PHP 8.4, strict typing required (`declare(strict_types=1)`)

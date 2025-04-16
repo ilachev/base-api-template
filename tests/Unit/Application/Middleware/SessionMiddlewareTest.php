@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Middleware;
 
+use App\Application\Client\ClientData;
+use App\Application\Client\ClientDataFactory;
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
+use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +45,27 @@ final class SessionMiddlewareTest extends TestCase
             'use_fingerprint' => false,
         ]);
 
-        $this->middleware = new SessionMiddleware($this->sessionService, $this->logger, $config);
+        // Создаем тестовые данные клиента
+        $clientData = new ClientData(
+            ip: '127.0.0.1',
+            userAgent: 'Test Agent',
+            acceptLanguage: 'en-US',
+            acceptEncoding: 'gzip',
+            xForwardedFor: null,
+            extraAttributes: [],
+        );
+
+        // Используем конкретные реализации классов для тестирования
+        $clientDataFactory = new TestClientDataFactoryImpl($clientData);
+        $jsonAdapter = new TestJsonFieldAdapterImpl();
+
+        $this->middleware = new SessionMiddleware(
+            $this->sessionService,
+            $this->logger,
+            $config,
+            $clientDataFactory,
+            $jsonAdapter,
+        );
         $this->handler = new TestRequestHandler();
     }
 
@@ -303,6 +326,14 @@ final class TestSessionRepository implements SessionRepository
         );
     }
 
+    /**
+     * @return array<Session>
+     */
+    public function findAll(): array
+    {
+        return array_values($this->sessions);
+    }
+
     public function save(Session $session): void
     {
         $this->sessions[$session->id] = $session;
@@ -322,5 +353,73 @@ final class TestSessionRepository implements SessionRepository
                 unset($this->sessions[$id]);
             }
         }
+    }
+}
+
+/**
+ * Тестовая имплементация ClientDataFactory.
+ */
+final readonly class TestClientDataFactoryImpl implements ClientDataFactory
+{
+    public function __construct(
+        private ClientData $clientData,
+    ) {}
+
+    public function createFromRequest(ServerRequestInterface $request): ClientData
+    {
+        return $this->clientData;
+    }
+
+    public function createDefault(): ClientData
+    {
+        return $this->clientData;
+    }
+}
+
+/**
+ * Тестовая имплементация JsonFieldAdapter.
+ */
+final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
+{
+    public function serialize(object $object, ?callable $fieldTransformer = null): string
+    {
+        return '{"ip":"127.0.0.1","userAgent":"Test Agent"}';
+    }
+
+    /**
+     * Десериализует JSON в объект указанного класса.
+     *
+     * @param string $jsonValue JSON для десериализации
+     * @param string $targetClass Имя класса, в который нужно десериализовать
+     * @param callable|null $fieldTransformer Опциональный трансформер полей
+     * @return object Результат десериализации
+     */
+    public function deserialize(string $jsonValue, string $targetClass, ?callable $fieldTransformer = null): object
+    {
+        // Всегда возвращаем объект ClientData для тестов
+        return new ClientData(
+            ip: '127.0.0.1',
+            userAgent: 'Test Agent',
+            acceptLanguage: null,
+            acceptEncoding: null,
+            xForwardedFor: null,
+        );
+    }
+
+    /**
+     * Безопасно десериализует JSON.
+     */
+    public function tryDeserialize(string $jsonValue, string $targetClass, object $defaultValue, ?callable $fieldTransformer = null): object
+    {
+        try {
+            return $this->deserialize($jsonValue, $targetClass, $fieldTransformer);
+        } catch (\Throwable) {
+            return $defaultValue;
+        }
+    }
+
+    public function trySerialize(object $object, string $defaultJson = '{}', ?callable $fieldTransformer = null): string
+    {
+        return $this->serialize($object, $fieldTransformer);
     }
 }

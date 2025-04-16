@@ -13,6 +13,11 @@ interface SessionRepository
      */
     public function findByUserId(int $userId): array;
 
+    /**
+     * @return array<Session>
+     */
+    public function findAll(): array;
+
     public function save(Session $session): void;
 
     public function delete(string $id): void;
