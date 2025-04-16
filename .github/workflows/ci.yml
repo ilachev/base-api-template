@@ -76,21 +76,8 @@ jobs:
           version: '3.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Install Protoc
-        run: |
-          PROTOC_VERSION="21.12"
-          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
-          curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
-          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
-          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
-          rm -f "${PROTOC_ZIP}"
-          
-          # Verify protoc installation
-          protoc --version
-          
-          # Increase system limits for more stability
-          ulimit -c unlimited
-          ulimit -s 16384
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
       
       - name: Install Go
         uses: actions/setup-go@v4
@@ -101,28 +88,35 @@ jobs:
         run: |
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.18.0
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
+          # Copy plugin to a location where Docker can access it
+          sudo cp $(go env GOPATH)/bin/protoc-gen-openapiv2 /usr/local/bin/
       
       - name: Generate proto artifacts
         run: |
           # Create necessary directories
           mkdir -p protos/gen docs
           
-          # Run protoc commands directly to avoid memory issues
+          # Run protoc in Docker container
           echo "Generating PHP SDK..."
-          protoc -I=protos/proto \
-            --php_out=protos/gen \
+          docker run --rm -v $(pwd):/workspace -w /workspace bufbuild/buf:1.16.0 \
+            protoc -I=/workspace/protos/proto \
+            --php_out=/workspace/protos/gen \
             --php_opt=aggregate_metadata \
-            protos/proto/app/v1/*.proto \
-            protos/proto/google/api/*.proto
+            /workspace/protos/proto/app/v1/*.proto \
+            /workspace/protos/proto/google/api/*.proto
           
           echo "Generating OpenAPI docs..."
-          protoc -I=protos/proto \
-            --openapiv2_out=logtostderr=true:docs \
+          docker run --rm -v $(pwd):/workspace -w /workspace bufbuild/buf:1.16.0 \
+            protoc -I=/workspace/protos/proto \
+            --openapiv2_out=logtostderr=true:/workspace/docs \
             --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api \
-            protos/proto/app/v1/*.proto
+            /workspace/protos/proto/app/v1/*.proto
           
           echo "Generating routes..."
           php bin/generate-routes.php
+          
+          # Fix permissions
+          sudo chown -R $(id -u):$(id -g) protos/gen docs
       
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
