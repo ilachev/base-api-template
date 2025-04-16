@@ -6,6 +6,9 @@ use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
+// Set PHP version requirements to work with PHP 8.4
+$_SERVER['PHP_CS_FIXER_FUTURE_MODE'] = true;
+
 $config = new Config()
     ->setFinder(
         Finder::create()

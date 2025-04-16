@@ -44,7 +44,7 @@ jobs:
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
       
       - name: Generate proto artifacts
-        run: task proto:gen:all
+        run: PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:all
       
       - name: Package application
         run: |
