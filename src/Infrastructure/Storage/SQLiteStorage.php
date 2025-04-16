@@ -16,6 +16,7 @@ final class SQLiteStorage extends AbstractStorage
         $this->connection->exec('PRAGMA synchronous = NORMAL');
         $this->connection->exec('PRAGMA page_size = 4096');
         $this->connection->exec('PRAGMA wal_autocheckpoint = 1000');
+        $this->connection->exec('PRAGMA foreign_keys = ON');
 
         $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);

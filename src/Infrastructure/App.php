@@ -6,6 +6,7 @@ namespace App\Infrastructure;
 
 use App\Application\Http\RouteHandlerResolver;
 use App\Application\Middleware\{
+    ApiStatsMiddleware,
     ErrorHandlerMiddleware,
     HttpLoggingMiddleware,
     Pipeline,
@@ -65,9 +66,10 @@ final readonly class App
             $this->container->get(RouteHandlerResolver::class),
             [
                 $this->container->get(ErrorHandlerMiddleware::class),
-                $this->container->get(RoutingMiddleware::class),
                 $this->container->get(RequestMetricsMiddleware::class),
                 $this->container->get(SessionMiddleware::class),
+                $this->container->get(ApiStatsMiddleware::class),
+                $this->container->get(RoutingMiddleware::class),
                 $this->container->get(HttpLoggingMiddleware::class),
             ],
         );

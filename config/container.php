@@ -9,6 +9,7 @@ use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\DefaultClientDataFactory;
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
+use App\Application\Middleware\ApiStatsMiddleware;
 use App\Application\Middleware\SessionMiddleware;
 use App\Application\Routing\RouteDefinition;
 use App\Application\Routing\RouteDefinitionInterface;
@@ -17,6 +18,8 @@ use App\Domain\Home\HomeService;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
+use App\Domain\Stats\ApiStatRepository;
+use App\Domain\Stats\ApiStatService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
@@ -29,6 +32,7 @@ use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Query\QueryFactory;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\SQLiteStorage;
+use App\Infrastructure\Storage\Stats\SQLiteApiStatRepository;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
@@ -132,9 +136,11 @@ return static function (Container $container): void {
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
     $container->bind(SessionService::class, SessionService::class);
+    $container->bind(ApiStatService::class, ApiStatService::class);
 
     // Repositories
     $container->bind(SessionRepository::class, SQLiteSessionRepository::class);
+    $container->bind(ApiStatRepository::class, SQLiteApiStatRepository::class);
 
     // Application services and mappers
     $container->bind(HomeMapper::class, HomeMapper::class);
@@ -212,6 +218,17 @@ return static function (Container $container): void {
             }
 
             return new SQLiteStorage($databasePath);
+        },
+    );
+
+    // Set up API stats middleware
+    $container->set(
+        ApiStatsMiddleware::class,
+        static function (ContainerInterface $container): ApiStatsMiddleware {
+            /** @var ApiStatService $apiStatService */
+            $apiStatService = $container->get(ApiStatService::class);
+
+            return new ApiStatsMiddleware($apiStatService);
         },
     );
 
