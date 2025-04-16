@@ -38,41 +38,40 @@ jobs:
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
           rm -f "${PROTOC_ZIP}"
       
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          
       - name: Install protoc-gen-openapiv2
         run: |
-          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.18.0
           echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
       
       - name: Generate proto artifacts
         run: PHP_CS_FIXER_IGNORE_ENV=true task proto:gen:all
       
-      - name: Package application
+      - name: Prepare release assets
         run: |
-          mkdir -p dist
-          tar -czf dist/api-template-${{ github.event.release.tag_name }}.tar.gz \
+          # Create release directory
+          mkdir -p release_assets
+          
+          # Package application
+          tar -czf release_assets/api-template-${{ github.event.release.tag_name }}.tar.gz \
             --exclude='.git*' \
             --exclude='tests' \
             --exclude='var' \
             --exclude='load-tests' \
             --exclude='taskfile.yaml' \
             .
+          
+          # Copy OpenAPI docs
+          cp ./docs/api.swagger.json release_assets/api-swagger-${{ github.event.release.tag_name }}.json
       
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./dist/api-template-${{ github.event.release.tag_name }}.tar.gz
-          asset_name: api-template-${{ github.event.release.tag_name }}.tar.gz
-          asset_content_type: application/gzip
-      
-      - name: Upload OpenAPI docs
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./docs/api.swagger.json
-          asset_name: api-swagger-${{ github.event.release.tag_name }}.json
-          asset_content_type: application/json
+          files: |
+            release_assets/api-template-${{ github.event.release.tag_name }}.tar.gz
+            release_assets/api-swagger-${{ github.event.release.tag_name }}.json
+          token: ${{ secrets.GITHUB_TOKEN }}
