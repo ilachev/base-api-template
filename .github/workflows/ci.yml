@@ -96,9 +96,10 @@ jobs:
           # Create necessary directories
           mkdir -p protos/gen docs
           
-          # Run protoc in Docker container
+          # Pull and use appropriate protobuf Docker image
           echo "Generating PHP SDK..."
-          docker run --rm -v $(pwd):/workspace -w /workspace bufbuild/buf:1.16.0 \
+          docker run --rm -v $(pwd):/workspace -v /usr/local/bin/protoc-gen-openapiv2:/usr/local/bin/protoc-gen-openapiv2 \
+            jaegertracing/protobuf:0.4.0 \
             protoc -I=/workspace/protos/proto \
             --php_out=/workspace/protos/gen \
             --php_opt=aggregate_metadata \
@@ -106,7 +107,8 @@ jobs:
             /workspace/protos/proto/google/api/*.proto
           
           echo "Generating OpenAPI docs..."
-          docker run --rm -v $(pwd):/workspace -w /workspace bufbuild/buf:1.16.0 \
+          docker run --rm -v $(pwd):/workspace -v /usr/local/bin/protoc-gen-openapiv2:/usr/local/bin/protoc-gen-openapiv2 \
+            jaegertracing/protobuf:0.4.0 \
             protoc -I=/workspace/protos/proto \
             --openapiv2_out=logtostderr=true:/workspace/docs \
             --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api \
