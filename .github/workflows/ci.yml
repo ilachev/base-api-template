@@ -78,7 +78,7 @@ jobs:
       
       - name: Install Protoc
         run: |
-          PROTOC_VERSION="3.20.0"
+          PROTOC_VERSION="21.12"
           PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
           curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
@@ -104,10 +104,25 @@ jobs:
       
       - name: Generate proto artifacts
         run: |
-          # Run each proto generation step separately with increased memory limit
-          task proto:gen:sdk || (echo "SDK generation failed" && exit 1)
-          task proto:gen:docs || (echo "Docs generation failed" && exit 1)
-          task proto:gen:routes || (echo "Routes generation failed" && exit 1)
+          # Create necessary directories
+          mkdir -p protos/gen docs
+          
+          # Run protoc commands directly to avoid memory issues
+          echo "Generating PHP SDK..."
+          protoc -I=protos/proto \
+            --php_out=protos/gen \
+            --php_opt=aggregate_metadata \
+            protos/proto/app/v1/*.proto \
+            protos/proto/google/api/*.proto
+          
+          echo "Generating OpenAPI docs..."
+          protoc -I=protos/proto \
+            --openapiv2_out=logtostderr=true:docs \
+            --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api \
+            protos/proto/app/v1/*.proto
+          
+          echo "Generating routes..."
+          php bin/generate-routes.php
       
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
