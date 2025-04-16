@@ -44,10 +44,10 @@ final class ProtobufAdapterTest extends TestCase
         $reflectionClass = new \ReflectionClass(ProtobufAdapter::class);
         $cacheProperty = $reflectionClass->getProperty('propertySetterCache');
         $cacheProperty->setAccessible(true);
-        
+
         /** @var array<string, array<string, string>> $cache */
         $cache = $cacheProperty->getValue();
-        
+
         return $cache;
     }
 

@@ -57,7 +57,7 @@ final class CacheLimitingAdapterTest extends TestCase
             self::assertLessThanOrEqual($maxCacheSize, \count($newCache));
         } else {
             // At least some entries should have been dropped
-            self::assertNotEmpty(\array_diff_key($cache, $newCache), 'Expected some cache entries to be dropped');
+            self::assertNotEmpty(array_diff_key($cache, $newCache), 'Expected some cache entries to be dropped');
         }
     }
 
@@ -82,10 +82,10 @@ final class CacheLimitingAdapterTest extends TestCase
         $reflectionClass = new \ReflectionClass(ProtobufAdapter::class);
         $cacheProperty = $reflectionClass->getProperty('propertySetterCache');
         $cacheProperty->setAccessible(true);
-        
+
         /** @var array<string, array<string, string>> $cache */
         $cache = $cacheProperty->getValue();
-        
+
         return $cache;
     }
 
@@ -99,7 +99,7 @@ final class CacheLimitingAdapterTest extends TestCase
         $reflectionClass = new \ReflectionClass(ProtobufAdapter::class);
         $cacheProperty = $reflectionClass->getProperty('propertySetterCache');
         $cacheProperty->setAccessible(true);
-        
+
         /** @var array<string, array<string, string>> $cache */
         $cache = $cacheProperty->getValue();
         $cache[$className] = $setterMap;
