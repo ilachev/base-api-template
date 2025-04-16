@@ -39,7 +39,7 @@ tasks:
   phpstan:
     deps: [ var, install ]
     cmds:
-      - "{{.PHP}} vendor/bin/phpstan analyse {{.CLI_ARGS}}"
+      - "{{.PHP}} vendor/bin/phpstan analyse --memory-limit=256M {{.CLI_ARGS}}"
 
   test:
     deps: [ var, install ]

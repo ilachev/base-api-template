@@ -11,7 +11,7 @@ final readonly class Migration20240317001_CreateSessions extends AbstractMigrati
         return <<<'SQL'
                 CREATE TABLE sessions (
                     id TEXT PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
+                    user_id INTEGER,
                     payload TEXT NOT NULL,
                     expires_at INTEGER NOT NULL,
                     created_at INTEGER NOT NULL,

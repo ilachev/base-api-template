@@ -8,12 +8,16 @@ use App\Application\Routing\RouteDefinition;
 use App\Application\Routing\RouteDefinitionInterface;
 use App\Application\Routing\RouterInterface;
 use App\Domain\Home\HomeService;
+use App\Domain\Session\SessionRepository;
+use App\Domain\Session\SessionService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
+use App\Infrastructure\Storage\Query\QueryBuilderFactory;
+use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -43,8 +47,15 @@ return static function (Container $container): void {
     );
     $container->bind(HydratorInterface::class, Hydrator::class);
 
+    // QueryBuilder factory
+    $container->bind(QueryBuilderFactory::class, QueryBuilderFactory::class);
+
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
+    $container->bind(SessionService::class, SessionService::class);
+
+    // Repositories
+    $container->bind(SessionRepository::class, SQLiteSessionRepository::class);
 
     // Application services and mappers
     $container->bind(HomeMapper::class, HomeMapper::class);

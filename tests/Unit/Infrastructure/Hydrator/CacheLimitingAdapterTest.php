@@ -69,7 +69,7 @@ final class CacheLimitingAdapterTest extends TestCase
         $reflectionClass = new \ReflectionClass(ProtobufAdapter::class);
         $cacheProperty = $reflectionClass->getProperty('propertySetterCache');
         $cacheProperty->setAccessible(true);
-        $cacheProperty->setValue([]);
+        $cacheProperty->setValue(null, []);
     }
 
     /**
@@ -103,6 +103,6 @@ final class CacheLimitingAdapterTest extends TestCase
         /** @var array<string, array<string, string>> $cache */
         $cache = $cacheProperty->getValue();
         $cache[$className] = $setterMap;
-        $cacheProperty->setValue($cache);
+        $cacheProperty->setValue(null, $cache);
     }
 }

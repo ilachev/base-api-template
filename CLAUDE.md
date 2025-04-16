@@ -26,6 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Domain objects should never depend on infrastructure or protocol-specific types
 - Infrastructure components (like Hydrator) should be used by mappers to transform data
 - Each layer should have its own tests focused on its responsibilities
+- Do not use mocks for internal services - use real implementations in tests
 
 ## Performance and Memory Management
 - Application runs on RoadRunner server - be careful with static caches and memory management
@@ -49,6 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - One-space concatenation (`$a . $b`)
 - Import ordering: classes, functions, constants
 - No global namespace imports
+- No "Interface" suffix in interface names (use `Repository` not `RepositoryInterface`)
 - Trailing commas in multiline arrays, arguments and parameters
 - Comments only when necessary and in English (not Russian)
 - Comments should explain "why", not "what" or "how" when the code is complex

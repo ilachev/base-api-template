@@ -6,12 +6,12 @@ namespace App\Infrastructure;
 
 use App\Application\Http\RouteHandlerResolver;
 use App\Application\Middleware\{
-    AuthMiddleware,
     ErrorHandlerMiddleware,
     HttpLoggingMiddleware,
     Pipeline,
     RequestMetricsMiddleware,
-    RoutingMiddleware
+    RoutingMiddleware,
+    SessionMiddleware
 };
 use App\Infrastructure\DI\Container;
 use Spiral\RoadRunner\Http\PSR7Worker;
@@ -59,7 +59,7 @@ final readonly class App
                 $this->container->get(ErrorHandlerMiddleware::class),
                 $this->container->get(RoutingMiddleware::class),
                 $this->container->get(RequestMetricsMiddleware::class),
-                $this->container->get(AuthMiddleware::class),
+                $this->container->get(SessionMiddleware::class),
                 $this->container->get(HttpLoggingMiddleware::class),
             ],
         );
