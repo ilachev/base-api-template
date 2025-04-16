@@ -15,11 +15,18 @@ final readonly class SessionService
         $now = time();
         $id = $this->generateSessionId();
 
+        $expireTime = $now + $ttl;
+
+        // Обеспечиваем, что expiresAt будет int, даже если ttl очень большой
+        if ($expireTime < 0 || $ttl === PHP_INT_MAX) {
+            $expireTime = PHP_INT_MAX;
+        }
+
         $session = new Session(
             id: $id,
             userId: $userId,
             payload: $payload,
-            expiresAt: $now + $ttl,
+            expiresAt: $expireTime,
             createdAt: $now,
             updatedAt: $now,
         );
@@ -49,11 +56,18 @@ final readonly class SessionService
         }
 
         $now = time();
+        $expireTime = $now + $ttl;
+
+        // Обеспечиваем, что expiresAt будет int, даже если ttl очень большой
+        if ($expireTime < 0 || $ttl === PHP_INT_MAX) {
+            $expireTime = PHP_INT_MAX;
+        }
+
         $refreshedSession = new Session(
             id: $session->id,
             userId: $session->userId,
             payload: $session->payload,
-            expiresAt: $now + $ttl,
+            expiresAt: $expireTime,
             createdAt: $session->createdAt,
             updatedAt: $now,
         );
