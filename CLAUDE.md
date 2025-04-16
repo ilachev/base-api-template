@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Verify (lint+tests): `task verify`
 - Performance tests: `task perf:test "scenario-name.js"`
 - Always run `task verify` before committing to ensure code quality
+- Generate proto artifacts: `task proto:gen:all`
 
 ## Code Style
 - PHP 8.4, strict typing required (`declare(strict_types=1)`)
@@ -26,3 +27,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Comments should explain "why", not "what" or "how" when the code is complex
 - Use `self::assert*` instead of `$this->assert*` in PHPUnit tests
 - Commit messages should be short, concise and written in English
+
+## CI/CD
+- GitHub Actions are configured for CI/CD
+- CI workflow runs on every push/PR to master branch:
+  - Code style checking
+  - Static analysis
+  - Tests
+  - Proto artifacts generation
+- Release workflow creates distributable package when a new release is created
+- Never disable checks or bypass CI workflows
+- Fix CI issues locally before pushing to remote

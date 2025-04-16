@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  validate:
+    name: Validate and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+      
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+      
+      - name: Install Taskfile
+        uses: arduino/setup-task@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Protoc
+        run: |
+          PROTOC_VERSION="3.20.0"
+          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
+          rm -f "${PROTOC_ZIP}"
+      
+      - name: Install protoc-gen-openapiv2
+        run: |
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
+
+      - name: Check code style
+        run: task lint
+      
+      - name: Static analysis
+        run: task phpstan
+      
+      - name: Run tests
+        run: task test
+  
+  build:
+    name: Build Artifacts
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, sqlite3
+          coverage: none
+          tools: composer:v2
+      
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-dev
+      
+      - name: Install Taskfile
+        uses: arduino/setup-task@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Protoc
+        run: |
+          PROTOC_VERSION="3.20.0"
+          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
+          rm -f "${PROTOC_ZIP}"
+      
+      - name: Install protoc-gen-openapiv2
+        run: |
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
+      
+      - name: Generate proto artifacts
+        run: task proto:gen:all
+      
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-artifacts
+          path: |
+            docs/
+            protos/gen/

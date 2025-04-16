@@ -1,7 +1,25 @@
 .pid
 
+# Database files
 db/app.sqlite
+
+# Vendor & Task
 vendor/
 .task/
 var/
-/nbproject/private/
+
+# IDE & Editor files
+.idea/
+/nbproject/
+*.sublime-project
+*.sublime-workspace
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Build artifacts
+dist/

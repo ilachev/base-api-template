@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build Release Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, sqlite3
+          coverage: none
+          tools: composer:v2
+      
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+      
+      - name: Install Taskfile
+        uses: arduino/setup-task@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Protoc
+        run: |
+          PROTOC_VERSION="3.20.0"
+          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          curl -OL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local bin/protoc
+          sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
+          rm -f "${PROTOC_ZIP}"
+      
+      - name: Install protoc-gen-openapiv2
+        run: |
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "PATH=$PATH:$(go env GOPATH)/bin" >> $GITHUB_ENV
+      
+      - name: Generate proto artifacts
+        run: task proto:gen:all
+      
+      - name: Package application
+        run: |
+          mkdir -p dist
+          tar -czf dist/api-template-${{ github.event.release.tag_name }}.tar.gz \
+            --exclude='.git*' \
+            --exclude='tests' \
+            --exclude='var' \
+            --exclude='load-tests' \
+            --exclude='taskfile.yaml' \
+            .
+      
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./dist/api-template-${{ github.event.release.tag_name }}.tar.gz
+          asset_name: api-template-${{ github.event.release.tag_name }}.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Upload OpenAPI docs
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./docs/api.swagger.json
+          asset_name: api-swagger-${{ github.event.release.tag_name }}.json
+          asset_content_type: application/json
