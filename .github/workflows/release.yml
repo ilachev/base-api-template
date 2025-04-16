@@ -29,13 +29,25 @@ jobs:
           version: '3.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Install Protoc
+      - name: Install Protoc Prebuilt Binary
         run: |
-          if ! type protoc > /dev/null 2>&1; then
-            echo "Installing protobuf compiler..."
-            sudo apt-get update
-            sudo apt-get install -y protobuf-compiler
-          fi
+          echo "Installing protobuf compiler from GitHub releases..."
+          PROTOC_VERSION="24.4"
+          PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          
+          # Create temporary directory for download
+          mkdir -p /tmp/protoc
+          
+          # Download and extract protoc
+          curl -sSL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}" -o /tmp/protoc.zip
+          unzip -q /tmp/protoc.zip -d /tmp/protoc
+          
+          # Install to system directories
+          sudo cp /tmp/protoc/bin/protoc /usr/local/bin/
+          sudo cp -r /tmp/protoc/include/* /usr/local/include/
+          
+          # Clean up
+          rm -rf /tmp/protoc /tmp/protoc.zip
           
           # Verify protoc installation
           protoc --version
@@ -57,26 +69,35 @@ jobs:
           # Create necessary directories
           mkdir -p protos/gen docs
           
-          # Try with direct protoc command
+          # Process files individually
           echo "Generating PHP SDK..."
-          cd $(pwd)
-          sudo protoc -I=protos/proto \
-            --php_out=protos/gen \
-            --php_opt=aggregate_metadata \
-            protos/proto/app/v1/*.proto \
-            protos/proto/google/api/*.proto
+          
+          # Find and process each .proto file individually
+          for proto_file in protos/proto/app/v1/*.proto protos/proto/google/api/*.proto; do
+            echo "Processing: $proto_file"
+            protoc -I=protos/proto \
+              --php_out=protos/gen \
+              --php_opt=aggregate_metadata \
+              "$proto_file"
+          done
           
           echo "Generating OpenAPI docs..."
-          sudo protoc -I=protos/proto \
-            --openapiv2_out=logtostderr=true:docs \
-            --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api \
-            protos/proto/app/v1/*.proto
+          # Process API files for OpenAPI generation
+          for proto_file in protos/proto/app/v1/*.proto; do
+            echo "Processing for OpenAPI: $proto_file"
+            protoc -I=protos/proto \
+              --openapiv2_out=logtostderr=true:docs \
+              --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api \
+              "$proto_file"
+          done
           
           echo "Generating routes..."
           PHP_CS_FIXER_IGNORE_ENV=true php bin/generate-routes.php
           
-          # Fix permissions
-          sudo chown -R $(id -u):$(id -g) protos/gen docs
+          # Fix permissions if needed
+          if [ "$(stat -c %u protos/gen)" != "$(id -u)" ]; then
+            sudo chown -R $(id -u):$(id -g) protos/gen docs
+          fi
       
       - name: Prepare release assets
         run: |
