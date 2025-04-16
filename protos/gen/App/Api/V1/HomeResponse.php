@@ -10,12 +10,16 @@ use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
+ * HomeResponse ответ с данными домашней страницы
+ *
  * Generated from protobuf message <code>app.v1.HomeResponse</code>
  */
 class HomeResponse extends \Google\Protobuf\Internal\Message
 {
     /**
-     * Generated from protobuf field <code>.app.v1.HomeData data = 2;</code>
+     * Данные домашней страницы
+     *
+     * Generated from protobuf field <code>.app.v1.HomeData data = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      */
     protected $data = null;
 
@@ -26,6 +30,7 @@ class HomeResponse extends \Google\Protobuf\Internal\Message
      *     Optional. Data for populating the Message object.
      *
      *     @type \App\Api\V1\HomeData $data
+     *           Данные домашней страницы
      * }
      */
     public function __construct($data = NULL) {
@@ -34,7 +39,9 @@ class HomeResponse extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.app.v1.HomeData data = 2;</code>
+     * Данные домашней страницы
+     *
+     * Generated from protobuf field <code>.app.v1.HomeData data = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      * @return \App\Api\V1\HomeData|null
      */
     public function getData()
@@ -53,7 +60,9 @@ class HomeResponse extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.app.v1.HomeData data = 2;</code>
+     * Данные домашней страницы
+     *
+     * Generated from protobuf field <code>.app.v1.HomeData data = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      * @param \App\Api\V1\HomeData $var
      * @return $this
      */

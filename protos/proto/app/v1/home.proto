@@ -6,6 +6,8 @@ import "google/api/annotations.proto";
 // Добавляем импорт для OpenAPI аннотаций
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+option php_namespace = "App\\Api\\V1";
+option php_metadata_namespace = "App\\Api\\V1\\Metadata";
 option go_package = "app/api/v1";
 
 // Определяем глобальные настройки для OpenAPI

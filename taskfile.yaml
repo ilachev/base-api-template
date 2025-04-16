@@ -67,6 +67,15 @@ tasks:
        --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api
        {{.PROTO_DIR}}/app/v1/*.proto
        
+  proto:gen:routes:
+    desc: Generate routes from proto definitions
+    deps: [ var, install ]
+    cmds:
+      - "{{.PHP}} bin/generate-routes.php"
+      
+  proto:gen:all:
+    desc: Generate all artifacts from proto files
+    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes ]
 
   perf:test:
     deps: [ var, install ]

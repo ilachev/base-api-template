@@ -10,12 +10,16 @@ use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
+ * HomeData содержит информацию для отображения на домашней странице
+ *
  * Generated from protobuf message <code>app.v1.HomeData</code>
  */
 class HomeData extends \Google\Protobuf\Internal\Message
 {
     /**
-     * Generated from protobuf field <code>string message = 1;</code>
+     * Приветственное сообщение
+     *
+     * Generated from protobuf field <code>string message = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      */
     protected $message = '';
 
@@ -26,6 +30,7 @@ class HomeData extends \Google\Protobuf\Internal\Message
      *     Optional. Data for populating the Message object.
      *
      *     @type string $message
+     *           Приветственное сообщение
      * }
      */
     public function __construct($data = NULL) {
@@ -34,7 +39,9 @@ class HomeData extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>string message = 1;</code>
+     * Приветственное сообщение
+     *
+     * Generated from protobuf field <code>string message = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      * @return string
      */
     public function getMessage()
@@ -43,7 +50,9 @@ class HomeData extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>string message = 1;</code>
+     * Приветственное сообщение
+     *
+     * Generated from protobuf field <code>string message = 1 [(.grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {</code>
      * @param string $var
      * @return $this
      */
