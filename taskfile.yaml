@@ -44,7 +44,7 @@ tasks:
   test:
     deps: [ var, install ]
     cmds:
-      - "{{.PHP}} vendor/bin/phpunit --colors=always {{.CLI_ARGS}}"
+      - "{{.PHP}} vendor/bin/phpunit --colors=never {{.CLI_ARGS}}"
 
   proto:gen:sdk:
     desc: Generate PHP classes from proto files

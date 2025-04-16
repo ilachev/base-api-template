@@ -55,7 +55,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Comments only when necessary and in English (not Russian)
 - Comments should explain "why", not "what" or "how" when the code is complex
 - Use `self::assert*` instead of `$this->assert*` in PHPUnit tests
-- Commit messages should be short, concise and written in English
+- Commit messages should be short, concise, and written in English
+- Each commit message should be a single sentence that conveys the essence of the change
+- Do not include Claude mentions in commit messages
+- Always prefer single-line commit messages
 
 ## CI/CD
 - GitHub Actions are configured for CI/CD

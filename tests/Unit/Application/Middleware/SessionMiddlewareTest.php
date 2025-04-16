@@ -6,6 +6,7 @@ namespace Tests\Unit\Application\Middleware;
 
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Session\Session;
+use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
 use Nyholm\Psr7\Response;
@@ -33,7 +34,15 @@ final class SessionMiddlewareTest extends TestCase
         $this->repository = new TestSessionRepository();
         $this->sessionService = new SessionService($this->repository);
         $this->logger = new TestLogger();
-        $this->middleware = new SessionMiddleware($this->sessionService, $this->logger);
+
+        $config = SessionConfig::fromArray([
+            'cookie_name' => 'session',
+            'cookie_ttl' => 86400,
+            'session_ttl' => 3600,
+            'use_fingerprint' => false,
+        ]);
+
+        $this->middleware = new SessionMiddleware($this->sessionService, $this->logger, $config);
         $this->handler = new TestRequestHandler();
     }
 

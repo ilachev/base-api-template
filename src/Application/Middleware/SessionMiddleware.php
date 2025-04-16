@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Domain\Session\Session;
+use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,12 +15,10 @@ use Psr\Log\LoggerInterface;
 
 final readonly class SessionMiddleware implements MiddlewareInterface
 {
-    private const string COOKIE_NAME = 'session';
-    private const int COOKIE_TTL = 86400; // 24 часа
-
     public function __construct(
         private SessionService $sessionService,
         private LoggerInterface $logger,
+        private SessionConfig $config,
     ) {}
 
     public function process(
@@ -36,10 +35,11 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
         // Если сессия не найдена или истекла, создаем новую
         if ($session === null) {
+            $payload = $this->generateClientFingerprint($request);
             $session = $this->sessionService->createSession(
                 userId: null,
-                payload: (string) json_encode(['ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown']),
-                ttl: self::COOKIE_TTL,
+                payload: $payload,
+                ttl: $this->config->cookieTtl,
             );
 
             $this->logger->debug('Created new session', ['session_id' => $session->id]);
@@ -53,7 +53,7 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
         // Обновляем сессию при успешном запросе
         if ($response->getStatusCode() < 400) {
-            $this->sessionService->refreshSession($session->id);
+            $this->sessionService->refreshSession($session->id, $this->config->sessionTtl);
 
             // Устанавливаем cookie с сессией
             $response = $this->addSessionCookie($response, $session);
@@ -72,11 +72,11 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
         // Извлекаем из cookie
         $cookies = $request->getCookieParams();
-        if (!isset($cookies[self::COOKIE_NAME])) {
+        if (!isset($cookies[$this->config->cookieName])) {
             return null;
         }
 
-        $cookie = $cookies[self::COOKIE_NAME];
+        $cookie = $cookies[$this->config->cookieName];
 
         return \is_string($cookie) ? $cookie : null;
     }
@@ -89,10 +89,26 @@ final readonly class SessionMiddleware implements MiddlewareInterface
             'Set-Cookie',
             \sprintf(
                 '%s=%s; Expires=%s; Path=/; HttpOnly; SameSite=Lax',
-                self::COOKIE_NAME,
+                $this->config->cookieName,
                 $session->id,
                 $expires,
             ),
         );
+    }
+
+    private function generateClientFingerprint(ServerRequestInterface $request): string
+    {
+        $data = [
+            'ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+        ];
+
+        if ($this->config->useFingerprint) {
+            $data['user_agent'] = $request->getHeaderLine('User-Agent');
+            $data['accept_language'] = $request->getHeaderLine('Accept-Language');
+            $data['accept_encoding'] = $request->getHeaderLine('Accept-Encoding');
+            $data['x_forwarded_for'] = $request->getHeaderLine('X-Forwarded-For');
+        }
+
+        return (string) json_encode($data);
     }
 }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
+use App\Application\Middleware\SessionMiddleware;
 use App\Application\Routing\RouteDefinition;
 use App\Application\Routing\RouteDefinitionInterface;
 use App\Application\Routing\RouterInterface;
 use App\Domain\Home\HomeService;
+use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\DI\Container;
@@ -52,6 +54,17 @@ return static function (Container $container): void {
     $container->bind(QueryBuilderFactory::class, QueryBuilderFactory::class);
     $container->bind(QueryFactory::class, QueryBuilderFactory::class);
 
+    // Session config
+    $container->set(
+        SessionConfig::class,
+        static function (): SessionConfig {
+            /** @var array{cookie_name: string, cookie_ttl: int, session_ttl: int, use_fingerprint: bool} $sessionConfig */
+            $sessionConfig = require __DIR__ . '/session.php';
+
+            return SessionConfig::fromArray($sessionConfig);
+        },
+    );
+
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
     $container->bind(SessionService::class, SessionService::class);
@@ -61,6 +74,23 @@ return static function (Container $container): void {
 
     // Application services and mappers
     $container->bind(HomeMapper::class, HomeMapper::class);
+
+    // Set up session middleware
+    $container->set(
+        SessionMiddleware::class,
+        static function (ContainerInterface $container): SessionMiddleware {
+            /** @var SessionService $sessionService */
+            $sessionService = $container->get(SessionService::class);
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            /** @var SessionConfig $config */
+            $config = $container->get(SessionConfig::class);
+
+            return new SessionMiddleware($sessionService, $logger, $config);
+        },
+    );
 
     $container->set(
         Worker::class,
