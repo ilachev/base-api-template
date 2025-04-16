@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Application\Client\ClientConfig;
 use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetector;
+use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\DefaultClientDataFactory;
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
@@ -125,6 +126,9 @@ return static function (Container $container): void {
         },
     );
 
+    // Bind interface to implementation
+    $container->bind(ClientDetectorInterface::class, ClientDetector::class);
+
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
     $container->bind(SessionService::class, SessionService::class);
@@ -154,12 +158,16 @@ return static function (Container $container): void {
             /** @var JsonFieldAdapter $jsonAdapter */
             $jsonAdapter = $container->get(JsonFieldAdapter::class);
 
+            /** @var ClientDetectorInterface $clientDetector */
+            $clientDetector = $container->get(ClientDetectorInterface::class);
+
             return new SessionMiddleware(
                 $sessionService,
                 $logger,
                 $config,
                 $clientDataFactory,
                 $jsonAdapter,
+                $clientDetector,
             );
         },
     );

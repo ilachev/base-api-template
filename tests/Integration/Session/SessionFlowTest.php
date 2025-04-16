@@ -65,7 +65,7 @@ final class SessionFlowTest extends IntegrationTestCase
             ->withAttribute('session', $firstSession);
 
         // Проверяем, что система находит идентичные fingerprint
-        $similarClients = $this->clientDetector->findSimilarClients($testRequest);
+        $similarClients = $this->clientDetector->findSimilarClients($testRequest, true);
 
         // Проверяем что нашлись похожие клиенты
         self::assertNotEmpty($similarClients, 'Должен найти похожих клиентов');
@@ -113,7 +113,7 @@ final class SessionFlowTest extends IntegrationTestCase
             ->withAttribute('session', $secondSession);
 
         // Проверяем, что запрос второго клиента НЕ идентифицируется как первый
-        $similarClients = $this->clientDetector->findSimilarClients($request);
+        $similarClients = $this->clientDetector->findSimilarClients($request, true);
 
         // Проверяем что клиенты отличаются
         $foundFirstClient = false;
@@ -172,7 +172,7 @@ final class SessionFlowTest extends IntegrationTestCase
             ->withAttribute('session', $newSession);
 
         // Должны найти предыдущую сессию того же клиента по fingerprint
-        $similarClients = $this->clientDetector->findSimilarClients($testRequest);
+        $similarClients = $this->clientDetector->findSimilarClients($testRequest, true);
 
         self::assertNotEmpty($similarClients, 'Должен найти клиента по fingerprint');
 

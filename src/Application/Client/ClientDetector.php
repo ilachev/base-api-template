@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Сервис для определения и сопоставления клиентов на основе fingerprint.
  */
-final readonly class ClientDetector
+final readonly class ClientDetector implements ClientDetectorInterface
 {
     public function __construct(
         private SessionRepository $sessionRepository,
@@ -22,9 +22,10 @@ final readonly class ClientDetector
      * Определяет, принадлежит ли запрос уже известному клиенту.
      *
      * @param ServerRequestInterface $request Текущий HTTP-запрос
+     * @param bool $includeCurrent Включать ли текущую сессию в результаты поиска (для тестов)
      * @return array<ClientIdentity> Список найденных похожих клиентов, отсортированный по схожести
      */
-    public function findSimilarClients(ServerRequestInterface $request): array
+    public function findSimilarClients(ServerRequestInterface $request, bool $includeCurrent = false): array
     {
         // Получаем текущую сессию из атрибутов запроса
         /** @var ?Session $currentSession */
@@ -37,12 +38,16 @@ final readonly class ClientDetector
         // Создаем идентификатор текущего клиента
         $currentIdentity = ClientIdentity::fromSession($currentSession);
 
-        // Получаем все сессии, кроме текущей
+        // Получаем все сессии
         $allSessions = $this->sessionRepository->findAll();
-        $otherSessions = array_filter(
-            $allSessions,
-            static fn(Session $session) => $session->id !== $currentSession->id,
-        );
+
+        // Фильтруем текущую сессию, если нужно
+        $otherSessions = $includeCurrent
+            ? $allSessions  // Включаем все сессии для тестов
+            : array_filter(
+                $allSessions,
+                static fn(Session $session) => $session->id !== $currentSession->id,
+            );
 
         if (empty($otherSessions)) {
             return [];

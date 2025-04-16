@@ -6,6 +6,8 @@ namespace Tests\Unit\Application\Middleware;
 
 use App\Application\Client\ClientData;
 use App\Application\Client\ClientDataFactory;
+use App\Application\Client\ClientDetectorInterface;
+use App\Application\Client\ClientIdentity;
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
@@ -59,12 +61,16 @@ final class SessionMiddlewareTest extends TestCase
         $clientDataFactory = new TestClientDataFactoryImpl($clientData);
         $jsonAdapter = new TestJsonFieldAdapterImpl();
 
+        // Создаем тестовую реализацию ClientDetector
+        $clientDetector = new TestClientDetectorImpl([]);
+
         $this->middleware = new SessionMiddleware(
             $this->sessionService,
             $this->logger,
             $config,
             $clientDataFactory,
             $jsonAdapter,
+            $clientDetector,
         );
         $this->handler = new TestRequestHandler();
     }
@@ -224,6 +230,78 @@ final class SessionMiddlewareTest extends TestCase
 
         // Проверяем, что в ответе нет cookie
         self::assertFalse($response->hasHeader('Set-Cookie'));
+    }
+
+    public function testReusesSimilarSessionWhenFingerprintMatches(): void
+    {
+        // 1. Включаем fingerprinting в конфиге
+        $configWithFingerprint = SessionConfig::fromArray([
+            'cookie_name' => 'session',
+            'cookie_ttl' => 86400,
+            'session_ttl' => 3600,
+            'use_fingerprint' => true,
+        ]);
+
+        // 2. Создаем существующую сессию с известным fingerprint
+        $existingSession = new Session(
+            id: 'existing-fingerprint-session-id',
+            userId: 42,
+            payload: '{"ip":"127.0.0.1","userAgent":"Test Agent"}',
+            expiresAt: time() + 3600,
+            createdAt: time() - 100,
+            updatedAt: time() - 50,
+        );
+        $this->repository->sessions['existing-fingerprint-session-id'] = $existingSession;
+
+        // 3. Создаем ClientIdentity на основе существующей сессии
+        $existingIdentity = new ClientIdentity(
+            id: 'existing-fingerprint-session-id',
+            ipAddress: '127.0.0.1',
+            userAgent: 'Test Agent',
+        );
+
+        // 4. Создаем тестовую реализацию ClientDetector, которая будет возвращать наше совпадение
+        $clientDetector = new TestClientDetectorImpl([$existingIdentity]);
+
+        // 5. Создаем новый middleware с этими зависимостями
+        /** @var ClientDataFactory $clientDataFactory */
+        $clientDataFactory = $this->middleware->getContext('clientDataFactory');
+
+        /** @var JsonFieldAdapter $jsonAdapter */
+        $jsonAdapter = $this->middleware->getContext('jsonAdapter');
+
+        $fingerprintMiddleware = new SessionMiddleware(
+            $this->sessionService,
+            $this->logger,
+            $configWithFingerprint,
+            $clientDataFactory,
+            $jsonAdapter,
+            $clientDetector,
+        );
+
+        // 6. Создаем запрос без cookie, но с совпадающим fingerprint
+        $request = new ServerRequest('GET', '/');
+        $this->handler->response = new Response();
+
+        // 7. Запускаем middleware
+        $response = $fingerprintMiddleware->process($request, $this->handler);
+
+        // 8. Проверяем, что не была создана новая сессия
+        self::assertCount(1, $this->repository->sessions);
+
+        // 9. Проверяем, что в атрибутах запроса используется существующая сессия
+        $processedRequest = $this->handler->lastRequest;
+        self::assertNotNull($processedRequest);
+
+        $session = $processedRequest->getAttribute('session');
+        self::assertInstanceOf(Session::class, $session);
+        self::assertSame($existingSession, $session);
+        self::assertSame(42, $session->userId);
+
+        // 10. Проверяем cookie в ответе
+        self::assertTrue($response->hasHeader('Set-Cookie'));
+        $cookie = $response->getHeaderLine('Set-Cookie');
+        self::assertStringContainsString('session=existing-fingerprint-session-id', $cookie);
     }
 }
 
@@ -421,5 +499,31 @@ final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
     public function trySerialize(object $object, string $defaultJson = '{}', ?callable $fieldTransformer = null): string
     {
         return $this->serialize($object, $fieldTransformer);
+    }
+}
+
+/**
+ * Тестовая имплементация ClientDetectorInterface.
+ */
+final readonly class TestClientDetectorImpl implements ClientDetectorInterface
+{
+    /**
+     * @param array<ClientIdentity> $similarClients Клиенты, которые будут возвращены
+     */
+    public function __construct(
+        private array $similarClients = [],
+    ) {}
+
+    /**
+     * @return array<ClientIdentity>
+     */
+    public function findSimilarClients(ServerRequestInterface $request, bool $includeCurrent = false): array
+    {
+        return $this->similarClients;
+    }
+
+    public function isRequestSuspicious(ServerRequestInterface $request): bool
+    {
+        return false;
     }
 }

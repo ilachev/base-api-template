@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Client\ClientDataFactory;
+use App\Application\Client\ClientDetectorInterface;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
@@ -23,13 +24,33 @@ final readonly class SessionMiddleware implements MiddlewareInterface
         private SessionConfig $config,
         private ClientDataFactory $clientDataFactory,
         private JsonFieldAdapter $jsonAdapter,
+        private ClientDetectorInterface $clientDetector,
     ) {}
+
+    /**
+     * Получает зависимость по имени для тестирования.
+     *
+     * @param string $name Имя зависимости
+     * @return mixed Значение зависимости или null, если не найдена
+     */
+    public function getContext(string $name): mixed
+    {
+        return match ($name) {
+            'sessionService' => $this->sessionService,
+            'logger' => $this->logger,
+            'config' => $this->config,
+            'clientDataFactory' => $this->clientDataFactory,
+            'jsonAdapter' => $this->jsonAdapter,
+            'clientDetector' => $this->clientDetector,
+            default => null,
+        };
+    }
 
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler,
     ): ResponseInterface {
-        // Пытаемся найти существующую сессию
+        // Пытаемся найти существующую сессию по cookie или заголовку
         $sessionId = $this->extractSessionId($request);
         $session = null;
 
@@ -37,12 +58,56 @@ final readonly class SessionMiddleware implements MiddlewareInterface
             $session = $this->sessionService->validateSession($sessionId);
         }
 
-        // Если сессия не найдена или истекла, создаем новую
-        if ($session === null) {
-            // Создаем ClientData и сериализуем его через JsonFieldAdapter
-            $clientData = $this->clientDataFactory->createFromRequest($request);
-            $payload = $this->jsonAdapter->serialize($clientData);
+        // Создаем ClientData для этого запроса в любом случае - он понадобится
+        $clientData = $this->clientDataFactory->createFromRequest($request);
+        $payload = $this->jsonAdapter->serialize($clientData);
 
+        // Если сессия не найдена по cookie, но fingerprinting включен,
+        // пытаемся найти сессию по fingerprint
+        if ($session === null && $this->config->useFingerprint) {
+            // Создаем временную сессию для запроса, чтобы ClientDetector мог работать
+            $tempSession = $this->sessionService->createSession(
+                userId: null,
+                payload: $payload,
+                ttl: 60, // Короткий срок жизни, т.к. это временная сессия
+            );
+
+            // Добавляем временную сессию в атрибуты запроса
+            $requestWithTempSession = $request->withAttribute('session', $tempSession);
+
+            // Ищем похожих клиентов с помощью ClientDetector
+            $similarClients = $this->clientDetector->findSimilarClients($requestWithTempSession);
+
+            // Если найдены похожие клиенты, используем сессию первого клиента
+            // (т.к. они отсортированы по уровню схожести)
+            if (!empty($similarClients)) {
+                $bestMatch = $similarClients[0];
+                $matchedSession = $this->sessionService->validateSession($bestMatch->id);
+
+                if ($matchedSession !== null) {
+                    $session = $matchedSession;
+                    $this->logger->debug('Restored session by fingerprint', [
+                        'session_id' => $session->id,
+                        'client_ip' => $clientData->ip,
+                        'user_agent' => $clientData->userAgent,
+                    ]);
+
+                    // Удаляем временную сессию, так как нашли существующую
+                    $this->sessionService->deleteSession($tempSession->id);
+                } else {
+                    // Если сессия лучшего совпадения не валидна (истекла или удалена),
+                    // будем использовать временную сессию
+                    $session = $tempSession;
+                }
+            } else {
+                // Если похожих клиентов не найдено, используем временную сессию
+                $session = $tempSession;
+                $this->logger->debug('Created new session, no similar clients found', [
+                    'session_id' => $session->id,
+                ]);
+            }
+        } elseif ($session === null) {
+            // Если сессия не найдена и fingerprinting отключен, просто создаем новую
             $session = $this->sessionService->createSession(
                 userId: null,
                 payload: $payload,
