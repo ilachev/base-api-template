@@ -4,10 +4,6 @@ on:
   release:
     types: [created]
 
-env:
-  PHP_CS_FIXER_IGNORE_ENV: true
-  PHP_CS_FIXER_FUTURE_MODE: true
-
 jobs:
   build:
     name: Build Release Package
@@ -42,11 +38,6 @@ jobs:
           sudo unzip -o "${PROTOC_ZIP}" -d /usr/local include/*
           rm -f "${PROTOC_ZIP}"
       
-      - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-      
       - name: Install protoc-gen-openapiv2
         run: |
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
@@ -67,7 +58,7 @@ jobs:
             .
       
       - name: Upload release asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -77,7 +68,7 @@ jobs:
           asset_content_type: application/gzip
       
       - name: Upload OpenAPI docs
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

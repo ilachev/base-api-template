@@ -43,11 +43,10 @@ jobs:
           php -r "var_dump(get_loaded_extensions());"
           php -r "var_dump(ini_get_all());" | grep -i "memor"
       
-      - name: Lint and Static analysis
-        run: bin/ci-lint.sh
+      - name: Run verify (tests, lint and static analysis)
+        run: task verify
       
-      - name: Run tests
-        run: task test
+# Tests are already included in verify task
   
   build:
     name: Build Artifacts
@@ -100,7 +99,7 @@ jobs:
         run: task proto:gen:all
       
       - name: Archive artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-artifacts
           path: |
