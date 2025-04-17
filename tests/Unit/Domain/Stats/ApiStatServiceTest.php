@@ -25,7 +25,7 @@ final class ApiStatServiceTest extends TestCase
     {
         $stat = new ApiStat(
             id: null,
-            clientId: 'test-client',
+            sessionId: 'test-session',
             route: '/test/route',
             method: 'GET',
             statusCode: 200,
@@ -39,12 +39,12 @@ final class ApiStatServiceTest extends TestCase
         self::assertSame($stat, $this->repository->stats[0]);
     }
 
-    public function testGetClientStats(): void
+    public function testGetSessionStats(): void
     {
-        $clientId = 'test-client';
+        $sessionId = 'test-session';
         $stat1 = new ApiStat(
             id: 1,
-            clientId: $clientId,
+            sessionId: $sessionId,
             route: '/test/route1',
             method: 'GET',
             statusCode: 200,
@@ -54,7 +54,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat2 = new ApiStat(
             id: 2,
-            clientId: $clientId,
+            sessionId: $sessionId,
             route: '/test/route2',
             method: 'POST',
             statusCode: 201,
@@ -64,7 +64,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat3 = new ApiStat(
             id: 3,
-            clientId: 'other-client',
+            sessionId: 'other-session',
             route: '/test/route1',
             method: 'GET',
             statusCode: 200,
@@ -74,7 +74,7 @@ final class ApiStatServiceTest extends TestCase
 
         $this->repository->stats = [$stat1, $stat2, $stat3];
 
-        $result = $this->service->getClientStats($clientId);
+        $result = $this->service->getSessionStats($sessionId);
 
         self::assertCount(2, $result);
         self::assertContains($stat1, $result);
@@ -87,7 +87,7 @@ final class ApiStatServiceTest extends TestCase
         $route = '/test/route';
         $stat1 = new ApiStat(
             id: 1,
-            clientId: 'client1',
+            sessionId: 'session1',
             route: $route,
             method: 'GET',
             statusCode: 200,
@@ -97,7 +97,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat2 = new ApiStat(
             id: 2,
-            clientId: 'client2',
+            sessionId: 'session2',
             route: $route,
             method: 'GET',
             statusCode: 200,
@@ -107,7 +107,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat3 = new ApiStat(
             id: 3,
-            clientId: 'client1',
+            sessionId: 'session1',
             route: '/different/route',
             method: 'POST',
             statusCode: 201,
@@ -133,7 +133,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat1 = new ApiStat(
             id: 1,
-            clientId: 'client1',
+            sessionId: 'session1',
             route: '/test/route1',
             method: 'GET',
             statusCode: 200,
@@ -143,7 +143,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat2 = new ApiStat(
             id: 2,
-            clientId: 'client2',
+            sessionId: 'session2',
             route: '/test/route2',
             method: 'POST',
             statusCode: 201,
@@ -153,7 +153,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat3 = new ApiStat(
             id: 3,
-            clientId: 'client1',
+            sessionId: 'session1',
             route: '/test/route3',
             method: 'GET',
             statusCode: 200,
@@ -171,14 +171,14 @@ final class ApiStatServiceTest extends TestCase
         self::assertNotContains($stat2, $result);
     }
 
-    public function testGetStatsByClientAndRoute(): void
+    public function testGetStatsBySessionAndRoute(): void
     {
-        $clientId = 'test-client';
+        $sessionId = 'test-session';
         $route = '/test/route';
 
         $stat1 = new ApiStat(
             id: 1,
-            clientId: $clientId,
+            sessionId: $sessionId,
             route: $route,
             method: 'GET',
             statusCode: 200,
@@ -188,7 +188,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat2 = new ApiStat(
             id: 2,
-            clientId: $clientId,
+            sessionId: $sessionId,
             route: '/different/route',
             method: 'POST',
             statusCode: 201,
@@ -198,7 +198,7 @@ final class ApiStatServiceTest extends TestCase
 
         $stat3 = new ApiStat(
             id: 3,
-            clientId: 'other-client',
+            sessionId: 'other-session',
             route: $route,
             method: 'GET',
             statusCode: 200,
@@ -208,7 +208,7 @@ final class ApiStatServiceTest extends TestCase
 
         $this->repository->stats = [$stat1, $stat2, $stat3];
 
-        $result = $this->service->getStatsByClientAndRoute($clientId, $route);
+        $result = $this->service->getStatsBySessionAndRoute($sessionId, $route);
 
         self::assertCount(1, $result);
         self::assertContains($stat1, $result);
@@ -233,11 +233,11 @@ final class TestApiStatRepository implements ApiStatRepository
     /**
      * @return array<ApiStat>
      */
-    public function findByClientId(string $clientId): array
+    public function findBySessionId(string $sessionId): array
     {
         return array_filter(
             $this->stats,
-            static fn(ApiStat $stat) => $stat->clientId === $clientId,
+            static fn(ApiStat $stat) => $stat->sessionId === $sessionId,
         );
     }
 
@@ -266,11 +266,11 @@ final class TestApiStatRepository implements ApiStatRepository
     /**
      * @return array<ApiStat>
      */
-    public function findByClientAndRoute(string $clientId, string $route): array
+    public function findBySessionAndRoute(string $sessionId, string $route): array
     {
         return array_filter(
             $this->stats,
-            static fn(ApiStat $stat) => $stat->clientId === $clientId && $stat->route === $route,
+            static fn(ApiStat $stat) => $stat->sessionId === $sessionId && $stat->route === $route,
         );
     }
 }

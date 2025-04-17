@@ -18,10 +18,10 @@ final readonly class ApiStatService
     /**
      * @return array<ApiStat>
      */
-    public function getClientStats(string $clientId): array
+    public function getSessionStats(string $sessionId): array
     {
         /** @var array<ApiStat> $stats */
-        $stats = $this->repository->findByClientId($clientId);
+        $stats = $this->repository->findBySessionId($sessionId);
 
         return $stats;
     }
@@ -50,12 +50,12 @@ final readonly class ApiStatService
     }
 
     /**
-     * Get statistics for a specific client and route.
+     * Get statistics for a specific session and route.
      *
      * @return array<ApiStat>
      */
-    public function getStatsByClientAndRoute(string $clientId, string $route): array
+    public function getStatsBySessionAndRoute(string $sessionId, string $route): array
     {
-        return $this->repository->findByClientAndRoute($clientId, $route);
+        return $this->repository->findBySessionAndRoute($sessionId, $route);
     }
 }

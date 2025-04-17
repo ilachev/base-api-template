@@ -21,10 +21,10 @@ final class SQLiteApiStatRepository extends AbstractRepository implements ApiSta
     /**
      * @return array<ApiStat>
      */
-    public function findByClientId(string $clientId): array
+    public function findBySessionId(string $sessionId): array
     {
         $query = $this->query(self::TABLE)
-            ->where('client_id', $clientId)
+            ->where('session_id', $sessionId)
             ->orderBy('request_time', 'DESC');
 
         return $this->fetchAll(ApiStat::class, $query);
@@ -60,10 +60,10 @@ final class SQLiteApiStatRepository extends AbstractRepository implements ApiSta
     /**
      * @return array<ApiStat>
      */
-    public function findByClientAndRoute(string $clientId, string $route): array
+    public function findBySessionAndRoute(string $sessionId, string $route): array
     {
         $query = $this->query(self::TABLE)
-            ->where('client_id', $clientId)
+            ->where('session_id', $sessionId)
             ->where('route', $route)
             ->orderBy('request_time', 'DESC');
 

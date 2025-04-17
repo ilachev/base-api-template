@@ -8,7 +8,7 @@ final readonly class ApiStat
 {
     public function __construct(
         public ?int $id,
-        public string $clientId,
+        public string $sessionId,
         public string $route,
         public string $method,
         public int $statusCode,

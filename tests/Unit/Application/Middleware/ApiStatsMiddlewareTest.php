@@ -76,7 +76,7 @@ final class ApiStatsMiddlewareTest extends TestCase
         self::assertNotEmpty($this->repository->stats);
         $stat = $this->repository->stats[0];
         self::assertInstanceOf(ApiStat::class, $stat);
-        self::assertSame($sessionId, $stat->clientId);
+        self::assertSame($sessionId, $stat->sessionId);
         self::assertSame($routeName, $stat->route);
         self::assertSame($method, $stat->method);
         self::assertSame($statusCode, $stat->statusCode);
@@ -150,7 +150,7 @@ final class ApiStatsMiddlewareTest extends TestCase
         self::assertNotEmpty($this->repository->stats);
         $stat = $this->repository->stats[0];
         self::assertInstanceOf(ApiStat::class, $stat);
-        self::assertSame($sessionId, $stat->clientId);
+        self::assertSame($sessionId, $stat->sessionId);
         self::assertSame($path, $stat->route);
         self::assertSame($method, $stat->method);
         self::assertSame($statusCode, $stat->statusCode);

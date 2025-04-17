@@ -61,7 +61,7 @@ final readonly class ApiStatsMiddleware implements MiddlewareInterface
         // Создаем объект статистики API вызова
         $stat = new ApiStat(
             id: null,
-            clientId: $sessionId,
+            sessionId: $sessionId,
             route: $route,
             method: $request->getMethod(),
             statusCode: $response->getStatusCode(),

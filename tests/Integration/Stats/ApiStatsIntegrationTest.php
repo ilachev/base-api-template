@@ -105,8 +105,8 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
         self::assertEquals(200, $response->getStatusCode(), 'Запрос должен быть успешным');
 
         // Проверяем, что в таблице api_stats появилась запись
-        $stats = $this->storage->query('SELECT * FROM api_stats WHERE client_id = :client_id', [
-            'client_id' => $sessionId,
+        $stats = $this->storage->query('SELECT * FROM api_stats WHERE session_id = :session_id', [
+            'session_id' => $sessionId,
         ]);
 
         self::assertNotEmpty($stats, 'В таблице api_stats должна появиться запись о запросе');
@@ -156,8 +156,8 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
         self::assertEquals(404, $response->getStatusCode(), 'Запрос должен вернуть 404');
 
         // Проверяем статистику
-        $stats = $this->storage->query('SELECT * FROM api_stats WHERE client_id = :client_id AND route = :route', [
-            'client_id' => $sessionId,
+        $stats = $this->storage->query('SELECT * FROM api_stats WHERE session_id = :session_id AND route = :route', [
+            'session_id' => $sessionId,
             'route' => '/api/non-existent-route',
         ]);
 

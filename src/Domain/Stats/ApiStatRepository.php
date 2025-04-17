@@ -11,7 +11,7 @@ interface ApiStatRepository
     /**
      * @return array<ApiStat>
      */
-    public function findByClientId(string $clientId): array;
+    public function findBySessionId(string $sessionId): array;
 
     /**
      * @return array<ApiStat>
@@ -28,9 +28,9 @@ interface ApiStatRepository
     public function findByTimeRange(int $startTime, int $endTime): array;
 
     /**
-     * Find statistics by client and route.
+     * Find statistics by session and route.
      *
      * @return array<ApiStat>
      */
-    public function findByClientAndRoute(string $clientId, string $route): array;
+    public function findBySessionAndRoute(string $sessionId, string $route): array;
 }
