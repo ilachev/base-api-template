@@ -64,6 +64,7 @@ final class CachedSessionRepositoryTest extends TestCase
         $this->repository = new CachedSessionRepository(
             $this->innerRepository,
             $this->cacheService,
+            $logger,
         );
 
     }

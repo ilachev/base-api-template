@@ -173,7 +173,10 @@ return static function (Container $container): void {
             /** @var CacheService $cacheService */
             $cacheService = $container->get(CacheService::class);
 
-            return new CachedSessionRepository($sqliteRepository, $cacheService);
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new CachedSessionRepository($sqliteRepository, $cacheService, $logger);
         },
     );
     $container->bind(SQLiteSessionRepository::class, SQLiteSessionRepository::class);

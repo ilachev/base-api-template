@@ -8,6 +8,7 @@ use App\Domain\Session\Session;
 use App\Domain\Session\SessionRepository;
 use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Storage\Repository\AbstractCachedRepository;
+use Psr\Log\LoggerInterface;
 
 final class CachedSessionRepository extends AbstractCachedRepository implements SessionRepository
 {
@@ -17,8 +18,13 @@ final class CachedSessionRepository extends AbstractCachedRepository implements 
     public function __construct(
         private readonly SessionRepository $repository,
         CacheService $cache,
+        LoggerInterface $logger,
     ) {
-        parent::__construct($cache);
+        parent::__construct(
+            cache: $cache,
+            logger: $logger,
+            cacheKeyPrefix: '',
+        );
     }
 
     public function findById(string $id): ?Session
