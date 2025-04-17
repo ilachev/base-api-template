@@ -75,11 +75,16 @@ final class RoadRunnerCacheService implements CacheService
     private function isRpcAvailable(RPCInterface $rpc): bool
     {
         try {
-            // Пытаемся выполнить простую команду без логирования ошибок
-            $rpc->call('kv.Ping', '', 'string');
+            // Правильный способ: проверяем доступность через Has метод с пустым ключом
+            $kvRpc = $rpc->withServicePrefix('kv');
+            $kvRpc->call('Has', 'test_key');
+
+            $this->logger->debug('KV ping is OK', []);
 
             return true;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            $this->logger->debug('KV ping is NOT OK', ['message' => $e->getMessage()]);
+
             return false;
         }
     }
