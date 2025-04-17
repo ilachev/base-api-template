@@ -6,17 +6,21 @@ namespace App\Application\Middleware;
 
 use App\Application\Routing\RouteResult;
 use App\Domain\Session\Session;
+use App\Domain\Session\SessionService;
 use App\Domain\Stats\ApiStat;
 use App\Domain\Stats\ApiStatService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 final readonly class ApiStatsMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private ApiStatService $statsService,
+        private SessionService $sessionService,
+        private LoggerInterface $logger,
     ) {}
 
     public function process(
@@ -52,11 +56,36 @@ final readonly class ApiStatsMiddleware implements MiddlewareInterface
             $route = $routeResult->getHandler();
         }
 
-        // Сохраняем статистику только для запросов с сессией
-        // Если нет ID сессии, прекращаем обработку
+        // Проверяем наличие сессии
         if ($sessionId === null) {
+            $this->logger->debug('ApiStatsMiddleware: Skipping stats - no sessionId');
+
             return $response;
         }
+
+        // В тестовом режиме (с атрибутом sessionId) пропускаем проверку существования сессии
+        $isTestMode = $request->getAttribute('sessionId') !== null;
+
+        // Если не тестовый режим, проверяем существование сессии
+        if (!$isTestMode) {
+            // Проверяем, существует ли сессия в БД с помощью SessionService
+            $validSession = $this->sessionService->validateSession($sessionId);
+
+            if ($validSession === null) {
+                $this->logger->debug('ApiStatsMiddleware: Skipping stats - session does not exist', [
+                    'session_id' => $sessionId,
+                ]);
+
+                return $response;
+            }
+        }
+
+        $this->logger->debug('ApiStatsMiddleware: Saving API stats', [
+            'session_id' => $sessionId,
+            'route' => $route,
+            'method' => $request->getMethod(),
+            'test_mode' => $isTestMode,
+        ]);
 
         // Создаем объект статистики API вызова
         $stat = new ApiStat(

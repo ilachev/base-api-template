@@ -282,7 +282,13 @@ return static function (Container $container): void {
             /** @var ApiStatService $apiStatService */
             $apiStatService = $container->get(ApiStatService::class);
 
-            return new ApiStatsMiddleware($apiStatService);
+            /** @var SessionService $sessionService */
+            $sessionService = $container->get(SessionService::class);
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new ApiStatsMiddleware($apiStatService, $sessionService, $logger);
         },
     );
 

@@ -7,6 +7,9 @@ namespace Tests\Unit\Application\Middleware;
 use App\Application\Middleware\ApiStatsMiddleware;
 use App\Application\Routing\RouteResult;
 use App\Application\Routing\RouteStatus;
+use App\Domain\Session\Session;
+use App\Domain\Session\SessionRepository;
+use App\Domain\Session\SessionService;
 use App\Domain\Stats\ApiStat;
 use App\Domain\Stats\ApiStatService;
 use Nyholm\Psr7\Response;
@@ -15,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Tests\Unit\Domain\Stats\TestApiStatRepository;
 
 final class ApiStatsMiddlewareTest extends TestCase
@@ -23,18 +28,61 @@ final class ApiStatsMiddlewareTest extends TestCase
 
     private ApiStatService $statService;
 
+    private SessionService $sessionService;
+
+    private LoggerInterface $logger;
+
     private ApiStatsMiddleware $middleware;
 
     protected function setUp(): void
     {
         $this->repository = new TestApiStatRepository();
         $this->statService = new ApiStatService($this->repository);
-        $this->middleware = new ApiStatsMiddleware($this->statService);
+
+        // Создаем тестовое хранилище сессий
+        $testSessionRepository = new class implements SessionRepository {
+            public function findById(string $id): ?Session
+            {
+                $now = time();
+
+                return new Session(
+                    id: $id,
+                    userId: null,
+                    payload: '{}',
+                    expiresAt: $now + 3600,
+                    createdAt: $now,
+                    updatedAt: $now,
+                );
+            }
+
+            public function save(Session $session): void {}
+
+            public function delete(string $id): void {}
+
+            public function deleteExpired(): void {}
+
+            public function findByUserId(int $userId): array
+            {
+                return [];
+            }
+
+            public function findAll(): array
+            {
+                return [];
+            }
+        };
+
+        // Создаем реальный экземпляр SessionService
+        $this->logger = new NullLogger();
+        $this->sessionService = new SessionService($testSessionRepository, $this->logger);
+
+        $this->middleware = new ApiStatsMiddleware($this->statService, $this->sessionService, $this->logger);
     }
 
     public function testProcessWithSessionId(): void
     {
-        $sessionId = 'test-session-id';
+        // Используем валидный формат ID сессии (32 hex символа)
+        $sessionId = '0123456789abcdef0123456789abcdef';
         $routeName = 'test.route';
         $routePath = '/test/path';
         $method = 'GET';
@@ -115,7 +163,8 @@ final class ApiStatsMiddlewareTest extends TestCase
 
     public function testProcessWithoutRouteResult(): void
     {
-        $sessionId = 'test-session-id';
+        // Используем валидный формат ID сессии (32 hex символа)
+        $sessionId = '0123456789abcdef0123456789abcdef';
         $path = '/no-route-result';
         $method = 'GET';
         $statusCode = 404;
