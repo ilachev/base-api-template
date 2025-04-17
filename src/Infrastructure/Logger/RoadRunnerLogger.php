@@ -8,11 +8,29 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Spiral\RoadRunner\Logger;
 
-final readonly class RoadRunnerLogger implements LoggerInterface
+final class RoadRunnerLogger implements LoggerInterface
 {
+    private ?string $requestId = null;
+
     public function __construct(
         private Logger $logger,
     ) {}
+
+    /**
+     * Устанавливает ID запроса для всех последующих логов.
+     */
+    public function setRequestId(?string $requestId): void
+    {
+        $this->requestId = $requestId;
+    }
+
+    /**
+     * Возвращает текущий ID запроса.
+     */
+    public function getRequestId(): ?string
+    {
+        return $this->requestId;
+    }
 
     public function emergency(string|\Stringable $message, array $context = []): void
     {
@@ -56,6 +74,11 @@ final readonly class RoadRunnerLogger implements LoggerInterface
 
     public function log($level, string|\Stringable $message, array $context = []): void
     {
+        // Добавляем requestId в контекст лога, если он установлен и ещё не добавлен
+        if ($this->requestId !== null && !isset($context['request_id'])) {
+            $context['request_id'] = $this->requestId;
+        }
+
         $this->logger->log($level, (string) $message, $context);
     }
 }
