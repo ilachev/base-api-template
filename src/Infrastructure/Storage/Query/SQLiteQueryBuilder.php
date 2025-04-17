@@ -62,6 +62,34 @@ final class SQLiteQueryBuilder extends BaseQueryBuilder
 
     /**
      * @param array<string, mixed> $data
+     * @param string $primaryKey Primary key column name
+     * @return array{string, array<string, mixed>}
+     */
+    public function buildUpsertQuery(array $data, string $primaryKey): array
+    {
+        if (empty($data)) {
+            throw new StorageException('Cannot insert or update empty data');
+        }
+
+        $columns = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_map(static fn(string $key) => ":{$key}", array_keys($data)));
+
+        // SQLite syntax for upsert
+        $updateSets = array_map(
+            static fn(string $key) => "{$key} = excluded.{$key}",
+            array_keys($data),
+        );
+
+        $updateClause = implode(', ', $updateSets);
+
+        $query = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders}) "
+             . "ON CONFLICT({$primaryKey}) DO UPDATE SET {$updateClause}";
+
+        return [$query, $data];
+    }
+
+    /**
+     * @param array<string, mixed> $data
      * @return array{string, array<string, mixed>}
      */
     public function buildUpdateQuery(array $data): array

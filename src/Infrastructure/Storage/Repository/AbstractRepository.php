@@ -106,35 +106,18 @@ abstract class AbstractRepository
     {
         $data = $this->extractEntityData($entity);
 
-        // Проверяем существование записи
-        $existsQuery = $this->query($table)
-            ->where($primaryKey, $primaryKeyValue)
-            ->select('COUNT(*) as count');
+        // Используем INSERT OR REPLACE для оптимизации - выполняем одну операцию вместо проверки и двух отдельных операций
+        $insertQuery = $this->query($table);
 
-        [$sql, $params] = $existsQuery->buildSelectQuery();
+        // Убедимся, что первичный ключ включен в данные
+        if (!isset($data[$primaryKey]) && $primaryKeyValue !== null) {
+            $data[$primaryKey] = $primaryKeyValue;
+        }
+
+        [$sql, $params] = $insertQuery->buildUpsertQuery($data, $primaryKey);
         /** @var array<string, scalar|null> $castParams */
         $castParams = $params;
-        $result = $this->storage->query($sql, $castParams);
-
-        $exists = isset($result[0]['count']) && (int) $result[0]['count'] > 0;
-
-        if ($exists) {
-            // Обновление
-            $updateQuery = $this->query($table)
-                ->where($primaryKey, $primaryKeyValue);
-
-            [$sql, $params] = $updateQuery->buildUpdateQuery($data);
-            /** @var array<string, scalar|null> $castParams */
-            $castParams = $params;
-            $this->storage->execute($sql, $castParams);
-        } else {
-            // Вставка
-            $insertQuery = $this->query($table);
-            [$sql, $params] = $insertQuery->buildInsertQuery($data);
-            /** @var array<string, scalar|null> $castParams */
-            $castParams = $params;
-            $this->storage->execute($sql, $castParams);
-        }
+        $this->storage->execute($sql, $castParams);
     }
 
     /**

@@ -42,6 +42,13 @@ interface QueryBuilder
 
     /**
      * @param array<string, mixed> $data
+     * @param string $primaryKey Primary key column name for the UPSERT operation
+     * @return array{string, array<string, mixed>}
+     */
+    public function buildUpsertQuery(array $data, string $primaryKey): array;
+
+    /**
+     * @param array<string, mixed> $data
      * @return array{string, array<string, mixed>}
      */
     public function buildUpdateQuery(array $data): array;

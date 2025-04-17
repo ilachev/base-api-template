@@ -58,9 +58,10 @@ final readonly class ApiStatsMiddleware implements MiddlewareInterface
             return $response;
         }
 
+        // Создаем объект статистики API вызова
         $stat = new ApiStat(
             id: null,
-            clientId: $sessionId, // используем $sessionId вместо $clientId
+            clientId: $sessionId,
             route: $route,
             method: $request->getMethod(),
             statusCode: $response->getStatusCode(),
@@ -68,6 +69,8 @@ final readonly class ApiStatsMiddleware implements MiddlewareInterface
             requestTime: time(),
         );
 
+        // Сохраняем статистику напрямую
+        // В реальном высоконагруженном проекте здесь можно использовать очередь задач
         $this->statsService->saveApiCall($stat);
 
         return $response;

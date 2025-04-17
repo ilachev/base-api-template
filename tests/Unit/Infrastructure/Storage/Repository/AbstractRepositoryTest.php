@@ -140,39 +140,24 @@ final class AbstractRepositoryTest extends TestCase
 
     public function testSaveUpdatesExistingEntityWhenItExists(): void
     {
-        // Настраиваем проверку существования записи
-        /** @var list<array<string, scalar|null>> $results */
-        $results = [['count' => 1]];
-        $this->storage->mockQueryResults = $results;
-
         $entity = new SimpleDTO(1, 100, 12345678);
 
         $this->repository->testSaveEntity($entity, 'test', 'id', 1);
 
-        // Проверяем, что был выполнен запрос на проверку существования
-        self::assertStringContainsString('COUNT(*)', $this->storage->queries[0]);
-
-        // Проверяем, что был выполнен запрос UPDATE
-        self::assertStringStartsWith('UPDATE', $this->storage->lastExecutedQuery);
-        self::assertStringContainsString('WHERE id = :id', $this->storage->lastExecutedQuery);
+        // Проверяем, что был выполнен запрос UPSERT
+        self::assertStringStartsWith('INSERT INTO', $this->storage->lastExecutedQuery);
+        self::assertStringContainsString('ON CONFLICT', $this->storage->lastExecutedQuery);
     }
 
     public function testSaveInsertsNewEntityWhenItDoesNotExist(): void
     {
-        // Настраиваем отсутствие записи
-        /** @var list<array<string, scalar|null>> $results */
-        $results = [['count' => 0]];
-        $this->storage->mockQueryResults = $results;
-
         $entity = new SimpleDTO(1, 100, 12345678);
 
         $this->repository->testSaveEntity($entity, 'test', 'id', 1);
 
-        // Проверяем, что был выполнен запрос на проверку существования
-        self::assertStringContainsString('COUNT(*)', $this->storage->queries[0]);
-
-        // Проверяем, что был выполнен запрос INSERT
+        // Проверяем, что был выполнен запрос UPSERT
         self::assertStringStartsWith('INSERT INTO', $this->storage->lastExecutedQuery);
+        self::assertStringContainsString('ON CONFLICT', $this->storage->lastExecutedQuery);
     }
 
     public function testDeleteRemovesEntityById(): void

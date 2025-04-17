@@ -24,6 +24,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Handlers should be thin adapters delegating to Domain services
 - Use Mappers (not Builders or DTOs) for transforming between layers
 - Domain objects should never depend on infrastructure or protocol-specific types
+- Domain model objects (DTOs) should be as simple as possible - avoid adding business logic methods to them
+- Data structures in the Domain layer should be pure containers, with behavior residing in services
 - Infrastructure components (like Hydrator) should be used by mappers to transform data
 - Each layer should have its own tests focused on its responsibilities
 - Do not use mocks for internal services - use real implementations in tests
