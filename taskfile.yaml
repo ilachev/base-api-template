@@ -34,15 +34,21 @@ tasks:
           CLI_ARGS: "--dry-run {{.CLI_ARGS}}"
 
   verify:
-    deps: [ var, install, lint, phpstan, test ]
+    deps: [ var, install, lint, phpstan, cache:clear, test ]
 
   phpstan:
     deps: [ var, install ]
     cmds:
       - "{{.PHP}} vendor/bin/phpstan analyse --memory-limit=256M {{.CLI_ARGS}}"
 
-  test:
+  cache:clear:
     deps: [ var, install ]
+    desc: Clear application cache
+    cmds:
+      - "{{.PHP}} bin/cache-clear.php"
+
+  test:
+    deps: [ var, install, cache:clear ]
     cmds:
       - "{{.PHP}} vendor/bin/phpunit --colors=never {{.CLI_ARGS}}"
 
