@@ -20,6 +20,9 @@ use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
 use App\Domain\Stats\ApiStatRepository;
 use App\Domain\Stats\ApiStatService;
+use App\Infrastructure\Cache\CacheConfig;
+use App\Infrastructure\Cache\CacheService;
+use App\Infrastructure\Cache\RoadRunnerCacheService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
@@ -46,6 +49,9 @@ use Spiral\RoadRunner\WorkerInterface;
 
 return static function (Container $container): void {
     $container->bind(ContainerInterface::class, Container::class);
+
+    // Регистрация сервиса кеширования
+    $container->bind(CacheService::class, RoadRunnerCacheService::class);
 
     $container->bind(ServerRequestFactoryInterface::class, Psr17Factory::class);
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
@@ -103,6 +109,24 @@ return static function (Container $container): void {
             $clientConfig = require __DIR__ . '/client.php';
 
             return ClientConfig::fromArray($clientConfig);
+        },
+    );
+
+    // Cache config
+    $container->set(
+        CacheConfig::class,
+        static function (): CacheConfig {
+            /** @var array{
+             *     engine: string,
+             *     address: string,
+             *     default_prefix: string,
+             *     default_ttl: int,
+             *     serializer: int,
+             * } $cacheConfig
+             */
+            $cacheConfig = require __DIR__ . '/cache.php';
+
+            return CacheConfig::fromArray($cacheConfig);
         },
     );
 
