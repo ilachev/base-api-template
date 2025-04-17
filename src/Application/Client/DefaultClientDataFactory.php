@@ -11,6 +11,10 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final readonly class DefaultClientDataFactory implements ClientDataFactory
 {
+    public function __construct(
+        private GeoLocationService $geoLocationService,
+    ) {}
+
     /**
      * Создает объект ClientData из HTTP запроса.
      */
@@ -79,6 +83,9 @@ final readonly class DefaultClientDataFactory implements ClientDataFactory
             $allHeaders[$name] = implode(', ', $values);
         }
 
+        // Получаем геолокацию по IP
+        $geoLocation = $this->geoLocationService->getLocationByIp($ip);
+
         return new ClientData(
             ip: $ip,
             userAgent: $userAgent,
@@ -96,6 +103,7 @@ final readonly class DefaultClientDataFactory implements ClientDataFactory
             secFetchSite: $secFetchSite,
             extraAttributes: $extraAttributes,
             headers: $allHeaders,
+            geoLocation: $geoLocation,
         );
     }
 
@@ -121,6 +129,7 @@ final readonly class DefaultClientDataFactory implements ClientDataFactory
             secFetchSite: null,
             extraAttributes: [],
             headers: [],
+            geoLocation: null,
         );
     }
 }

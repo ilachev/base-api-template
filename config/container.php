@@ -7,6 +7,8 @@ use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetector;
 use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\DefaultClientDataFactory;
+use App\Application\Client\GeoLocationConfig;
+use App\Application\Client\GeoLocationService;
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
 use App\Application\Middleware\ApiStatsMiddleware;
@@ -25,6 +27,7 @@ use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Cache\RoadRunnerCacheService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
+use App\Infrastructure\GeoLocation\VendorGeoLocationService;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
@@ -131,11 +134,54 @@ return static function (Container $container): void {
         },
     );
 
+    // GeoLocation config
+    $container->set(
+        GeoLocationConfig::class,
+        static function (): GeoLocationConfig {
+            /** @var array{
+             *     db_path: string,
+             *     download_token: string,
+             *     download_url: string,
+             *     database_code: string,
+             *     cache_ttl: int,
+             * } $geoConfig
+             */
+            $geoConfig = require __DIR__ . '/geolocation.php';
+
+            return GeoLocationConfig::fromArray($geoConfig);
+        },
+    );
+
+    // GeoLocation service
+    $container->bind(GeoLocationService::class, VendorGeoLocationService::class);
+
+    // IP2Location implementation
+    $container->set(
+        VendorGeoLocationService::class,
+        static function (ContainerInterface $container): VendorGeoLocationService {
+            /** @var GeoLocationConfig $config */
+            $config = $container->get(GeoLocationConfig::class);
+
+            /** @var CacheService $cache */
+            $cache = $container->get(CacheService::class);
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new VendorGeoLocationService($config, $cache, $logger);
+        },
+    );
+
     // Client data factory
     $container->bind(ClientDataFactory::class, DefaultClientDataFactory::class);
     $container->set(
         DefaultClientDataFactory::class,
-        static fn(): DefaultClientDataFactory => new DefaultClientDataFactory(),
+        static function (ContainerInterface $container): DefaultClientDataFactory {
+            /** @var GeoLocationService $geoLocationService */
+            $geoLocationService = $container->get(GeoLocationService::class);
+
+            return new DefaultClientDataFactory($geoLocationService);
+        },
     );
 
     // Client detector service

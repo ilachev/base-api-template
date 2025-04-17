@@ -2,6 +2,7 @@
     "require": {
         "php": "^8.4",
         "ext-pdo": "*",
+        "ip2location/ip2location-php": "^9.7",
         "nikic/fast-route": "^1.3",
         "nyholm/psr7": "^1.8",
         "psr/container": "^2.0",

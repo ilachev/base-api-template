@@ -189,6 +189,61 @@ final class SessionFlowTest extends IntegrationTestCase
     }
 
     /**
+     * Проверяет корректность определения реального IP и геолокационных данных.
+     */
+    public function testRealIPGeolocation(): void
+    {
+        // Используем реальный публичный IP для тестирования геолокации
+        $realIP = '8.8.8.8';  // Google DNS
+        $userAgent = 'Chrome/112.0.0.0';
+
+        // Создаем запрос с реальным IP
+        $request = $this->createClientRequest($realIP, $userAgent);
+
+        // Получаем данные клиента, которые должны включать геолокацию
+        $clientData = $this->clientDataFactory->createFromRequest($request);
+
+        // Проверяем, что IP был корректно определен
+        self::assertEquals($realIP, $clientData->ip, 'IP должен быть корректно определен');
+
+        // Проверяем, что геолокационные данные были получены
+        self::assertNotNull($clientData->geoLocation, 'Геолокационные данные должны быть заполнены');
+
+        // Проверка основных полей геолокации
+        self::assertNotEmpty($clientData->geoLocation->country, 'Страна должна быть определена');
+        self::assertNotEmpty($clientData->geoLocation->countryCode, 'Код страны должен быть определен');
+
+        // Известно, что 8.8.8.8 принадлежит Google в США
+        self::assertEquals('US', $clientData->geoLocation->countryCode, 'Код страны должен соответствовать ожидаемому');
+
+        // Создаем сессию с этими данными
+        $payload = $this->jsonAdapter->serialize($clientData);
+        $session = $this->sessionService->createSession(
+            userId: null,
+            payload: $payload,
+        );
+
+        // Проверяем сохранение геолокационных данных в сессии
+        $validatedSession = $this->sessionService->validateSession($session->id);
+        self::assertNotNull($validatedSession, 'Сессия должна быть найдена');
+
+        // Проверяем, что payload сохранился
+        self::assertNotEmpty($validatedSession->payload, 'Payload должен быть сохранен');
+
+        // Из payload сессии восстанавливаем данные
+        $payloadData = json_decode($validatedSession->payload, true);
+        self::assertIsArray($payloadData, 'Payload должен быть валидным JSON');
+
+        // Проверяем, что в payload сохранился IP
+        self::assertEquals($realIP, $payloadData['ip'], 'IP в сессии должен совпадать с оригинальным');
+
+        // Проверяем, что geoLocation сохранился в сессии
+        self::assertArrayHasKey('geoLocation', $payloadData, 'В payload должны быть данные геолокации');
+        self::assertIsArray($payloadData['geoLocation'], 'Геолокация должна быть массивом');
+        self::assertEquals('US', $payloadData['geoLocation']['countryCode'], 'Код страны в сессии должен совпадать');
+    }
+
+    /**
      * Создает тестовый запрос с заданными параметрами IP и User-Agent.
      */
     private function createClientRequest(

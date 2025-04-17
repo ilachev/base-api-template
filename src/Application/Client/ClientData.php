@@ -32,6 +32,7 @@ final readonly class ClientData
         public ?string $secFetchSite,
         public array $extraAttributes = [],
         public array $headers = [],
+        public ?GeoLocationData $geoLocation = null,
     ) {}
 
     /**
