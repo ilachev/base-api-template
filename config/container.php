@@ -27,7 +27,7 @@ use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Cache\RoadRunnerCacheService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
-use App\Infrastructure\GeoLocation\VendorGeoLocationService;
+use App\Infrastructure\GeoLocation\IP2LocationGeoLocationService;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
@@ -153,12 +153,12 @@ return static function (Container $container): void {
     );
 
     // GeoLocation service
-    $container->bind(GeoLocationService::class, VendorGeoLocationService::class);
+    $container->bind(GeoLocationService::class, IP2LocationGeoLocationService::class);
 
     // IP2Location implementation
     $container->set(
-        VendorGeoLocationService::class,
-        static function (ContainerInterface $container): VendorGeoLocationService {
+        IP2LocationGeoLocationService::class,
+        static function (ContainerInterface $container): IP2LocationGeoLocationService {
             /** @var GeoLocationConfig $config */
             $config = $container->get(GeoLocationConfig::class);
 
@@ -168,7 +168,7 @@ return static function (Container $container): void {
             /** @var LoggerInterface $logger */
             $logger = $container->get(LoggerInterface::class);
 
-            return new VendorGeoLocationService($config, $cache, $logger);
+            return new IP2LocationGeoLocationService($config, $cache, $logger);
         },
     );
 

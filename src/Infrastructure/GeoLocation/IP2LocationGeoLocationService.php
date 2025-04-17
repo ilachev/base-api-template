@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Реализация сервиса геолокации с использованием официальной библиотеки IP2Location.
  */
-final readonly class VendorGeoLocationService implements GeoLocationService
+final readonly class IP2LocationGeoLocationService implements GeoLocationService
 {
     private Database $db;
 
