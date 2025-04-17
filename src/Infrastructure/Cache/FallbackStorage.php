@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Cache;
 
-use Spiral\RoadRunner\KeyValue\Serializer\SerializerAwareInterface;
 use Spiral\RoadRunner\KeyValue\Serializer\SerializerInterface;
 use Spiral\RoadRunner\KeyValue\StorageInterface;
 
@@ -12,7 +11,7 @@ use Spiral\RoadRunner\KeyValue\StorageInterface;
  * Реализация хранилища-заглушки для случаев, когда основное хранилище недоступно.
  * Все операции выполняются без ошибок, но никакие данные не сохраняются.
  */
-final class FallbackStorage implements StorageInterface, SerializerAwareInterface
+final class FallbackStorage implements StorageInterface
 {
     public function get(string $key, mixed $default = null): mixed
     {
