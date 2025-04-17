@@ -41,7 +41,7 @@ final class ApiStatsMiddlewareTest extends TestCase
 
         // Создаем тестовое хранилище сессий
         $testSessionRepository = new class implements SessionRepository {
-            public function findById(string $id): ?Session
+            public function findById(string $id): Session
             {
                 $now = time();
 
