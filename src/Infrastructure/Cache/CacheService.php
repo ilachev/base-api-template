@@ -7,6 +7,11 @@ namespace App\Infrastructure\Cache;
 interface CacheService
 {
     /**
+     * Проверяет, доступен ли кеш-сервис.
+     */
+    public function isAvailable(): bool;
+
+    /**
      * Сохраняет значение в кеше.
      *
      * @template T

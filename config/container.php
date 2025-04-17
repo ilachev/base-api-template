@@ -33,6 +33,7 @@ use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Query\QueryFactory;
+use App\Infrastructure\Storage\Session\CachedSessionRepository;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\Stats\SQLiteApiStatRepository;
@@ -163,7 +164,19 @@ return static function (Container $container): void {
     $container->bind(ApiStatService::class, ApiStatService::class);
 
     // Repositories
-    $container->bind(SessionRepository::class, SQLiteSessionRepository::class);
+    $container->set(
+        SessionRepository::class,
+        static function (ContainerInterface $container): SessionRepository {
+            /** @var SQLiteSessionRepository $sqliteRepository */
+            $sqliteRepository = $container->get(SQLiteSessionRepository::class);
+
+            /** @var CacheService $cacheService */
+            $cacheService = $container->get(CacheService::class);
+
+            return new CachedSessionRepository($sqliteRepository, $cacheService);
+        },
+    );
+    $container->bind(SQLiteSessionRepository::class, SQLiteSessionRepository::class);
     $container->bind(ApiStatRepository::class, SQLiteApiStatRepository::class);
 
     // Application services and mappers
