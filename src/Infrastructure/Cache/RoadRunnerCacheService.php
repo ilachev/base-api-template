@@ -6,7 +6,6 @@ namespace App\Infrastructure\Cache;
 
 use Psr\Log\LoggerInterface;
 use Spiral\Goridge\RPC\RPC;
-use Spiral\Goridge\RPC\RPCInterface;
 use Spiral\RoadRunner\KeyValue\Factory;
 use Spiral\RoadRunner\KeyValue\StorageInterface;
 
@@ -34,19 +33,27 @@ final class RoadRunnerCacheService implements CacheService
             $address = !empty($this->config->address) ? $this->config->address : 'tcp://127.0.0.1:6001';
             $rpc = RPC::create($address);
 
-            // Проверяем доступность RPC без логирования ошибок
-            if (!$this->isRpcAvailable($rpc)) {
-                $this->storage = new FallbackStorage();
-                $this->available = false;
-
-                return;
-            }
-
             // Создаем фабрику и получаем хранилище
             $factory = new Factory($rpc);
             $engine = $this->config->engine === '' ? 'local-memory' : $this->config->engine;
-            $this->storage = $factory->select($engine);
-            $this->available = true;
+
+            try {
+                // Получаем хранилище
+                $storage = $factory->select($engine);
+
+                // Проверяем доступность хранилища путем простой операции has
+                $testKey = 'cache_test_key';
+                $storage->has($testKey);
+
+                // Если операция успешна, сохраняем хранилище и отмечаем как доступное
+                $this->storage = $storage;
+                $this->available = true;
+                $this->logger->info('KV storage is available');
+            } catch (\Throwable $e) {
+                $this->logger->error('KV storage is not available: ' . $e->getMessage());
+                $this->storage = new FallbackStorage();
+                $this->available = false;
+            }
         } catch (\Throwable $e) {
             $this->logger->error('Failed to initialize cache service: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -67,26 +74,6 @@ final class RoadRunnerCacheService implements CacheService
         // Проверяем наличие PHPUnit в окружении
         return \defined('PHPUNIT_COMPOSER_INSTALL') || \defined('__PHPUNIT_PHAR__')
                || isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'testing';
-    }
-
-    /**
-     * Проверяет доступность RPC соединения без генерации исключений.
-     */
-    private function isRpcAvailable(RPCInterface $rpc): bool
-    {
-        try {
-            // Правильный способ: проверяем доступность через Has метод с пустым ключом
-            $kvRpc = $rpc->withServicePrefix('kv');
-            $kvRpc->call('Has', 'test_key');
-
-            $this->logger->debug('KV ping is OK', []);
-
-            return true;
-        } catch (\Throwable $e) {
-            $this->logger->debug('KV ping is NOT OK', ['message' => $e->getMessage()]);
-
-            return false;
-        }
     }
 
     public function isAvailable(): bool
