@@ -14,7 +14,9 @@ use App\Application\Middleware\{
     RoutingMiddleware,
     SessionMiddleware
 };
+use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\DI\Container;
+use Psr\Log\LoggerInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
 
 /** @template T of object */
@@ -49,6 +51,9 @@ final readonly class App
 
     public function run(): void
     {
+        // Очищаем весь кеш при запуске приложения
+        $this->clearAllCache();
+
         while (true) {
             $request = $this->worker->waitRequest();
             if ($request === null) {
@@ -57,6 +62,24 @@ final readonly class App
 
             $response = $this->pipeline->handle($request);
             $this->worker->respond($response);
+        }
+    }
+
+    /**
+     * Очищает весь кеш при запуске приложения.
+     */
+    private function clearAllCache(): void
+    {
+        $cacheService = $this->container->get(CacheService::class);
+        $logger = $this->container->get(LoggerInterface::class);
+
+        try {
+            $cacheService->clear();
+            $logger->info('Cache fully cleared on application startup');
+        } catch (\Throwable $e) {
+            $logger->error('Failed to clear cache on startup', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
