@@ -20,4 +20,8 @@ $cacheService = $container->get(CacheService::class);
 $logger = $container->get(LoggerInterface::class);
 $command = new CacheClearCommand($cacheService, $logger);
 
-$command->clear();
+// Запускаем команду и используем результат для выставления статуса завершения скрипта
+$success = $command->clear();
+
+// Возвращаем ненулевой статус, если очистка не удалась
+exit($success ? 0 : 1);

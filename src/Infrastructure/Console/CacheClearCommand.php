@@ -16,18 +16,40 @@ final readonly class CacheClearCommand
 
     /**
      * Очищает весь кеш.
+     *
+     * @param bool $quiet Если true, не выводит сообщения в консоль
+     * @return bool True в случае успеха, false в случае ошибки
      */
-    public function clear(): void
+    public function clear(bool $quiet = false): bool
     {
         try {
-            $this->cacheService->clear();
-            $this->logger->info('Cache cleared successfully via console command');
-            echo "Cache cleared successfully.\n";
+            $success = $this->cacheService->clear();
+
+            if ($success) {
+                $this->logger->info('Cache cleared successfully via console command');
+                if (!$quiet) {
+                    echo "Cache cleared successfully.\n";
+                }
+
+                return true;
+            }
+
+            $this->logger->warning('Cache clear reported failure without throwing exception');
+            if (!$quiet) {
+                echo "Warning: Cache clearing completed but reported failure.\n";
+            }
+
+            return false;
         } catch (\Throwable $e) {
             $this->logger->error('Failed to clear cache', [
                 'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
-            echo "Error: Failed to clear cache: {$e->getMessage()}\n";
+            if (!$quiet) {
+                echo "Error: Failed to clear cache: {$e->getMessage()}\n";
+            }
+
+            return false;
         }
     }
 }

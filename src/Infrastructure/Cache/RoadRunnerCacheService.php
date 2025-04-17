@@ -182,18 +182,63 @@ final class RoadRunnerCacheService implements CacheService
         }
     }
 
+    /**
+     * Флаг, указывающий, что операция очистки кеша в процессе.
+     */
+    private bool $clearInProgress = false;
+
+    /**
+     * Очищает весь кеш с защитой от одновременного вызова.
+     */
     public function clear(): bool
     {
-        if (!$this->available) {
+        // Если кеш недоступен или очистка уже идет, просто возвращаем успех
+        if (!$this->available || $this->clearInProgress) {
+            $this->logger->debug('Cache clear skipped', [
+                'reason' => !$this->available ? 'cache unavailable' : 'already in progress',
+            ]);
+
             return true; // Притворяемся, что всё в порядке
         }
 
+        // Устанавливаем флаг, что очистка в процессе
+        $this->clearInProgress = true;
+
         try {
-            $this->storage->clear();
+            // Пробуем очистить кеш с повторными попытками
+            $maxRetries = 3;
+            $retryCount = 0;
+            $success = false;
+
+            while (!$success && $retryCount < $maxRetries) {
+                try {
+                    $this->storage->clear();
+                    $success = true;
+                } catch (\Throwable $e) {
+                    ++$retryCount;
+                    if ($retryCount >= $maxRetries) {
+                        throw $e; // Пробрасываем исключение после исчерпания попыток
+                    }
+
+                    // Логируем ошибку и делаем задержку перед следующей попыткой
+                    $this->logger->warning('Cache clear retry', [
+                        'attempt' => $retryCount,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    // Ждем перед повторной попыткой (50ms, 100ms, 200ms)
+                    usleep($retryCount * 50000);
+                }
+            }
+
+            $this->logger->info('Cache cleared successfully', [
+                'attempts' => $retryCount + 1,
+            ]);
 
             return true;
         } catch (\Throwable $e) {
-            $this->logger->error('Cache clear error: ' . $e->getMessage(), [
+            $this->logger->error('Cache clear error', [
+                'error' => $e->getMessage(),
                 'exception' => $e,
             ]);
 
@@ -201,6 +246,9 @@ final class RoadRunnerCacheService implements CacheService
             $this->available = false;
 
             return false;
+        } finally {
+            // В любом случае сбрасываем флаг очистки
+            $this->clearInProgress = false;
         }
     }
 

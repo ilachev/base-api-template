@@ -67,6 +67,7 @@ final readonly class App
 
     /**
      * Очищает весь кеш при запуске приложения.
+     * Использует улучшенный механизм защиты от race condition и повторяет попытки при сбоях.
      */
     private function clearAllCache(): void
     {
@@ -74,11 +75,19 @@ final readonly class App
         $logger = $this->container->get(LoggerInterface::class);
 
         try {
-            $cacheService->clear();
-            $logger->info('Cache fully cleared on application startup');
+            // Очищаем кеш, используя улучшенный механизм в RoadRunnerCacheService
+            $success = $cacheService->clear();
+
+            if ($success) {
+                $logger->info('Cache fully cleared on application startup');
+            } else {
+                // Если очистка не удалась, но не выбросила исключение
+                $logger->warning('Cache clearing reported failure on startup without exception');
+            }
         } catch (\Throwable $e) {
             $logger->error('Failed to clear cache on startup', [
                 'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
         }
     }
