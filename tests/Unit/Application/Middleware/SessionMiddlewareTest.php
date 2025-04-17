@@ -24,6 +24,40 @@ use Psr\Log\LoggerInterface;
 
 final class SessionMiddlewareTest extends TestCase
 {
+    /**
+     * Создает объект ClientData для тестов.
+     *
+     * @param array<string, string> $extraAttributes
+     */
+    private function createTestClientData(
+        ?string $userAgent = null,
+        string $ip = '127.0.0.1',
+        ?string $acceptLanguage = 'en-US',
+        ?string $acceptEncoding = 'gzip',
+        ?string $xForwardedFor = null,
+        /** @var array<string, string> $extraAttributes */
+        array $extraAttributes = [],
+    ): ClientData {
+        return new ClientData(
+            ip: $ip,
+            userAgent: $userAgent,
+            acceptLanguage: $acceptLanguage,
+            acceptEncoding: $acceptEncoding,
+            xForwardedFor: $xForwardedFor,
+            referer: null,
+            origin: null,
+            secChUa: null,
+            secChUaPlatform: null,
+            secChUaMobile: null,
+            dnt: null,
+            secFetchDest: null,
+            secFetchMode: null,
+            secFetchSite: null,
+            extraAttributes: $extraAttributes,
+            headers: [],
+        );
+    }
+
     private TestSessionRepository $repository;
 
     private SessionService $sessionService;
@@ -48,14 +82,7 @@ final class SessionMiddlewareTest extends TestCase
         ]);
 
         // Создаем тестовые данные клиента
-        $clientData = new ClientData(
-            ip: '127.0.0.1',
-            userAgent: 'Test Agent',
-            acceptLanguage: 'en-US',
-            acceptEncoding: 'gzip',
-            xForwardedFor: null,
-            extraAttributes: [],
-        );
+        $clientData = $this->createTestClientData('Test Agent');
 
         // Используем конкретные реализации классов для тестирования
         $clientDataFactory = new TestClientDataFactoryImpl($clientData);
@@ -484,13 +511,26 @@ final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
     public function deserialize(string $jsonValue, string $targetClass, ?callable $fieldTransformer = null): object
     {
         // Всегда возвращаем объект ClientData для тестов
-        return new ClientData(
+        $result = new ClientData(
             ip: '127.0.0.1',
             userAgent: 'Test Agent',
-            acceptLanguage: null,
-            acceptEncoding: null,
+            acceptLanguage: 'en-US',
+            acceptEncoding: 'gzip',
             xForwardedFor: null,
+            referer: null,
+            origin: null,
+            secChUa: null,
+            secChUaPlatform: null,
+            secChUaMobile: null,
+            dnt: null,
+            secFetchDest: null,
+            secFetchMode: null,
+            secFetchSite: null,
+            extraAttributes: [],
+            headers: [],
         );
+
+        return $result;
     }
 
     /**
