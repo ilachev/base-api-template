@@ -160,7 +160,21 @@ return static function (Container $container): void {
 
     // Domain services
     $container->bind(HomeService::class, HomeService::class);
-    $container->bind(SessionService::class, SessionService::class);
+
+    // Session service
+    $container->set(
+        SessionService::class,
+        static function (ContainerInterface $container): SessionService {
+            /** @var SessionRepository $repository */
+            $repository = $container->get(SessionRepository::class);
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new SessionService($repository, $logger);
+        },
+    );
+
     $container->bind(ApiStatService::class, ApiStatService::class);
 
     // Repositories

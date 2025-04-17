@@ -37,8 +37,8 @@ final class SessionMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = new TestSessionRepository();
-        $this->sessionService = new SessionService($this->repository);
         $this->logger = new TestLogger();
+        $this->sessionService = new SessionService($this->repository, $this->logger);
 
         $config = SessionConfig::fromArray([
             'cookie_name' => 'session',
@@ -93,9 +93,18 @@ final class SessionMiddlewareTest extends TestCase
         self::assertInstanceOf(Session::class, $session);
         self::assertNull($session->userId);
 
-        // Проверяем логирование
-        self::assertCount(1, $this->logger->logs);
-        self::assertStringContainsString('Created new session', $this->logger->logs[0]['message']);
+        // Проверяем логирование создания сессии
+        self::assertGreaterThanOrEqual(1, \count($this->logger->logs));
+
+        $sessionCreatedMessage = false;
+        foreach ($this->logger->logs as $log) {
+            if (strpos($log['message'], 'Created new session') !== false) {
+                $sessionCreatedMessage = true;
+                break;
+            }
+        }
+
+        self::assertTrue($sessionCreatedMessage, 'Log should contain "Created new session" message');
 
         // Проверяем cookie в ответе
         self::assertTrue($response->hasHeader('Set-Cookie'));
