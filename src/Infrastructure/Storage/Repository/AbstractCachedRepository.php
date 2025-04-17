@@ -7,16 +7,16 @@ namespace App\Infrastructure\Storage\Repository;
 use App\Infrastructure\Cache\CacheService;
 use Psr\Log\LoggerInterface;
 
-abstract class AbstractCachedRepository
+abstract readonly class AbstractCachedRepository
 {
-    private const CACHE_TTL = 3600;
+    private const int CACHE_TTL = 3600;
 
     private bool $cacheAvailable;
 
     public function __construct(
-        protected readonly CacheService $cache,
-        protected readonly LoggerInterface $logger,
-        protected readonly string $cacheKeyPrefix = '',
+        protected CacheService $cache,
+        protected LoggerInterface $logger,
+        protected string $cacheKeyPrefix = '',
     ) {
         // Проверяем доступность кеша при инициализации
         $this->cacheAvailable = $this->cache->isAvailable();

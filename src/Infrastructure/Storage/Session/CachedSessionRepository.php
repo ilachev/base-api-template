@@ -10,20 +10,19 @@ use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Storage\Repository\AbstractCachedRepository;
 use Psr\Log\LoggerInterface;
 
-final class CachedSessionRepository extends AbstractCachedRepository implements SessionRepository
+final readonly class CachedSessionRepository extends AbstractCachedRepository implements SessionRepository
 {
-    private const CACHE_KEY_PREFIX = 'session:';
-    private const CACHE_USER_PREFIX = 'session_user:';
+    private const string CACHE_KEY_PREFIX = 'session:';
+    private const string CACHE_USER_PREFIX = 'session_user:';
 
     public function __construct(
-        private readonly SessionRepository $repository,
+        private SessionRepository $repository,
         CacheService $cache,
         LoggerInterface $logger,
     ) {
         parent::__construct(
             cache: $cache,
             logger: $logger,
-            cacheKeyPrefix: '',
         );
     }
 
