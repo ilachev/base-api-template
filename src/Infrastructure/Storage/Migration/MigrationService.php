@@ -14,8 +14,20 @@ final class MigrationService
     public function __construct(
         private readonly StorageInterface $storage,
         private readonly MigrationRepository $repository,
+        private readonly MigrationLoader $loader,
     ) {}
 
+    /**
+     * Load all migrations from the configured directory.
+     */
+    public function loadMigrations(): void
+    {
+        $this->migrations = $this->loader->loadMigrations();
+    }
+
+    /**
+     * Add a migration manually.
+     */
     public function addMigration(MigrationInterface $migration): void
     {
         $this->migrations[] = $migration;

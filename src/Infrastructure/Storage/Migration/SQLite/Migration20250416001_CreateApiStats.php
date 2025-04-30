@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage\Migration;
+namespace App\Infrastructure\Storage\Migration\SQLite;
+
+use App\Infrastructure\Storage\Migration\AbstractMigration;
 
 final readonly class Migration20250416001_CreateApiStats extends AbstractMigration
 {

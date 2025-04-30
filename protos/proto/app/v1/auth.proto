@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package app.v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option php_namespace = "App\\Api\\V1";
+option php_metadata_namespace = "App\\Api\\V1\\Metadata";
+option go_package = "app/api/v1";
+
+// Определяем сервис аутентификации
+service AuthService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "Сервис аутентификации пользователей"
+    external_docs: {
+      url: "https://example.com/docs/auth"
+      description: "Документация по аутентификации"
+    }
+  };
+
+  // Метод для входа пользователя
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Вход пользователя"
+      description: "Аутентификация пользователя по email и паролю"
+      tags: ["auth"]
+    };
+  }
+
+  // Метод для выхода пользователя
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/logout"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Выход пользователя"
+      description: "Завершение сессии пользователя"
+      tags: ["auth"]
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  // Метод для обновления токена
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Обновление токена"
+      description: "Обновление access токена с помощью refresh токена"
+      tags: ["auth"]
+    };
+  }
+}
+
+// Структура запроса для входа
+message LoginRequest {
+  string email = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Email пользователя"
+    example: ""user@example.com""
+  }];
+  string password = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Пароль пользователя"
+    example: ""password123""
+  }];
+}
+
+// Структура ответа при входе
+message LoginResponse {
+  string access_token = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "JWT токен доступа"
+  }];
+  string refresh_token = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Токен для обновления access токена"
+  }];
+  int64 expires_in = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Время жизни токена в секундах"
+    example: ""3600""
+  }];
+}
+
+// Структура запроса для выхода
+message LogoutRequest {}
+
+// Структура ответа при выходе
+message LogoutResponse {}
+
+// Структура запроса для обновления токена
+message RefreshTokenRequest {
+  string refresh_token = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Refresh токен для обновления access токена"
+  }];
+}
+
+// Структура ответа при обновлении токена
+message RefreshTokenResponse {
+  string access_token = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Новый JWT токен доступа"
+  }];
+  string refresh_token = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Новый refresh токен"
+  }];
+  int64 expires_in = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Время жизни токена в секундах"
+    example: ""3600""
+  }];
+}

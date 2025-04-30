@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Infrastructure\Storage\Migration;
 
 use App\Infrastructure\Storage\Migration\MigrationInterface;
+use App\Infrastructure\Storage\Migration\MigrationLoader;
 use App\Infrastructure\Storage\Migration\MigrationRepository;
 use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\SQLiteStorage;
@@ -18,6 +19,8 @@ final class MigrationServiceTest extends TestCase
     private SQLiteStorage $storage;
 
     private MigrationRepository $repository;
+
+    private MigrationLoader $loader;
 
     private MigrationService $service;
 
@@ -34,7 +37,9 @@ final class MigrationServiceTest extends TestCase
             SQL);
 
         $this->repository = new MigrationRepository($this->storage);
-        $this->service = new MigrationService($this->storage, $this->repository);
+        // Create a loader that doesn't load any migrations from the filesystem
+        $this->loader = new MigrationLoader('', null);
+        $this->service = new MigrationService($this->storage, $this->repository, $this->loader);
     }
 
     public function testMigrateExecutesNewMigrationsInOrder(): void

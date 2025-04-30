@@ -34,12 +34,17 @@ use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
-use App\Infrastructure\Storage\Query\QueryBuilderFactory;
+use App\Infrastructure\Storage\Migration\MigrationLoader;
+use App\Infrastructure\Storage\Migration\MigrationRepository;
+use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\Query\QueryFactory;
 use App\Infrastructure\Storage\Session\CachedSessionRepository;
+use App\Infrastructure\Storage\Session\PostgreSQLSessionRepository;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\SQLiteStorage;
+use App\Infrastructure\Storage\Stats\PostgreSQLApiStatRepository;
 use App\Infrastructure\Storage\Stats\SQLiteApiStatRepository;
+use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
@@ -62,7 +67,54 @@ return static function (Container $container): void {
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
 
     $container->bind(LoggerInterface::class, RoadRunnerLogger::class);
-    $container->bind(StorageInterface::class, SQLiteStorage::class);
+    // Storage configuration and factory
+    $container->set(
+        StorageFactory::class,
+        static function (ContainerInterface $container): StorageFactory {
+            /** @var array{
+             *     engine: string,
+             *     sqlite?: array{database: string},
+             *     pgsql?: array{
+             *         host: string,
+             *         port: int,
+             *         database: string,
+             *         username: string,
+             *         password: string,
+             *         schema?: string
+             *     }
+             * } $storageConfig
+             */
+            $storageConfig = require __DIR__ . '/storage.php';
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new StorageFactory($storageConfig, $logger);
+        },
+    );
+
+    // Storage implementation based on configuration
+    $container->set(
+        StorageInterface::class,
+        static function (ContainerInterface $container): StorageInterface {
+            /** @var StorageFactory $factory */
+            $factory = $container->get(StorageFactory::class);
+
+            return $factory->createStorage();
+        },
+    );
+
+    // Query factory based on storage engine
+    $container->set(
+        QueryFactory::class,
+        static function (ContainerInterface $container): QueryFactory {
+            /** @var StorageFactory $factory */
+            $factory = $container->get(StorageFactory::class);
+
+            return $factory->createQueryFactory();
+        },
+    );
+
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
     $container->bind(RouterInterface::class, FastRouteAdapter::class);
     $container->set(
@@ -82,10 +134,6 @@ return static function (Container $container): void {
             return new DefaultJsonFieldAdapter($hydrator);
         },
     );
-
-    // QueryBuilder factory
-    $container->bind(QueryBuilderFactory::class, QueryBuilderFactory::class);
-    $container->bind(QueryFactory::class, QueryBuilderFactory::class);
 
     // Session config
     $container->set(
@@ -223,12 +271,22 @@ return static function (Container $container): void {
 
     $container->bind(ApiStatService::class, ApiStatService::class);
 
-    // Repositories
+    // Repository bindings based on storage engine
     $container->set(
         SessionRepository::class,
         static function (ContainerInterface $container): SessionRepository {
-            /** @var SQLiteSessionRepository $sqliteRepository */
-            $sqliteRepository = $container->get(SQLiteSessionRepository::class);
+            /** @var array{engine: string} $storageConfig */
+            $storageConfig = require __DIR__ . '/storage.php';
+            $engine = $storageConfig['engine'];
+
+            // Choose the appropriate repository implementation based on the storage engine
+            $baseRepositoryClass = match ($engine) {
+                'pgsql' => 'App\Infrastructure\Storage\Session\PostgreSQLSessionRepository',
+                default => 'App\Infrastructure\Storage\Session\SQLiteSessionRepository',
+            };
+
+            /** @var SessionRepository $baseRepository */
+            $baseRepository = $container->get($baseRepositoryClass);
 
             /** @var CacheService $cacheService */
             $cacheService = $container->get(CacheService::class);
@@ -236,11 +294,91 @@ return static function (Container $container): void {
             /** @var LoggerInterface $logger */
             $logger = $container->get(LoggerInterface::class);
 
-            return new CachedSessionRepository($sqliteRepository, $cacheService, $logger);
+            return new CachedSessionRepository($baseRepository, $cacheService, $logger);
         },
     );
+
+    // Register both SQLite and PostgreSQL implementations
     $container->bind(SQLiteSessionRepository::class, SQLiteSessionRepository::class);
-    $container->bind(ApiStatRepository::class, SQLiteApiStatRepository::class);
+    $container->bind(PostgreSQLSessionRepository::class, PostgreSQLSessionRepository::class);
+
+    // ApiStat Repository binding based on storage engine
+    $container->set(
+        ApiStatRepository::class,
+        static function (ContainerInterface $container): ApiStatRepository {
+            /** @var array{engine: string} $storageConfig */
+            $storageConfig = require __DIR__ . '/storage.php';
+            $engine = $storageConfig['engine'];
+
+            // Choose the appropriate repository implementation based on the storage engine
+            $repositoryClass = match ($engine) {
+                'pgsql' => 'App\Infrastructure\Storage\Stats\PostgreSQLApiStatRepository',
+                default => 'App\Infrastructure\Storage\Stats\SQLiteApiStatRepository',
+            };
+
+            $repository = $container->get($repositoryClass);
+
+            // Ensure proper type checking
+            if (!$repository instanceof ApiStatRepository) {
+                throw new RuntimeException("Repository {$repositoryClass} does not implement ApiStatRepository");
+            }
+
+            return $repository;
+        },
+    );
+
+    // Register both SQLite and PostgreSQL implementations
+    $container->bind(SQLiteApiStatRepository::class, SQLiteApiStatRepository::class);
+    $container->bind(PostgreSQLApiStatRepository::class, PostgreSQLApiStatRepository::class);
+
+    // Migration services
+    $container->set(
+        MigrationLoader::class,
+        static function (ContainerInterface $container): MigrationLoader {
+            /** @var array{
+             *     engine: string,
+             *     sqlite?: array{migrations_path: string},
+             *     pgsql?: array{migrations_path: string}
+             * } $storageConfig
+             */
+            $storageConfig = require __DIR__ . '/storage.php';
+            $engine = $storageConfig['engine'];
+
+            // Get migrations path based on active engine
+            $migrationsPath = $storageConfig[$engine]['migrations_path'] ?? '';
+
+            /** @var LoggerInterface $logger */
+            $logger = $container->get(LoggerInterface::class);
+
+            return new MigrationLoader($migrationsPath, $logger);
+        },
+    );
+
+    $container->set(
+        MigrationRepository::class,
+        static function (ContainerInterface $container): MigrationRepository {
+            /** @var StorageInterface $storage */
+            $storage = $container->get(StorageInterface::class);
+
+            return new MigrationRepository($storage);
+        },
+    );
+
+    $container->set(
+        MigrationService::class,
+        static function (ContainerInterface $container): MigrationService {
+            /** @var StorageInterface $storage */
+            $storage = $container->get(StorageInterface::class);
+
+            /** @var MigrationRepository $repository */
+            $repository = $container->get(MigrationRepository::class);
+
+            /** @var MigrationLoader $loader */
+            $loader = $container->get(MigrationLoader::class);
+
+            return new MigrationService($storage, $repository, $loader);
+        },
+    );
 
     // Application services and mappers
     $container->bind(HomeMapper::class, HomeMapper::class);
@@ -307,19 +445,7 @@ return static function (Container $container): void {
         },
     );
 
-    $container->set(
-        SQLiteStorage::class,
-        static function (): SQLiteStorage {
-            $databasePath = __DIR__ . '/../db/app.sqlite';
-            $databaseDir = dirname($databasePath);
-
-            if (!is_dir($databaseDir)) {
-                mkdir($databaseDir, 0o755, true);
-            }
-
-            return new SQLiteStorage($databasePath);
-        },
-    );
+    // SQLiteStorage is now created by the StorageFactory
 
     // Set up API stats middleware
     $container->set(
