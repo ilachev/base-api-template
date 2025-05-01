@@ -38,7 +38,7 @@ final class ReadableOutputLogger implements LoggerInterface
      */
     protected function write(string $message): void
     {
-        file_put_contents('php://stderr', $message . PHP_EOL);
+        file_put_contents('php://stderr', $message);
     }
 
     /**
