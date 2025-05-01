@@ -14,9 +14,9 @@ final class ClientIdentityTest extends TestCase
     {
         $payload = json_encode([
             'ip' => '192.168.1.1',
-            'user_agent' => 'Test Browser',
-            'accept_language' => 'en-US',
-            'x_forwarded_for' => '10.0.0.1',
+            'userAgent' => 'Test Browser',
+            'acceptLanguage' => 'en-US',
+            'xForwardedFor' => '10.0.0.1',
         ]);
 
         $session = new Session(

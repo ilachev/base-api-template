@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
-use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetectorInterface;
+use App\Application\Client\SessionPayloadFactory;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
@@ -22,16 +22,16 @@ final readonly class SessionMiddleware implements MiddlewareInterface
         private SessionService $sessionService,
         private LoggerInterface $logger,
         private SessionConfig $config,
-        private ClientDataFactory $clientDataFactory,
+        private SessionPayloadFactory $sessionPayloadFactory,
         private JsonFieldAdapter $jsonAdapter,
         private ClientDetectorInterface $clientDetector,
     ) {}
 
     /**
-     * Получает зависимость по имени для тестирования.
+     * Gets a dependency by name for testing.
      *
-     * @param string $name Имя зависимости
-     * @return mixed Значение зависимости или null, если не найдена
+     * @param string $name Dependency name
+     * @return mixed Dependency value or null if not found
      */
     public function getContext(string $name): mixed
     {
@@ -39,7 +39,7 @@ final readonly class SessionMiddleware implements MiddlewareInterface
             'sessionService' => $this->sessionService,
             'logger' => $this->logger,
             'config' => $this->config,
-            'clientDataFactory' => $this->clientDataFactory,
+            'sessionPayloadFactory' => $this->sessionPayloadFactory,
             'jsonAdapter' => $this->jsonAdapter,
             'clientDetector' => $this->clientDetector,
             default => null,
@@ -50,30 +50,30 @@ final readonly class SessionMiddleware implements MiddlewareInterface
         ServerRequestInterface $request,
         RequestHandlerInterface $handler,
     ): ResponseInterface {
-        // Пытаемся найти существующую сессию по cookie или заголовку
+        // Try to find an existing session by cookie or header
         $sessionId = $this->extractSessionId($request);
         $session = null;
         $hadSessionIdButInvalid = false;
 
         if ($sessionId !== null) {
             $session = $this->sessionService->validateSession($sessionId);
-            // Отмечаем, что клиент прислал ID сессии, но она не валидна
+            // Mark that the client sent a session ID, but it's not valid
             if ($session === null) {
                 $hadSessionIdButInvalid = true;
             }
         }
 
-        // Создаем ClientData для этого запроса в любом случае - он понадобится
-        $clientData = $this->clientDataFactory->createFromRequest($request);
-        $payload = $this->jsonAdapter->serialize($clientData);
+        // Create SessionPayload for this request in any case - we'll need it
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($request);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
 
-        // Определяем, является ли клиент браузером
-        $isBrowser = $clientData->isBrowser();
+        // Determine if the client is a browser
+        $isBrowser = $sessionPayload->isBrowser();
 
-        // Если сессия не найдена по cookie/заголовку
+        // If session was not found by cookie/header
         if ($session === null) {
-            // Если клиент прислал сессию, но она не валидна, или это браузер с включенной настройкой
-            // browserNewSession - всегда создаем новую сессию, минуя поиск по отпечатку
+            // If client sent a session but it's invalid, or it's a browser with browserNewSession enabled
+            // always create a new session, bypassing fingerprint search
             if (($isBrowser && $this->config->browserNewSession) || $hadSessionIdButInvalid) {
                 $session = $this->sessionService->createSession(
                     userId: null,
@@ -83,7 +83,7 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
                 $logContext = [
                     'session_id' => $session->id,
-                    'user_agent' => $clientData->userAgent,
+                    'user_agent' => $sessionPayload->userAgent,
                 ];
 
                 if ($hadSessionIdButInvalid) {
@@ -95,24 +95,24 @@ final readonly class SessionMiddleware implements MiddlewareInterface
                     $this->logger->debug('Created new browser session', $logContext);
                 }
             }
-            // Для не-браузеров или при выключенной настройке browserNewSession
-            // пытаемся использовать отпечаток, если включено
+            // For non-browsers or when browserNewSession is disabled
+            // try to use fingerprint if enabled
             elseif ($this->config->useFingerprint) {
-                // Создаем временную сессию для запроса, чтобы ClientDetector мог работать
+                // Create a temporary session for the request so ClientDetector can work
                 $tempSession = $this->sessionService->createSession(
                     userId: null,
                     payload: $payload,
-                    ttl: 60, // Короткий срок жизни, т.к. это временная сессия
+                    ttl: 60, // Short lifetime as this is a temporary session
                 );
 
-                // Добавляем временную сессию в атрибуты запроса
+                // Add temporary session to request attributes
                 $requestWithTempSession = $request->withAttribute('session', $tempSession);
 
-                // Ищем похожих клиентов с помощью ClientDetector
+                // Search for similar clients using ClientDetector
                 $similarClients = $this->clientDetector->findSimilarClients($requestWithTempSession);
 
-                // Если найдены похожие клиенты, используем сессию первого клиента
-                // (т.к. они отсортированы по уровню схожести)
+                // If similar clients are found, use the session of the first client
+                // (since they are sorted by similarity level)
                 if (!empty($similarClients)) {
                     $bestMatch = $similarClients[0];
                     $matchedSession = $this->sessionService->validateSession($bestMatch->id);
@@ -121,26 +121,26 @@ final readonly class SessionMiddleware implements MiddlewareInterface
                         $session = $matchedSession;
                         $this->logger->debug('Restored session by fingerprint', [
                             'session_id' => $session->id,
-                            'client_ip' => $clientData->ip,
-                            'user_agent' => $clientData->userAgent,
+                            'client_ip' => $sessionPayload->ip,
+                            'user_agent' => $sessionPayload->userAgent,
                         ]);
 
-                        // Удаляем временную сессию, так как нашли существующую
+                        // Delete temporary session since we found an existing one
                         $this->sessionService->deleteSession($tempSession->id);
                     } else {
-                        // Если сессия лучшего совпадения не валидна (истекла или удалена),
-                        // будем использовать временную сессию
+                        // If the best match session is not valid (expired or deleted),
+                        // use the temporary session
                         $session = $tempSession;
                     }
                 } else {
-                    // Если похожих клиентов не найдено, используем временную сессию
+                    // If no similar clients found, use the temporary session
                     $session = $tempSession;
                     $this->logger->debug('Created new session, no similar clients found', [
                         'session_id' => $session->id,
                     ]);
                 }
             } else {
-                // Если сессия не найдена и fingerprinting отключен, просто создаем новую
+                // If session not found and fingerprinting is disabled, simply create a new one
                 $session = $this->sessionService->createSession(
                     userId: null,
                     payload: $payload,
@@ -151,17 +151,17 @@ final readonly class SessionMiddleware implements MiddlewareInterface
             }
         }
 
-        // Добавляем сессию в атрибуты запроса
+        // Add session to request attributes
         $request = $request->withAttribute('session', $session);
 
-        // Обрабатываем запрос
+        // Process the request
         $response = $handler->handle($request);
 
-        // Обновляем сессию при успешном запросе
+        // Update session on successful request
         if ($response->getStatusCode() < 400) {
             $this->sessionService->refreshSession($session->id, $this->config->sessionTtl);
 
-            // Устанавливаем cookie с сессией
+            // Set session cookie
             $response = $this->addSessionCookie($response, $session);
         }
 
@@ -170,13 +170,13 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
     private function extractSessionId(ServerRequestInterface $request): ?string
     {
-        // Извлекаем из заголовка
+        // Extract from header
         $authHeader = $request->getHeaderLine('Authorization');
         if (str_starts_with($authHeader, 'Bearer ')) {
             return substr($authHeader, 7);
         }
 
-        // Извлекаем из cookie
+        // Extract from cookie
         $cookies = $request->getCookieParams();
         if (!isset($cookies[$this->config->cookieName])) {
             return null;

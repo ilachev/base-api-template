@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Session;
 
-use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetector;
+use App\Application\Client\SessionPayloadFactory;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use Nyholm\Psr7\ServerRequest;
@@ -17,7 +17,7 @@ final class SessionFlowTest extends IntegrationTestCase
 
     private ClientDetector $clientDetector;
 
-    private ClientDataFactory $clientDataFactory;
+    private SessionPayloadFactory $sessionPayloadFactory;
 
     private JsonFieldAdapter $jsonAdapter;
 
@@ -25,7 +25,7 @@ final class SessionFlowTest extends IntegrationTestCase
     {
         $this->sessionService = self::$app->getContainer()->get(SessionService::class);
         $this->clientDetector = self::$app->getContainer()->get(ClientDetector::class);
-        $this->clientDataFactory = self::$app->getContainer()->get(ClientDataFactory::class);
+        $this->sessionPayloadFactory = self::$app->getContainer()->get(SessionPayloadFactory::class);
         $this->jsonAdapter = self::$app->getContainer()->get(JsonFieldAdapter::class);
     }
 
@@ -42,8 +42,8 @@ final class SessionFlowTest extends IntegrationTestCase
         $firstRequest = $this->createClientRequest('192.168.1.100', 'Chrome Browser');
 
         // Используем фабрику и JsonFieldAdapter для создания payload
-        $clientData = $this->clientDataFactory->createFromRequest($firstRequest);
-        $payload = $this->jsonAdapter->serialize($clientData);
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($firstRequest);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
 
         $firstSession = $this->sessionService->createSession(
             userId: null,
@@ -52,8 +52,8 @@ final class SessionFlowTest extends IntegrationTestCase
 
         // Добавляем дополнительную сессию с другими данными
         $otherRequest = $this->createClientRequest('10.1.1.1', 'Firefox Browser');
-        $otherData = $this->clientDataFactory->createFromRequest($otherRequest);
-        $otherPayload = $this->jsonAdapter->serialize($otherData);
+        $otherSessionPayload = $this->sessionPayloadFactory->createFromRequest($otherRequest);
+        $otherPayload = $this->jsonAdapter->serialize($otherSessionPayload);
 
         $this->sessionService->createSession(
             userId: null,
@@ -90,8 +90,8 @@ final class SessionFlowTest extends IntegrationTestCase
     {
         // Создаем первого клиента с Chrome
         $firstRequest = $this->createClientRequest('192.168.1.1', 'Chrome');
-        $clientData1 = $this->clientDataFactory->createFromRequest($firstRequest);
-        $payload1 = $this->jsonAdapter->serialize($clientData1);
+        $sessionPayload1 = $this->sessionPayloadFactory->createFromRequest($firstRequest);
+        $payload1 = $this->jsonAdapter->serialize($sessionPayload1);
 
         $firstSession = $this->sessionService->createSession(
             userId: null,
@@ -100,8 +100,8 @@ final class SessionFlowTest extends IntegrationTestCase
 
         // Создаем второго клиента с Firefox и другим IP
         $secondRequest = $this->createClientRequest('10.0.0.1', 'Firefox');
-        $clientData2 = $this->clientDataFactory->createFromRequest($secondRequest);
-        $payload2 = $this->jsonAdapter->serialize($clientData2);
+        $sessionPayload2 = $this->sessionPayloadFactory->createFromRequest($secondRequest);
+        $payload2 = $this->jsonAdapter->serialize($sessionPayload2);
 
         $secondSession = $this->sessionService->createSession(
             userId: null,
@@ -138,8 +138,8 @@ final class SessionFlowTest extends IntegrationTestCase
 
         // Создаем запрос клиента с Safari
         $firstRequest = $this->createClientRequest('192.168.1.10', 'Safari');
-        $clientData = $this->clientDataFactory->createFromRequest($firstRequest);
-        $payload = $this->jsonAdapter->serialize($clientData);
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($firstRequest);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
 
         // Создаем первую сессию
         $session = $this->sessionService->createSession(
@@ -149,8 +149,8 @@ final class SessionFlowTest extends IntegrationTestCase
 
         // Создаем дополнительную сессию с другими данными для уверенности в тесте
         $otherRequest = $this->createClientRequest('10.2.2.2', 'Edge Browser');
-        $otherData = $this->clientDataFactory->createFromRequest($otherRequest);
-        $otherPayload = $this->jsonAdapter->serialize($otherData);
+        $otherSessionPayload = $this->sessionPayloadFactory->createFromRequest($otherRequest);
+        $otherPayload = $this->jsonAdapter->serialize($otherSessionPayload);
 
         $this->sessionService->createSession(
             userId: null,
@@ -159,8 +159,8 @@ final class SessionFlowTest extends IntegrationTestCase
 
         // Создаем еще одну сессию с теми же Safari-данными для имитации другого захода
         $newSafariRequest = $this->createClientRequest('192.168.1.10', 'Safari');
-        $newClientData = $this->clientDataFactory->createFromRequest($newSafariRequest);
-        $newPayload = $this->jsonAdapter->serialize($newClientData);
+        $newSessionPayload = $this->sessionPayloadFactory->createFromRequest($newSafariRequest);
+        $newPayload = $this->jsonAdapter->serialize($newSessionPayload);
 
         $newSession = $this->sessionService->createSession(
             userId: null,
@@ -200,24 +200,24 @@ final class SessionFlowTest extends IntegrationTestCase
         // Создаем запрос с реальным IP
         $request = $this->createClientRequest($realIP, $userAgent);
 
-        // Получаем данные клиента, которые должны включать геолокацию
-        $clientData = $this->clientDataFactory->createFromRequest($request);
+        // Get client data which should include geolocation
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($request);
 
-        // Проверяем, что IP был корректно определен
-        self::assertEquals($realIP, $clientData->ip, 'IP должен быть корректно определен');
+        // Check that IP was correctly identified
+        self::assertEquals($realIP, $sessionPayload->ip, 'IP should be correctly identified');
 
-        // Проверяем, что геолокационные данные были получены
-        self::assertNotNull($clientData->geoLocation, 'Геолокационные данные должны быть заполнены');
+        // Check that geolocation data was obtained
+        self::assertNotNull($sessionPayload->geoLocation, 'Geolocation data should be filled');
 
-        // Проверка основных полей геолокации
-        self::assertNotEmpty($clientData->geoLocation->country, 'Страна должна быть определена');
-        self::assertNotEmpty($clientData->geoLocation->countryCode, 'Код страны должен быть определен');
+        // Check basic geolocation fields
+        self::assertNotEmpty($sessionPayload->geoLocation->country, 'Country should be identified');
+        self::assertNotEmpty($sessionPayload->geoLocation->countryCode, 'Country code should be identified');
 
-        // Известно, что 8.8.8.8 принадлежит Google в США
-        self::assertEquals('US', $clientData->geoLocation->countryCode, 'Код страны должен соответствовать ожидаемому');
+        // It's known that 8.8.8.8 belongs to Google in the US
+        self::assertEquals('US', $sessionPayload->geoLocation->countryCode, 'Country code should match expected');
 
         // Создаем сессию с этими данными
-        $payload = $this->jsonAdapter->serialize($clientData);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
         $session = $this->sessionService->createSession(
             userId: null,
             payload: $payload,

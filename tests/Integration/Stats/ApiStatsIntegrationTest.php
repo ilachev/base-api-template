@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Stats;
 
-use App\Application\Client\ClientDataFactory;
+use App\Application\Client\SessionPayloadFactory;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Storage\StorageInterface;
@@ -16,7 +16,7 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
 
     private StorageInterface $storage;
 
-    private ClientDataFactory $clientDataFactory;
+    private SessionPayloadFactory $sessionPayloadFactory;
 
     private JsonFieldAdapter $jsonAdapter;
 
@@ -32,9 +32,9 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
         $storage = $this->container->get(StorageInterface::class);
         $this->storage = $storage;
 
-        /** @var ClientDataFactory $clientDataFactory */
-        $clientDataFactory = $this->container->get(ClientDataFactory::class);
-        $this->clientDataFactory = $clientDataFactory;
+        /** @var SessionPayloadFactory $sessionPayloadFactory */
+        $sessionPayloadFactory = $this->container->get(SessionPayloadFactory::class);
+        $this->sessionPayloadFactory = $sessionPayloadFactory;
 
         /** @var JsonFieldAdapter $jsonAdapter */
         $jsonAdapter = $this->container->get(JsonFieldAdapter::class);
@@ -74,8 +74,8 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
             ['User-Agent' => 'PHPUnit Test Browser'],
         );
 
-        $clientData = $this->clientDataFactory->createFromRequest($request);
-        $payload = $this->jsonAdapter->serialize($clientData);
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($request);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
 
         $session = $this->sessionService->createSession(
             userId: null,
@@ -132,8 +132,8 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
             ['User-Agent' => 'PHPUnit Test Browser'],
         );
 
-        $clientData = $this->clientDataFactory->createFromRequest($request);
-        $payload = $this->jsonAdapter->serialize($clientData);
+        $sessionPayload = $this->sessionPayloadFactory->createFromRequest($request);
+        $payload = $this->jsonAdapter->serialize($sessionPayload);
 
         $session = $this->sessionService->createSession(
             userId: null,

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Middleware;
 
-use App\Application\Client\ClientData;
-use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\ClientIdentity;
+use App\Application\Client\SessionPayloadFactory;
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
+use App\Domain\Session\SessionPayload;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
@@ -25,20 +25,16 @@ use Psr\Log\LoggerInterface;
 final class SessionMiddlewareTest extends TestCase
 {
     /**
-     * Создает объект ClientData для тестов.
-     *
-     * @param array<string, string> $extraAttributes
+     * Creates a SessionPayload object for tests.
      */
-    private function createTestClientData(
+    private function createTestSessionPayload(
         ?string $userAgent = null,
         string $ip = '127.0.0.1',
         ?string $acceptLanguage = 'en-US',
         ?string $acceptEncoding = 'gzip',
         ?string $xForwardedFor = null,
-        /** @var array<string, string> $extraAttributes */
-        array $extraAttributes = [],
-    ): ClientData {
-        return new ClientData(
+    ): SessionPayload {
+        return new SessionPayload(
             ip: $ip,
             userAgent: $userAgent,
             acceptLanguage: $acceptLanguage,
@@ -53,8 +49,6 @@ final class SessionMiddlewareTest extends TestCase
             secFetchDest: null,
             secFetchMode: null,
             secFetchSite: null,
-            extraAttributes: $extraAttributes,
-            headers: [],
         );
     }
 
@@ -81,11 +75,11 @@ final class SessionMiddlewareTest extends TestCase
             'use_fingerprint' => false,
         ]);
 
-        // Создаем тестовые данные клиента
-        $clientData = $this->createTestClientData('Test Agent');
+        // Create test session payload
+        $sessionPayload = $this->createTestSessionPayload('Test Agent');
 
-        // Используем конкретные реализации классов для тестирования
-        $clientDataFactory = new TestClientDataFactoryImpl($clientData);
+        // Use concrete implementations for testing
+        $sessionPayloadFactory = new TestSessionPayloadFactoryImpl($sessionPayload);
         $jsonAdapter = new TestJsonFieldAdapterImpl();
 
         // Создаем тестовую реализацию ClientDetector
@@ -95,7 +89,7 @@ final class SessionMiddlewareTest extends TestCase
             $this->sessionService,
             $this->logger,
             $config,
-            $clientDataFactory,
+            $sessionPayloadFactory,
             $jsonAdapter,
             $clientDetector,
         );
@@ -300,8 +294,8 @@ final class SessionMiddlewareTest extends TestCase
         $clientDetector = new TestClientDetectorImpl([$existingIdentity]);
 
         // 5. Создаем новый middleware с этими зависимостями
-        /** @var ClientDataFactory $clientDataFactory */
-        $clientDataFactory = $this->middleware->getContext('clientDataFactory');
+        /** @var SessionPayloadFactory $sessionPayloadFactory */
+        $sessionPayloadFactory = $this->middleware->getContext('sessionPayloadFactory');
 
         /** @var JsonFieldAdapter $jsonAdapter */
         $jsonAdapter = $this->middleware->getContext('jsonAdapter');
@@ -310,7 +304,7 @@ final class SessionMiddlewareTest extends TestCase
             $this->sessionService,
             $this->logger,
             $configWithFingerprint,
-            $clientDataFactory,
+            $sessionPayloadFactory,
             $jsonAdapter,
             $clientDetector,
         );
@@ -471,22 +465,22 @@ final class TestSessionRepository implements SessionRepository
 }
 
 /**
- * Тестовая имплементация ClientDataFactory.
+ * Test implementation of SessionPayloadFactory.
  */
-final readonly class TestClientDataFactoryImpl implements ClientDataFactory
+final readonly class TestSessionPayloadFactoryImpl implements SessionPayloadFactory
 {
     public function __construct(
-        private ClientData $clientData,
+        private SessionPayload $sessionPayload,
     ) {}
 
-    public function createFromRequest(ServerRequestInterface $request): ClientData
+    public function createFromRequest(ServerRequestInterface $request): SessionPayload
     {
-        return $this->clientData;
+        return $this->sessionPayload;
     }
 
-    public function createDefault(): ClientData
+    public function createDefault(): SessionPayload
     {
-        return $this->clientData;
+        return $this->sessionPayload;
     }
 }
 
@@ -510,8 +504,8 @@ final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
      */
     public function deserialize(string $jsonValue, string $targetClass, ?callable $fieldTransformer = null): object
     {
-        // Всегда возвращаем объект ClientData для тестов
-        $result = new ClientData(
+        // Always return a SessionPayload object for tests
+        $result = new SessionPayload(
             ip: '127.0.0.1',
             userAgent: 'Test Agent',
             acceptLanguage: 'en-US',
@@ -526,8 +520,6 @@ final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
             secFetchDest: null,
             secFetchMode: null,
             secFetchSite: null,
-            extraAttributes: [],
-            headers: [],
         );
 
         return $result;

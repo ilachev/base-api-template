@@ -9,7 +9,7 @@ use App\Domain\Session\SessionRepository;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Сервис для определения и сопоставления клиентов на основе fingerprint.
+ * Service for identifying and matching clients based on fingerprint.
  */
 final readonly class ClientDetector implements ClientDetectorInterface
 {
@@ -19,15 +19,15 @@ final readonly class ClientDetector implements ClientDetectorInterface
     ) {}
 
     /**
-     * Определяет, принадлежит ли запрос уже известному клиенту.
+     * Determines if the request belongs to an already known client.
      *
-     * @param ServerRequestInterface $request Текущий HTTP-запрос
-     * @param bool $includeCurrent Включать ли текущую сессию в результаты поиска (для тестов)
-     * @return array<ClientIdentity> Список найденных похожих клиентов, отсортированный по схожести
+     * @param ServerRequestInterface $request Current HTTP request
+     * @param bool $includeCurrent Whether to include the current session in search results (for tests)
+     * @return array<ClientIdentity> List of similar clients found, sorted by similarity
      */
     public function findSimilarClients(ServerRequestInterface $request, bool $includeCurrent = false): array
     {
-        // Получаем текущую сессию из атрибутов запроса
+        // Get current session from request attributes
         /** @var ?Session $currentSession */
         $currentSession = $request->getAttribute('session');
 
@@ -35,15 +35,15 @@ final readonly class ClientDetector implements ClientDetectorInterface
             return [];
         }
 
-        // Создаем идентификатор текущего клиента
+        // Create identity for current client
         $currentIdentity = ClientIdentity::fromSession($currentSession);
 
-        // Получаем все сессии
+        // Get all sessions
         $allSessions = $this->sessionRepository->findAll();
 
-        // Фильтруем текущую сессию, если нужно
+        // Filter out current session if needed
         $otherSessions = $includeCurrent
-            ? $allSessions  // Включаем все сессии для тестов
+            ? $allSessions  // Include all sessions for tests
             : array_filter(
                 $allSessions,
                 static fn(Session $session) => $session->id !== $currentSession->id,
@@ -53,13 +53,13 @@ final readonly class ClientDetector implements ClientDetectorInterface
             return [];
         }
 
-        // Преобразуем все сессии в идентификаторы и вычисляем схожесть
+        // Convert all sessions to identities and calculate similarity
         $similarities = [];
         foreach ($otherSessions as $session) {
             $otherIdentity = ClientIdentity::fromSession($session);
             $score = $this->calculateSimilarityScore($currentIdentity, $otherIdentity);
 
-            // Добавляем клиента, только если схожесть выше порога
+            // Add client only if similarity is above threshold
             if ($score >= $this->config->similarityThreshold) {
                 $similarities[] = [
                     'identity' => $otherIdentity,
@@ -68,10 +68,10 @@ final readonly class ClientDetector implements ClientDetectorInterface
             }
         }
 
-        // Сортируем по убыванию схожести
+        // Sort by descending similarity
         usort($similarities, static fn(array $a, array $b) => $b['score'] <=> $a['score']);
 
-        // Возвращаем только идентификаторы клиентов
+        // Return only client identities
         return array_map(
             static fn(array $item) => $item['identity'],
             $similarities,
@@ -79,14 +79,14 @@ final readonly class ClientDetector implements ClientDetectorInterface
     }
 
     /**
-     * Проверяет, является ли текущий запрос потенциально опасным
-     * (например, слишком много сессий с одного IP).
+     * Checks if the current request is potentially suspicious
+     * (e.g., too many sessions from one IP).
      *
-     * @param ServerRequestInterface $request Текущий HTTP-запрос
+     * @param ServerRequestInterface $request Current HTTP request
      */
     public function isRequestSuspicious(ServerRequestInterface $request): bool
     {
-        // Получаем текущую сессию из атрибутов запроса
+        // Get current session from request attributes
         /** @var ?Session $currentSession */
         $currentSession = $request->getAttribute('session');
 
@@ -94,16 +94,16 @@ final readonly class ClientDetector implements ClientDetectorInterface
             return false;
         }
 
-        // Создаем идентификатор текущего клиента и извлекаем IP
+        // Create identity for current client and extract IP
         $currentIdentity = ClientIdentity::fromSession($currentSession);
         $currentIp = $currentIdentity->ipAddress;
 
-        // Если IP неизвестен - пропускаем проверку
+        // If IP is unknown, skip the check
         if ($currentIp === 'unknown') {
             return false;
         }
 
-        // Получаем все сессии с тем же IP
+        // Get all sessions with the same IP
         $allSessions = $this->sessionRepository->findAll();
         $sessionsWithSameIp = array_filter(
             $allSessions,
@@ -121,40 +121,40 @@ final readonly class ClientDetector implements ClientDetectorInterface
             },
         );
 
-        // Если с одного IP слишком много сессий - считаем подозрительным
+        // If too many sessions from one IP, consider it suspicious
         return \count($sessionsWithSameIp) >= $this->config->maxSessionsPerIp;
     }
 
     /**
-     * Вычисляет рейтинг "похожести" между двумя идентификаторами клиентов
-     * Чем выше значение, тем больше уверенность, что это один и тот же клиент
+     * Calculates a "similarity" score between two client identities
+     * The higher the value, the more confidence that it's the same client.
      *
-     * @param ClientIdentity $identity1 Первый идентификатор
-     * @param ClientIdentity $identity2 Второй идентификатор
-     * @return float Значение от 0.0 до 1.0
+     * @param ClientIdentity $identity1 First identity
+     * @param ClientIdentity $identity2 Second identity
+     * @return float Value from 0.0 to 1.0
      */
     private function calculateSimilarityScore(ClientIdentity $identity1, ClientIdentity $identity2): float
     {
-        // Если ID совпадают, это 100% совпадение
+        // If IDs match, it's a 100% match
         if ($identity1->id === $identity2->id) {
             return 1.0;
         }
 
         $score = 0.0;
 
-        // Проверка IP
+        // Check IP
         if ($identity1->ipAddress !== 'unknown' && $identity1->ipAddress === $identity2->ipAddress) {
             $score += $this->config->ipMatchWeight;
         }
 
-        // Проверка User-Agent
+        // Check User-Agent
         if ($identity1->userAgent !== null && $identity1->userAgent === $identity2->userAgent) {
             $score += $this->config->userAgentMatchWeight;
         }
 
-        // Проверка дополнительных атрибутов
+        // Check additional attributes
         if (!empty($identity1->attributes) || !empty($identity2->attributes)) {
-            // Создаем объединенный список всех атрибутов
+            // Create a combined list of all attributes
             $allAttributes = array_unique(array_merge(
                 array_keys($identity1->attributes),
                 array_keys($identity2->attributes),
@@ -164,7 +164,7 @@ final readonly class ClientDetector implements ClientDetectorInterface
                 $matchCount = 0;
 
                 foreach ($allAttributes as $key) {
-                    // Проверяем наличие атрибута с одинаковым значением в обоих идентификаторах
+                    // Check for attribute with the same value in both identities
                     if (
                         isset($identity1->attributes[$key], $identity2->attributes[$key])
                         && $identity1->attributes[$key] === $identity2->attributes[$key]
@@ -173,21 +173,21 @@ final readonly class ClientDetector implements ClientDetectorInterface
                     }
                 }
 
-                // Вычисляем процент совпадения атрибутов
+                // Calculate attribute match percentage
                 $attributeMatchPercent = $matchCount / \count($allAttributes);
                 $score += $this->config->attributesMatchWeight * $attributeMatchPercent;
             }
         }
 
-        // Для тестовых сред, если IP и User-Agent совпадают полностью,
-        // это скорее всего один и тот же клиент
+        // For test environments, if IP and User-Agent match completely,
+        // it's most likely the same client
         if (
             $identity1->ipAddress !== 'unknown'
             && $identity1->ipAddress === $identity2->ipAddress
             && $identity1->userAgent !== null
             && $identity1->userAgent === $identity2->userAgent
         ) {
-            // Увеличиваем схожесть, если оба главных параметра совпадают
+            // Increase similarity if both main parameters match
             $score = max($score, 0.9);
         }
 

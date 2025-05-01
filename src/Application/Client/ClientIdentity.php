@@ -7,15 +7,15 @@ namespace App\Application\Client;
 use App\Domain\Session\Session;
 
 /**
- * Представляет идентификационные данные клиента, извлеченные из fingerprint.
+ * Represents client identification data extracted from fingerprint.
  */
 final readonly class ClientIdentity
 {
     /**
-     * @param string $id Уникальный идентификатор клиента
-     * @param string $ipAddress IP-адрес клиента
-     * @param string|null $userAgent User-Agent заголовок клиента
-     * @param array<string, string> $attributes Дополнительные атрибуты клиента
+     * @param string $id Unique client identifier
+     * @param string $ipAddress Client IP address
+     * @param string|null $userAgent Client User-Agent header
+     * @param array<string, string> $attributes Additional client attributes
      */
     public function __construct(
         public string $id,
@@ -25,69 +25,48 @@ final readonly class ClientIdentity
     ) {}
 
     /**
-     * Создает объект ClientIdentity из данных сессии.
+     * Creates a ClientIdentity object from session data.
      *
-     * @param Session $session Сессия, из которой извлекаются данные
+     * @param Session $session The session from which to extract data
      */
     public static function fromSession(Session $session): self
     {
         $payload = json_decode($session->payload, true);
 
         if (!\is_array($payload)) {
-            // Если невозможно распарсить - создаем пустой идентификатор
+            // If we can't parse the payload, create an empty identifier
             return new self(
                 id: $session->id,
                 ipAddress: 'unknown',
             );
         }
 
-        // Поля могут иметь разные имена в зависимости от сериализации ClientData
-        // Проверяем оба формата - полный путь к свойству и короткое имя
+        // Extract IP address from payload
         $ipAddress = 'unknown';
         if (isset($payload['ip']) && \is_string($payload['ip'])) {
             $ipAddress = $payload['ip'];
-        } elseif (isset($payload['ipAddress']) && \is_string($payload['ipAddress'])) {
-            $ipAddress = $payload['ipAddress'];
         }
 
+        // Extract User-Agent
         $userAgent = null;
         if (isset($payload['userAgent']) && \is_string($payload['userAgent'])) {
             $userAgent = $payload['userAgent'];
-        } elseif (isset($payload['user_agent']) && \is_string($payload['user_agent'])) {
-            $userAgent = $payload['user_agent'];
         }
 
-        // Извлекаем все остальные атрибуты для сопоставления
+        // Extract additional attributes for matching
         /** @var array<string, string> $attributes */
         $attributes = [];
 
-        // Добавляем acceptLanguage если есть
-        if (isset($payload['acceptLanguage']) && \is_string($payload['acceptLanguage'])) {
-            $attributes['acceptLanguage'] = $payload['acceptLanguage'];
-        } elseif (isset($payload['accept_language']) && \is_string($payload['accept_language'])) {
-            $attributes['acceptLanguage'] = $payload['accept_language'];
-        }
+        // Add attributes from SessionPayload fields
+        $attributeFields = [
+            'acceptLanguage', 'acceptEncoding', 'xForwardedFor', 'referer',
+            'origin', 'secChUa', 'secChUaPlatform', 'secChUaMobile',
+            'dnt', 'secFetchDest', 'secFetchMode', 'secFetchSite',
+        ];
 
-        // Добавляем acceptEncoding если есть
-        if (isset($payload['acceptEncoding']) && \is_string($payload['acceptEncoding'])) {
-            $attributes['acceptEncoding'] = $payload['acceptEncoding'];
-        } elseif (isset($payload['accept_encoding']) && \is_string($payload['accept_encoding'])) {
-            $attributes['acceptEncoding'] = $payload['accept_encoding'];
-        }
-
-        // Добавляем xForwardedFor если есть
-        if (isset($payload['xForwardedFor']) && \is_string($payload['xForwardedFor'])) {
-            $attributes['xForwardedFor'] = $payload['xForwardedFor'];
-        } elseif (isset($payload['x_forwarded_for']) && \is_string($payload['x_forwarded_for'])) {
-            $attributes['xForwardedFor'] = $payload['x_forwarded_for'];
-        }
-
-        // Добавляем extraAttributes если они есть
-        if (isset($payload['extraAttributes']) && \is_array($payload['extraAttributes'])) {
-            foreach ($payload['extraAttributes'] as $key => $value) {
-                if (\is_string($key) && \is_scalar($value)) {
-                    $attributes[$key] = (string) $value;
-                }
+        foreach ($attributeFields as $field) {
+            if (isset($payload[$field]) && \is_string($payload[$field])) {
+                $attributes[$field] = $payload[$field];
             }
         }
 
@@ -100,27 +79,27 @@ final readonly class ClientIdentity
     }
 
     /**
-     * Проверяет соответствие текущего идентификатора с другим идентификатором
+     * Checks if this identity matches another identity.
      *
-     * @param self $other Другой идентификатор для сравнения
-     * @param bool $strictIpMatch Требовать строгое соответствие IP
+     * @param self $other Other identity to compare with
+     * @param bool $strictIpMatch Whether to require strict IP matching
      */
     public function matches(self $other, bool $strictIpMatch = false): bool
     {
-        // Если ID совпадают, это точно один и тот же клиент
+        // If IDs match, it's definitely the same client
         if ($this->id === $other->id) {
             return true;
         }
 
-        // Проверяем IP-адрес
+        // Check IP address
         $ipMatches = $strictIpMatch
             ? $this->ipAddress === $other->ipAddress
             : $this->ipAddress !== 'unknown' && $this->ipAddress === $other->ipAddress;
 
-        // Проверяем User-Agent
+        // Check User-Agent
         $uaMatches = $this->userAgent !== null && $this->userAgent === $other->userAgent;
 
-        // Минимальное совпадение: либо IP + один атрибут, либо User-Agent + IP
+        // Minimum match criteria: either IP + User-Agent, or IP + at least one attribute
         return ($ipMatches && $uaMatches)
                || ($ipMatches && \count(array_intersect_assoc($this->attributes, $other->attributes)) > 0);
     }

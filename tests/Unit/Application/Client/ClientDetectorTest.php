@@ -147,8 +147,8 @@ final class ClientDetectorTest extends TestCase
     {
         $payload = json_encode([
             'ip' => $ip,
-            'user_agent' => $userAgent,
-            'accept_language' => 'en-US',
+            'userAgent' => $userAgent,
+            'acceptLanguage' => 'en-US',
         ]);
 
         return new Session(

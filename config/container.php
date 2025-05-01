@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Application\Client\ClientConfig;
-use App\Application\Client\ClientDataFactory;
 use App\Application\Client\ClientDetector;
 use App\Application\Client\ClientDetectorInterface;
-use App\Application\Client\DefaultClientDataFactory;
+use App\Application\Client\DefaultSessionPayloadFactory;
 use App\Application\Client\GeoLocationConfig;
 use App\Application\Client\GeoLocationService;
+use App\Application\Client\SessionPayloadFactory;
 use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Mappers\HomeMapper;
 use App\Application\Middleware\ApiStatsMiddleware;
@@ -223,15 +223,15 @@ return static function (Container $container): void {
         },
     );
 
-    // Client data factory
-    $container->bind(ClientDataFactory::class, DefaultClientDataFactory::class);
+    // Session payload factory
+    $container->bind(SessionPayloadFactory::class, DefaultSessionPayloadFactory::class);
     $container->set(
-        DefaultClientDataFactory::class,
-        static function (ContainerInterface $container): DefaultClientDataFactory {
+        DefaultSessionPayloadFactory::class,
+        static function (ContainerInterface $container): DefaultSessionPayloadFactory {
             /** @var GeoLocationService $geoLocationService */
             $geoLocationService = $container->get(GeoLocationService::class);
 
-            return new DefaultClientDataFactory($geoLocationService);
+            return new DefaultSessionPayloadFactory($geoLocationService);
         },
     );
 
@@ -399,8 +399,8 @@ return static function (Container $container): void {
             /** @var SessionConfig $config */
             $config = $container->get(SessionConfig::class);
 
-            /** @var ClientDataFactory $clientDataFactory */
-            $clientDataFactory = $container->get(ClientDataFactory::class);
+            /** @var SessionPayloadFactory $sessionPayloadFactory */
+            $sessionPayloadFactory = $container->get(SessionPayloadFactory::class);
 
             /** @var JsonFieldAdapter $jsonAdapter */
             $jsonAdapter = $container->get(JsonFieldAdapter::class);
@@ -412,7 +412,7 @@ return static function (Container $container): void {
                 $sessionService,
                 $logger,
                 $config,
-                $clientDataFactory,
+                $sessionPayloadFactory,
                 $jsonAdapter,
                 $clientDetector,
             );
