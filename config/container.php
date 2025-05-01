@@ -32,6 +32,7 @@ use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
+use App\Infrastructure\Logger\ReadableOutputLogger;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\FastRouteAdapter;
 use App\Infrastructure\Storage\Migration\MigrationLoader;
@@ -66,6 +67,8 @@ return static function (Container $container): void {
     $container->bind(StreamFactoryInterface::class, Psr17Factory::class);
     $container->bind(UploadedFileFactoryInterface::class, Psr17Factory::class);
 
+    // Register ReadableOutputLogger and RoadRunnerLogger
+    $container->bind(ReadableOutputLogger::class, ReadableOutputLogger::class);
     $container->bind(LoggerInterface::class, RoadRunnerLogger::class);
     // Storage configuration and factory
     $container->set(
