@@ -65,9 +65,9 @@ final class GeoLocationIntegrationTest extends IntegrationTestCase
     }
 
     /**
-     * Проверяет, что сервис геолокации возвращает null для локальных IP-адресов.
+     * Проверяет, что сервис геолокации возвращает Easter egg для локальных IP-адресов.
      */
-    public function testGeoLocationServiceReturnsNullForLocalIps(): void
+    public function testGeoLocationServiceReturnsEasterEggForLocalIps(): void
     {
         $localIps = [
             '127.0.0.1',
@@ -80,7 +80,12 @@ final class GeoLocationIntegrationTest extends IntegrationTestCase
 
         foreach ($localIps as $ip) {
             $location = $this->geoLocationService->getLocationByIp($ip);
-            self::assertNull($location, "Локальный IP {$ip} должен возвращать null");
+            self::assertNotNull($location, "Локальный IP {$ip} должен возвращать Easter egg");
+            self::assertEquals('Developer Land 🚀', $location->country, "Страна должна быть Developer Land для IP: {$ip}");
+            self::assertEquals('DEV', $location->countryCode, "Код страны должен быть DEV для IP: {$ip}");
+            self::assertEquals('Local Environment 💻', $location->region, "Регион должен содержать Easter egg для IP: {$ip}");
+            self::assertEquals('Localhost City 🏠', $location->city, "Город должен содержать Easter egg для IP: {$ip}");
+            self::assertEquals('UTC+Coffee ☕', $location->timezone, "Временная зона должна содержать Easter egg для IP: {$ip}");
         }
     }
 

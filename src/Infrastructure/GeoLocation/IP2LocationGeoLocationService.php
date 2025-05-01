@@ -34,9 +34,18 @@ final readonly class IP2LocationGeoLocationService implements GeoLocationService
      */
     public function getLocationByIp(string $ip): ?GeoLocationData
     {
-        // Пропускаем локальные и приватные IP-адреса
+        // Возвращаем Easter egg для локальных и приватных IP-адресов
         if ($this->isLocalIp($ip) || $ip === 'unknown') {
-            return null;
+            return new GeoLocationData(
+                country: 'Developer Land 🚀',
+                countryCode: 'DEV',
+                region: 'Local Environment 💻',
+                city: 'Localhost City 🏠',
+                zip: '127001',
+                lat: 42.0,
+                lon: 42.0,
+                timezone: 'UTC+Coffee ☕',
+            );
         }
 
         // Проверяем кеш
