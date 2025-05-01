@@ -16,14 +16,14 @@ $containerConfig = require __DIR__ . '/../../config/container.php';
 $container = new Container();
 $containerConfig($container);
 
-// Получаем SQLite хранилище
+// Получаем PostgreSQL хранилище
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
 
 // Удаляем все существующие таблицы
-$tables = $storage->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+$tables = $storage->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
 foreach ($tables as $table) {
-    $storage->execute("DROP TABLE IF EXISTS {$table['name']}");
+    $storage->execute("DROP TABLE IF EXISTS \"{$table['tablename']}\" CASCADE");
 }
 
 // Накатываем миграции заново

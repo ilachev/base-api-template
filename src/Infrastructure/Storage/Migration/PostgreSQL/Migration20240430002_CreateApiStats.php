@@ -12,13 +12,13 @@ final readonly class Migration20240430002_CreateApiStats extends AbstractMigrati
     {
         return <<<'SQL'
                 CREATE TABLE api_stats (
-                    id SERIAL PRIMARY KEY,
+                    id BIGSERIAL PRIMARY KEY,
                     session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
                     route TEXT NOT NULL,
                     method TEXT NOT NULL,
                     status_code INTEGER NOT NULL,
                     execution_time REAL NOT NULL,
-                    request_time INTEGER NOT NULL
+                    request_time BIGINT NOT NULL
                 );
                 CREATE INDEX idx_api_stats_session_id ON api_stats(session_id);
                 CREATE INDEX idx_api_stats_route ON api_stats(route);

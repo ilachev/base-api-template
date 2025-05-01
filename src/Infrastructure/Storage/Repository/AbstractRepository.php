@@ -106,15 +106,27 @@ abstract class AbstractRepository
     {
         $data = $this->extractEntityData($entity);
 
-        // Используем INSERT OR REPLACE для оптимизации - выполняем одну операцию вместо проверки и двух отдельных операций
-        $insertQuery = $this->query($table);
+        // Determine if this is an insert or update operation
+        $isInsert = $primaryKeyValue === null;
 
-        // Убедимся, что первичный ключ включен в данные
-        if (!isset($data[$primaryKey]) && $primaryKeyValue !== null) {
-            $data[$primaryKey] = $primaryKeyValue;
+        if ($isInsert) {
+            // For inserts with auto-incrementing primary keys, we should remove the ID field
+            // so the database can assign it automatically
+            unset($data[$primaryKey]);
+
+            $insertQuery = $this->query($table);
+            [$sql, $params] = $insertQuery->buildInsertQuery($data);
+        } else {
+            // For updates, make sure the primary key is included
+            if (!isset($data[$primaryKey])) {
+                // We know $primaryKeyValue is not null here since $isInsert would be true otherwise
+                $data[$primaryKey] = $primaryKeyValue;
+            }
+
+            $insertQuery = $this->query($table);
+            [$sql, $params] = $insertQuery->buildUpsertQuery($data, $primaryKey);
         }
 
-        [$sql, $params] = $insertQuery->buildUpsertQuery($data, $primaryKey);
         /** @var array<string, scalar|null> $castParams */
         $castParams = $params;
         $this->storage->execute($sql, $castParams);

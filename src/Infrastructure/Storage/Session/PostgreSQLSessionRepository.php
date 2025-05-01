@@ -40,7 +40,7 @@ final class PostgreSQLSessionRepository extends AbstractRepository implements Se
     public function findByFingerprint(string $fingerprint): ?Session
     {
         $query = $this->query(self::TABLE_NAME)
-            ->where('fingerprint', $fingerprint);
+            ->where("payload->>'fingerprint'", $fingerprint);
 
         return $this->fetchOne(Session::class, $query);
     }
@@ -72,7 +72,7 @@ final class PostgreSQLSessionRepository extends AbstractRepository implements Se
     public function findByIp(string $ip, int $limit): array
     {
         $query = $this->query(self::TABLE_NAME)
-            ->where('ip', $ip)
+            ->where("payload->>'ip'", $ip)
             ->orderBy('created_at', 'DESC')
             ->limit($limit);
 

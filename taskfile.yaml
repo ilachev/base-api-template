@@ -92,3 +92,34 @@ tasks:
     deps: [ var, install ]
     cmds:
       - for f in load-tests/scenarios/*.js; do k6 run "$f"; done
+      
+  services:start:
+    desc: Start all application services
+    cmds:
+      - docker compose up -d
+      - echo "Waiting for services to be ready..."
+      - for i in $(seq 1 10); do
+          if docker compose exec -T db-postgres pg_isready -U app >/dev/null 2>&1; then
+            echo "Database is ready!";
+            break;
+          fi;
+          echo "Services not ready yet, retrying in 1 second...";
+          sleep 1;
+        done
+      - task: migrate
+        
+  migrate:
+    desc: Run database migrations
+    deps: [ var, install ]
+    cmds:
+      - "{{.PHP}} bin/migrate.php"
+
+  services:stop:
+    desc: Stop all application services
+    cmds:
+      - docker compose stop
+
+  services:status:
+    desc: Check the status of all application services
+    cmds:
+      - docker compose ps

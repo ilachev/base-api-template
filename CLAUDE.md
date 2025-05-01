@@ -12,6 +12,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Performance tests: `task perf:test "scenario-name.js"`
 - Always run `task verify` before committing to ensure code quality
 - Generate proto artifacts: `task proto:gen:all`
+- Start services: `task services:start`
+- Stop services: `task services:stop`
+
+## Development workflow
+- Always run `task verify` after completing a task, not just tests
+- `task verify` runs static analysis, code style checks, and tests in one command
+- Address any issues found during verification before committing
+- When working with the database, use `task services:start` to start PostgreSQL
+- After making changes to database-related code, always test with the actual PostgreSQL database
 
 ## Architecture
 - Clean Architecture approach with strict separation of concerns
@@ -31,6 +40,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Do not use mocks for internal services - use real implementations in tests
 - Always consider creating reusable components instead of narrow-focused solutions
 - Before implementing specific functionality, think about designing more general abstractions that can be reused
+
+## Database Strategy
+- Use PostgreSQL for all environments (development, testing, production)
+- Consistent database schemas ensure reliable behavior across environments
+- Testing should use the same database engine as production
+- Database-specific features should be designed for PostgreSQL compatibility
+- When optimizing performance, use real-world PostgreSQL performance characteristics
+- Avoid SQLite for testing as it may hide PostgreSQL-specific issues or constraints
+- Database connections should be properly configured for each environment
+- Integration tests should reset the database to a known state before each test
+- Use database transactions for test isolation when possible
+- Migrations should be designed for PostgreSQL compatibility
+- Use JSONB type for complex data structures to leverage PostgreSQL's powerful JSON capabilities
+- Use BIGSERIAL for auto-incrementing primary keys
+- Always use BIGINT (not INTEGER) for timestamp fields to handle PHP_INT_MAX values
+- Follow PostgreSQL best practices for indexing, especially for JSON fields
+- Always pass null for ID values when inserting new records with auto-incrementing primary keys
+- Use TEXT type for string fields instead of VARCHAR for flexibility
+- Handle null values appropriately in PostgreSQL, which has stricter constraints than SQLite
 
 ## Performance and Memory Management
 - Application runs on RoadRunner server - be careful with static caches and memory management

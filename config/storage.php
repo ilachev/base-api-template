@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     // The storage engine to use: 'sqlite' or 'pgsql'
-    'engine' => 'sqlite',
+    'engine' => 'pgsql',
 
     // SQLite configuration
     'sqlite' => [
@@ -14,7 +14,7 @@ return [
 
     // PostgreSQL configuration
     'pgsql' => [
-        'host' => 'localhost',
+        'host' => 'localhost',  // Use 'db-postgres' if connecting from within Docker
         'port' => 5432,
         'database' => 'app',
         'username' => 'app',

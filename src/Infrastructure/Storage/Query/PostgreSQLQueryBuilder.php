@@ -76,7 +76,7 @@ final class PostgreSQLQueryBuilder extends BaseQueryBuilder
         $columnList = implode(', ', $columns);
         $placeholderList = implode(', ', $placeholders);
 
-        $sql = "INSERT INTO {$quotedTable} ({$columnList}) VALUES ({$placeholderList}) RETURNING {$primaryKey}";
+        $sql = "INSERT INTO {$quotedTable} ({$columnList}) VALUES ({$placeholderList})";
 
         return [$sql, $params];
     }

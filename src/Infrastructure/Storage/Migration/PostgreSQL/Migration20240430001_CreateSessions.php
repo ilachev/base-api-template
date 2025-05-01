@@ -14,17 +14,15 @@ final readonly class Migration20240430001_CreateSessions extends AbstractMigrati
                 CREATE TABLE sessions (
                     id TEXT PRIMARY KEY,
                     user_id INTEGER,
-                    payload TEXT NOT NULL,
-                    fingerprint TEXT,
-                    ip TEXT NOT NULL,
-                    expires_at INTEGER NOT NULL,
-                    created_at INTEGER NOT NULL,
-                    updated_at INTEGER NOT NULL
+                    payload JSONB NOT NULL,
+                    expires_at BIGINT NOT NULL,
+                    created_at BIGINT NOT NULL,
+                    updated_at BIGINT NOT NULL
                 );
                 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
                 CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
-                CREATE INDEX idx_sessions_fingerprint ON sessions(fingerprint);
-                CREATE INDEX idx_sessions_ip ON sessions(ip);
+                CREATE INDEX idx_sessions_ip ON sessions((payload->>'ip'));
+                CREATE INDEX idx_sessions_fingerprint ON sessions((payload->>'fingerprint'));
             SQL;
     }
 
