@@ -14,11 +14,11 @@ return [
 
     // PostgreSQL configuration
     'pgsql' => [
-        'host' => 'localhost',  // Use 'db-postgres' if connecting from within Docker
-        'port' => 5432,
-        'database' => 'app',
-        'username' => 'app',
-        'password' => 'password',
+        'host' => getenv('DB_HOST') ?: 'localhost',  // Use 'db-postgres' if connecting from within Docker
+        'port' => (int) (getenv('DB_PORT') ?: 5432),
+        'database' => getenv('DB_NAME') ?: 'app',
+        'username' => getenv('DB_USER') ?: 'app',
+        'password' => getenv('DB_PASSWORD') ?: 'password',
         'schema' => 'public',
         'migrations_path' => __DIR__ . '/../src/Infrastructure/Storage/Migration/PostgreSQL',
     ],

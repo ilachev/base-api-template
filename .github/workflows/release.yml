@@ -9,6 +9,29 @@ jobs:
     name: Build Release Package
     runs-on: ubuntu-latest
     
+    # Set environment variables for database connection in CI
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: app
+      DB_USER: app
+      DB_PASSWORD: password
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - uses: actions/checkout@v3
       
@@ -16,7 +39,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, intl, sqlite3
+          extensions: mbstring, intl, sqlite3, pgsql, pdo_pgsql
           coverage: none
           tools: composer:v2
       
