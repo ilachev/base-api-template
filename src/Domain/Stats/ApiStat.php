@@ -17,9 +17,4 @@ final readonly class ApiStat implements Entity
         public float $executionTime,
         public int $requestTime,
     ) {}
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 }

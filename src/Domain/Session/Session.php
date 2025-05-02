@@ -17,11 +17,6 @@ final readonly class Session implements Entity
         public int $updatedAt,
     ) {}
 
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
     public function isExpired(): bool
     {
         return $this->expiresAt < time();

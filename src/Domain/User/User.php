@@ -14,9 +14,4 @@ final readonly class User implements Entity
         public int $createdAt,
         public int $updatedAt,
     ) {}
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 }
