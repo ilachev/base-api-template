@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Session;
 
-final readonly class Session
+use App\Domain\Entity;
+
+final readonly class Session implements Entity
 {
     public function __construct(
         public string $id,
@@ -14,6 +16,11 @@ final readonly class Session
         public int $createdAt,
         public int $updatedAt,
     ) {}
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
     public function isExpired(): bool
     {

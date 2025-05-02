@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Stats;
 
-final readonly class ApiStat
+use App\Domain\Entity;
+
+final readonly class ApiStat implements Entity
 {
     public function __construct(
         public ?int $id,
@@ -15,4 +17,9 @@ final readonly class ApiStat
         public float $executionTime,
         public int $requestTime,
     ) {}
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 }

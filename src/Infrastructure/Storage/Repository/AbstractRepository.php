@@ -101,12 +101,14 @@ abstract class AbstractRepository
 
     /**
      * Сохранить объект в БД.
+     *
+     * @template T of object
+     * @param T $entity
+     * @return T
      */
-    protected function saveEntity(object $entity, string $table, string $primaryKey, mixed $primaryKeyValue): void
+    protected function saveEntity(object $entity, string $table, string $primaryKey, mixed $primaryKeyValue): object
     {
         $data = $this->extractEntityData($entity);
-
-        // Determine if this is an insert or update operation
         $isInsert = $primaryKeyValue === null;
 
         if ($isInsert) {
@@ -130,6 +132,16 @@ abstract class AbstractRepository
         /** @var array<string, scalar|null> $castParams */
         $castParams = $params;
         $this->storage->execute($sql, $castParams);
+
+        // If this was an insert, update the entity with the new ID
+        if ($isInsert) {
+            $data = $this->hydrator->extract($entity);
+            $data[$primaryKey] = $this->storage->lastInsertId();
+
+            return $this->hydrator->hydrate($entity::class, $data);
+        }
+
+        return $entity;
     }
 
     /**
