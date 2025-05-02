@@ -18,9 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Tests\Unit\Domain\Stats\TestApiStatRepository;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class ApiStatsMiddlewareTest extends TestCase
 {
@@ -30,7 +29,7 @@ final class ApiStatsMiddlewareTest extends TestCase
 
     private SessionService $sessionService;
 
-    private LoggerInterface $logger;
+    private TestLogger $logger;
 
     private ApiStatsMiddleware $middleware;
 
@@ -73,7 +72,7 @@ final class ApiStatsMiddlewareTest extends TestCase
         };
 
         // Создаем реальный экземпляр SessionService
-        $this->logger = new NullLogger();
+        $this->logger = new TestLogger();
         $this->sessionService = new SessionService($testSessionRepository, $this->logger);
 
         $this->middleware = new ApiStatsMiddleware($this->statService, $this->sessionService, $this->logger);

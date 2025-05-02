@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Logger;
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
-
-final class RoadRunnerLogger implements LoggerInterface
+final class RoadRunnerLogger implements Logger
 {
     private ?string $requestId = null;
 
@@ -15,97 +12,89 @@ final class RoadRunnerLogger implements LoggerInterface
         private readonly ReadableOutputLogger $logger,
     ) {}
 
-    /**
-     * Sets the request ID for all subsequent logs.
-     */
     public function setRequestId(?string $requestId): void
     {
         $this->requestId = $requestId;
     }
 
-    /**
-     * Returns the current request ID.
-     */
     public function getRequestId(): ?string
     {
         return $this->requestId;
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function emergency(string|\Stringable $message, array $context = []): void
+    public function emergency(string $message, array $context = []): void
     {
-        $this->log(LogLevel::EMERGENCY, $message, $context);
+        $this->log('emergency', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function alert(string|\Stringable $message, array $context = []): void
+    public function alert(string $message, array $context = []): void
     {
-        $this->log(LogLevel::ALERT, $message, $context);
+        $this->log('alert', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function critical(string|\Stringable $message, array $context = []): void
+    public function critical(string $message, array $context = []): void
     {
-        $this->log(LogLevel::CRITICAL, $message, $context);
+        $this->log('critical', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function error(string|\Stringable $message, array $context = []): void
+    public function error(string $message, array $context = []): void
     {
-        $this->log(LogLevel::ERROR, $message, $context);
+        $this->log('error', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function warning(string|\Stringable $message, array $context = []): void
+    public function warning(string $message, array $context = []): void
     {
-        $this->log(LogLevel::WARNING, $message, $context);
+        $this->log('warning', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function notice(string|\Stringable $message, array $context = []): void
+    public function notice(string $message, array $context = []): void
     {
-        $this->log(LogLevel::NOTICE, $message, $context);
+        $this->log('notice', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function info(string|\Stringable $message, array $context = []): void
+    public function info(string $message, array $context = []): void
     {
-        $this->log(LogLevel::INFO, $message, $context);
+        $this->log('info', $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function debug(string|\Stringable $message, array $context = []): void
+    public function debug(string $message, array $context = []): void
     {
-        $this->log(LogLevel::DEBUG, $message, $context);
+        $this->log('debug', $message, $context);
     }
 
     /**
-     * @param mixed $level
-     * @param array<string, mixed> $context
+     * @param array<mixed> $context
      */
-    public function log($level, string|\Stringable $message, array $context = []): void
+    public function log(string $level, string $message, array $context = []): void
     {
-        // Add requestId to the log context if it's set and not already added
         if ($this->requestId !== null && !isset($context['request_id'])) {
             $context['request_id'] = $this->requestId;
         }
 
-        $this->logger->log($level, (string) $message, $context);
+        $this->logger->log($level, $message, $context);
     }
 }

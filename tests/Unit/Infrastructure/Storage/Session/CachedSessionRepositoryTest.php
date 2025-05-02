@@ -13,8 +13,8 @@ use App\Infrastructure\Cache\RoadRunnerCacheService;
 use App\Infrastructure\Storage\Session\CachedSessionRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use Tests\Unit\Infrastructure\Cache\MockStorage;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class CachedSessionRepositoryTest extends TestCase
 {
@@ -34,8 +34,8 @@ final class CachedSessionRepositoryTest extends TestCase
         // Мокаем внутренний репозиторий
         $this->innerRepository = $this->createMock(SessionRepository::class);
 
-        // Создаем настоящий сервис кеширования с мок-хранилищем
-        $logger = $this->createMock(LoggerInterface::class);
+        // Создаем тестовый логгер
+        $logger = new TestLogger();
 
         // Используем FallbackStorage вместо RPC-зависимого хранилища
         $this->storage = new MockStorage();

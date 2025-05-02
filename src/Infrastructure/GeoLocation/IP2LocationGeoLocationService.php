@@ -8,8 +8,8 @@ use App\Application\Client\GeoLocationConfig;
 use App\Application\Client\GeoLocationData;
 use App\Application\Client\GeoLocationService;
 use App\Infrastructure\Cache\CacheService;
+use App\Infrastructure\Logger\Logger;
 use IP2Location\Database;
-use Psr\Log\LoggerInterface;
 
 /**
  * Реализация сервиса геолокации с использованием официальной библиотеки IP2Location.
@@ -21,7 +21,7 @@ final readonly class IP2LocationGeoLocationService implements GeoLocationService
     public function __construct(
         private GeoLocationConfig $config,
         private CacheService $cache,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {
         $this->db = new Database($this->config->dbPath, Database::FILE_IO);
     }

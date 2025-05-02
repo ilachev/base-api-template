@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage\Repository;
 
 use App\Infrastructure\Cache\CacheService;
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 
 abstract readonly class AbstractCachedRepository
 {
@@ -15,7 +15,7 @@ abstract readonly class AbstractCachedRepository
 
     public function __construct(
         protected CacheService $cache,
-        protected LoggerInterface $logger,
+        protected Logger $logger,
         protected string $cacheKeyPrefix = '',
     ) {
         // Проверяем доступность кеша при инициализации

@@ -6,17 +6,17 @@ namespace App\Application\Middleware;
 
 use App\Application\Error\Error;
 use App\Application\Http\JsonResponse;
+use App\Infrastructure\Logger\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
 
 final readonly class ErrorHandlerMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private JsonResponse $jsonResponse,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     /**

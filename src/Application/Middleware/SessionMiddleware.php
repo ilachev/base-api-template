@@ -10,17 +10,17 @@ use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
+use App\Infrastructure\Logger\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
 
 final readonly class SessionMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private SessionService $sessionService,
-        private LoggerInterface $logger,
+        private Logger $logger,
         private SessionConfig $config,
         private SessionPayloadFactory $sessionPayloadFactory,
         private JsonFieldAdapter $jsonAdapter,

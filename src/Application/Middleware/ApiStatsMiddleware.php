@@ -9,18 +9,18 @@ use App\Domain\Session\Session;
 use App\Domain\Session\SessionService;
 use App\Domain\Stats\ApiStat;
 use App\Domain\Stats\ApiStatService;
+use App\Infrastructure\Logger\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
 
 final readonly class ApiStatsMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private ApiStatService $statsService,
         private SessionService $sessionService,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     public function process(

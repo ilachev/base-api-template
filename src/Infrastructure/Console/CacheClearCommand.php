@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Infrastructure\Console;
 
 use App\Infrastructure\Cache\CacheService;
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 
 final readonly class CacheClearCommand
 {
     public function __construct(
         private CacheService $cacheService,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     /**

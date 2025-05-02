@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Session;
 
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 
 final readonly class SessionService
 {
     public function __construct(
         private SessionRepository $repository,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     public function createSession(?int $userId, string $payload, int $ttl = 3600): Session

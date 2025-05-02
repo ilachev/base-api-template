@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class SessionMiddlewareTest extends TestCase
 {
@@ -349,66 +349,6 @@ final class TestRequestHandler implements RequestHandlerInterface
     }
 }
 
-final class TestLogger implements LoggerInterface
-{
-    /** @var array<array{level: string, message: string, context: array<mixed>}> */
-    public array $logs = [];
-
-    public function log($level, string|\Stringable $message, array $context = []): void
-    {
-        $levelString = match (true) {
-            \is_string($level) => $level,
-            \is_scalar($level) => (string) $level,
-            default => 'unknown',
-        };
-
-        $this->logs[] = [
-            'level' => $levelString,
-            'message' => (string) $message,
-            'context' => $context,
-        ];
-    }
-
-    public function emergency(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('emergency', $message, $context);
-    }
-
-    public function alert(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('alert', $message, $context);
-    }
-
-    public function critical(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('critical', $message, $context);
-    }
-
-    public function error(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('error', $message, $context);
-    }
-
-    public function warning(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('warning', $message, $context);
-    }
-
-    public function notice(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('notice', $message, $context);
-    }
-
-    public function info(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('info', $message, $context);
-    }
-
-    public function debug(string|\Stringable $message, array $context = []): void
-    {
-        $this->log('debug', $message, $context);
-    }
-}
 
 /**
  * Тестовый репозиторий для тестирования SessionMiddleware.

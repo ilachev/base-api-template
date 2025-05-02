@@ -7,14 +7,15 @@ namespace Tests\Unit\Infrastructure\Cache;
 use App\Infrastructure\Cache\CacheConfig;
 use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Cache\RoadRunnerCacheService;
+use App\Infrastructure\Logger\Logger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class RoadRunnerCacheServiceTest extends TestCase
 {
     private CacheConfig $config;
 
-    private LoggerInterface $logger;
+    private Logger $logger;
 
     private CacheService $cacheService;
 
@@ -30,8 +31,8 @@ final class RoadRunnerCacheServiceTest extends TestCase
             defaultTtl: 60,
         );
 
-        // Мокаем логгер
-        $this->logger = $this->createMock(LoggerInterface::class);
+        // Создаем логгер
+        $this->logger = new TestLogger();
 
         // Создаем тестовое хранилище
         $this->mockStorage = new MockStorage();

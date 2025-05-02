@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Cache;
 
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 use Spiral\Goridge\RPC\RPC;
 use Spiral\RoadRunner\KeyValue\Factory;
 use Spiral\RoadRunner\KeyValue\StorageInterface;
@@ -17,7 +17,7 @@ final class RoadRunnerCacheService implements CacheService
 
     public function __construct(
         private readonly CacheConfig $config,
-        private readonly LoggerInterface $logger,
+        private readonly Logger $logger,
     ) {
         try {
             // Проверяем, не находимся ли мы в тестовом окружении

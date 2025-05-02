@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
+use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Storage\Query\QueryFactory;
-use Psr\Log\LoggerInterface;
 
 /**
  * Factory for creating storage instances based on configuration.
@@ -25,11 +25,10 @@ final readonly class StorageFactory
      *         schema?: string
      *     }
      * } $config
-     * @param LoggerInterface|null $logger Optional logger for diagnostics
      */
     public function __construct(
         private array $config,
-        private ?LoggerInterface $logger = null,
+        private Logger $logger,
     ) {}
 
     /**
@@ -39,7 +38,7 @@ final readonly class StorageFactory
     {
         $engine = $this->config['engine'];
 
-        $this->logger?->info("Creating {$engine} storage");
+        $this->logger->info("Creating {$engine} storage");
 
         return match ($engine) {
             'sqlite' => $this->createSQLiteStorage(),

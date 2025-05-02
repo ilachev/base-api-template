@@ -2,17 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Logger;
+namespace Tests\Unit\Infrastructure\Logger;
 
-final class ReadableOutputLogger implements Logger
+use App\Infrastructure\Logger\Logger;
+
+final class TestLogger implements Logger
 {
+    /** @var array<array{level: string, message: string, context: array<mixed>}> */
+    public array $logs = [];
+
     /**
      * @param array<mixed> $context
      */
     public function log(string $level, string $message, array $context = []): void
     {
-        $formattedMessage = $this->format($level, $message, $context);
-        $this->write($formattedMessage);
+        $this->logs[] = [
+            'level' => $level,
+            'message' => $message,
+            'context' => $context,
+        ];
     }
 
     /**
@@ -77,30 +85,5 @@ final class ReadableOutputLogger implements Logger
     public function debug(string $message, array $context = []): void
     {
         $this->log('debug', $message, $context);
-    }
-
-    private function write(string $message): void
-    {
-        file_put_contents('php://stderr', $message);
-    }
-
-    /**
-     * @param array<mixed> $context
-     */
-    private function format(string $level, string $message, array $context = []): string
-    {
-        return \sprintf('[php %s] %s %s', $level, $message, $this->formatContext($context));
-    }
-
-    /**
-     * @param array<mixed> $context
-     */
-    private function formatContext(array $context): string
-    {
-        try {
-            return json_encode($context, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            return print_r($context, true);
-        }
     }
 }

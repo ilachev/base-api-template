@@ -7,8 +7,9 @@ namespace Tests\Unit\Domain\Session;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionRepository;
 use App\Domain\Session\SessionService;
+use App\Infrastructure\Logger\Logger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class SessionServiceTest extends TestCase
 {
@@ -16,12 +17,12 @@ final class SessionServiceTest extends TestCase
 
     private SessionService $service;
 
-    private LoggerInterface $logger;
+    private Logger $logger;
 
     protected function setUp(): void
     {
         $this->repository = new TestSessionRepository();
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->logger = new TestLogger();
         $this->service = new SessionService($this->repository, $this->logger);
     }
 

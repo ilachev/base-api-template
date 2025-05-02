@@ -11,7 +11,7 @@ use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageException;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class MigrationServiceTest extends TestCase
 {
@@ -35,7 +35,7 @@ final class MigrationServiceTest extends TestCase
 
         $repository = new MigrationRepository($this->storage);
         // Create a loader that doesn't load any migrations from the filesystem
-        $loader = new MigrationLoader('', new NullLogger());
+        $loader = new MigrationLoader('', new TestLogger());
         $this->service = new MigrationService($this->storage, $repository, $loader);
     }
 

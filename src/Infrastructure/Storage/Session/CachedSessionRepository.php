@@ -7,8 +7,8 @@ namespace App\Infrastructure\Storage\Session;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionRepository;
 use App\Infrastructure\Cache\CacheService;
+use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Storage\Repository\AbstractCachedRepository;
-use Psr\Log\LoggerInterface;
 
 final readonly class CachedSessionRepository extends AbstractCachedRepository implements SessionRepository
 {
@@ -18,7 +18,7 @@ final readonly class CachedSessionRepository extends AbstractCachedRepository im
     public function __construct(
         private SessionRepository $repository,
         CacheService $cache,
-        LoggerInterface $logger,
+        Logger $logger,
     ) {
         parent::__construct(
             cache: $cache,

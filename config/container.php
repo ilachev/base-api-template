@@ -32,6 +32,7 @@ use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
+use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Logger\ReadableOutputLogger;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use App\Infrastructure\Routing\Router;
@@ -52,7 +53,6 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
-use Psr\Log\LoggerInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
 use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
@@ -69,7 +69,7 @@ return static function (Container $container): void {
 
     // Register ReadableOutputLogger and RoadRunnerLogger
     $container->bind(ReadableOutputLogger::class, ReadableOutputLogger::class);
-    $container->bind(LoggerInterface::class, RoadRunnerLogger::class);
+    $container->bind(Logger::class, RoadRunnerLogger::class);
     // Storage configuration and factory
     $container->set(
         StorageFactory::class,
@@ -89,8 +89,8 @@ return static function (Container $container): void {
              */
             $storageConfig = require __DIR__ . '/storage.php';
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new StorageFactory($storageConfig, $logger);
         },
@@ -216,8 +216,8 @@ return static function (Container $container): void {
             /** @var CacheService $cache */
             $cache = $container->get(CacheService::class);
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new IP2LocationGeoLocationService($config, $cache, $logger);
         },
@@ -265,8 +265,8 @@ return static function (Container $container): void {
             /** @var SessionRepository $repository */
             $repository = $container->get(SessionRepository::class);
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new SessionService($repository, $logger);
         },
@@ -294,8 +294,8 @@ return static function (Container $container): void {
             /** @var CacheService $cacheService */
             $cacheService = $container->get(CacheService::class);
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new CachedSessionRepository($baseRepository, $cacheService, $logger);
         },
@@ -350,8 +350,8 @@ return static function (Container $container): void {
             // Get migrations path based on active engine
             $migrationsPath = $storageConfig[$engine]['migrations_path'] ?? '';
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new MigrationLoader($migrationsPath, $logger);
         },
@@ -393,8 +393,8 @@ return static function (Container $container): void {
             /** @var SessionService $sessionService */
             $sessionService = $container->get(SessionService::class);
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             /** @var SessionConfig $config */
             $config = $container->get(SessionConfig::class);
@@ -460,8 +460,8 @@ return static function (Container $container): void {
             /** @var SessionService $sessionService */
             $sessionService = $container->get(SessionService::class);
 
-            /** @var LoggerInterface $logger */
-            $logger = $container->get(LoggerInterface::class);
+            /** @var Logger $logger */
+            $logger = $container->get(Logger::class);
 
             return new ApiStatsMiddleware($apiStatService, $sessionService, $logger);
         },

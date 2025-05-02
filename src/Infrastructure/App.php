@@ -16,7 +16,7 @@ use App\Application\Middleware\{
 };
 use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\DI\Container;
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 use Spiral\RoadRunner\Http\PSR7Worker;
 
 /** @template T of object */
@@ -72,7 +72,7 @@ final readonly class App
     private function clearAllCache(): void
     {
         $cacheService = $this->container->get(CacheService::class);
-        $logger = $this->container->get(LoggerInterface::class);
+        $logger = $this->container->get(Logger::class);
 
         try {
             // Очищаем кеш, используя улучшенный механизм в RoadRunnerCacheService

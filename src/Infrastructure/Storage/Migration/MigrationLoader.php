@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Migration;
 
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 
 final readonly class MigrationLoader
 {
     public function __construct(
         private string $migrationsPath,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     /**

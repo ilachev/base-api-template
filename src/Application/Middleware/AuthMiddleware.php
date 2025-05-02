@@ -6,12 +6,12 @@ namespace App\Application\Middleware;
 
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionService;
+use App\Infrastructure\Logger\Logger;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
 
 final readonly class AuthMiddleware implements MiddlewareInterface
 {
@@ -25,7 +25,7 @@ final readonly class AuthMiddleware implements MiddlewareInterface
 
     public function __construct(
         private SessionService $sessionService,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     public function process(

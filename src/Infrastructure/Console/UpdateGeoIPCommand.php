@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Console;
 
 use App\Application\Client\GeoLocationConfig;
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Logger\Logger;
 
 /**
  * Команда для обновления базы данных геолокации IP2Location.
@@ -14,7 +14,7 @@ final readonly class UpdateGeoIPCommand
 {
     public function __construct(
         private GeoLocationConfig $config,
-        private LoggerInterface $logger,
+        private Logger $logger,
     ) {}
 
     /**
