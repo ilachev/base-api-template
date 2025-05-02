@@ -6,25 +6,20 @@ namespace App\Infrastructure\Storage\Migration;
 
 use Psr\Log\LoggerInterface;
 
-/**
- * Loads migrations from a directory based on configuration.
- */
 final readonly class MigrationLoader
 {
     public function __construct(
         private string $migrationsPath,
-        private ?LoggerInterface $logger = null,
+        private LoggerInterface $logger,
     ) {}
 
     /**
-     * Load all migration classes from the configured directory.
-     *
      * @return array<MigrationInterface>
      */
     public function loadMigrations(): array
     {
         if (!is_dir($this->migrationsPath)) {
-            $this->logger?->warning("Migration directory not found: {$this->migrationsPath}");
+            $this->logger->warning("Migration directory not found: {$this->migrationsPath}");
 
             return [];
         }
@@ -33,7 +28,7 @@ final readonly class MigrationLoader
         $files = glob($this->migrationsPath . '/*.php');
 
         if (!$files) {
-            $this->logger?->warning("No migration files found in: {$this->migrationsPath}");
+            $this->logger->warning("No migration files found in: {$this->migrationsPath}");
 
             return [];
         }
@@ -42,7 +37,7 @@ final readonly class MigrationLoader
             $className = $this->getClassNameFromFile($file);
 
             if (!class_exists($className)) {
-                $this->logger?->warning("Migration class not found: {$className}");
+                $this->logger->warning("Migration class not found: {$className}");
 
                 continue;
             }
@@ -51,18 +46,15 @@ final readonly class MigrationLoader
 
             if ($migration instanceof MigrationInterface) {
                 $migrations[] = $migration;
-                $this->logger?->info("Loaded migration: {$className}");
+                $this->logger->info("Loaded migration: {$className}");
             } else {
-                $this->logger?->warning("Class is not a migration: {$className}");
+                $this->logger->warning("Class is not a migration: {$className}");
             }
         }
 
         return $migrations;
     }
 
-    /**
-     * Get the fully qualified class name from a file path.
-     */
     private function getClassNameFromFile(string $filePath): string
     {
         // Get the file name without extension

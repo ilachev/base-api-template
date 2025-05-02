@@ -11,16 +11,13 @@ use App\Infrastructure\Storage\Migration\MigrationService;
 use App\Infrastructure\Storage\SQLiteStorage;
 use App\Infrastructure\Storage\StorageException;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 final class MigrationServiceTest extends TestCase
 {
-    private const TEST_DB = ':memory:';
+    private const string TEST_DB = ':memory:';
 
     private SQLiteStorage $storage;
-
-    private MigrationRepository $repository;
-
-    private MigrationLoader $loader;
 
     private MigrationService $service;
 
@@ -36,10 +33,10 @@ final class MigrationServiceTest extends TestCase
                 )
             SQL);
 
-        $this->repository = new MigrationRepository($this->storage);
+        $repository = new MigrationRepository($this->storage);
         // Create a loader that doesn't load any migrations from the filesystem
-        $this->loader = new MigrationLoader('', null);
-        $this->service = new MigrationService($this->storage, $this->repository, $this->loader);
+        $loader = new MigrationLoader('', new NullLogger());
+        $this->service = new MigrationService($this->storage, $repository, $loader);
     }
 
     public function testMigrateExecutesNewMigrationsInOrder(): void
