@@ -37,7 +37,7 @@ final readonly class StorageFactory
      */
     public function createStorage(): StorageInterface
     {
-        $engine = $this->config['engine'] ?? 'sqlite';
+        $engine = $this->config['engine'];
 
         $this->logger?->info("Creating {$engine} storage");
 
@@ -53,7 +53,7 @@ final readonly class StorageFactory
      */
     public function createQueryFactory(): QueryFactory
     {
-        $engine = $this->config['engine'] ?? 'sqlite';
+        $engine = $this->config['engine'];
 
         if ($engine === 'pgsql') {
             $schema = $this->config['pgsql']['schema'] ?? 'public';

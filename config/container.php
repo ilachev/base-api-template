@@ -34,7 +34,7 @@ use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Logger\ReadableOutputLogger;
 use App\Infrastructure\Logger\RoadRunnerLogger;
-use App\Infrastructure\Routing\FastRouteAdapter;
+use App\Infrastructure\Routing\Router;
 use App\Infrastructure\Storage\Migration\MigrationLoader;
 use App\Infrastructure\Storage\Migration\MigrationRepository;
 use App\Infrastructure\Storage\Migration\MigrationService;
@@ -119,7 +119,7 @@ return static function (Container $container): void {
     );
 
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
-    $container->bind(RouterInterface::class, FastRouteAdapter::class);
+    $container->bind(RouterInterface::class, Router::class);
     $container->set(
         RouteDefinitionInterface::class,
         static fn() => new RouteDefinition(__DIR__ . '/routes.php'),
