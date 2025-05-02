@@ -123,3 +123,10 @@ tasks:
     desc: Check the status of all application services
     cmds:
       - docker compose ps
+      
+  run:
+    desc: Start all required services and run the application with RoadRunner
+    deps: [ services:start ]
+    cmds:
+      - echo "Starting application with RoadRunner on http://localhost:8080..."
+      - rr serve -c .rr.yaml
