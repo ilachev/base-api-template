@@ -24,7 +24,7 @@ use App\Infrastructure\Logger\Logger;
 /**
  * @implements ServiceProvider<object>
  */
-final class ApplicationServiceProvider implements ServiceProvider
+final readonly class ApplicationServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

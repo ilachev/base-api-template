@@ -16,7 +16,7 @@ use App\Infrastructure\Storage\Stats\PostgreSQLApiStatRepository;
 /**
  * @implements ServiceProvider<object>
  */
-final class ApiStatsServiceProvider implements ServiceProvider
+final readonly class ApiStatsServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

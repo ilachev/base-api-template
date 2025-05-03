@@ -23,7 +23,7 @@ use Spiral\RoadRunner\WorkerInterface;
 /**
  * @implements ServiceProvider<object>
  */
-final class CoreServiceProvider implements ServiceProvider
+final readonly class CoreServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

@@ -15,7 +15,7 @@ use App\Infrastructure\Routing\Router;
 /**
  * @implements ServiceProvider<object>
  */
-final class RoutingServiceProvider implements ServiceProvider
+final readonly class RoutingServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

@@ -18,7 +18,7 @@ use App\Infrastructure\DI\ServiceProvider;
 /**
  * @implements ServiceProvider<object>
  */
-final class ClientServiceProvider implements ServiceProvider
+final readonly class ClientServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

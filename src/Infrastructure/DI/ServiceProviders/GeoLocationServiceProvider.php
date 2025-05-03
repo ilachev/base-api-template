@@ -16,7 +16,7 @@ use App\Infrastructure\Logger\Logger;
 /**
  * @implements ServiceProvider<object>
  */
-final class GeoLocationServiceProvider implements ServiceProvider
+final readonly class GeoLocationServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

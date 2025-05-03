@@ -15,7 +15,7 @@ use App\Infrastructure\Storage\StorageInterface;
 /**
  * @implements ServiceProvider<object>
  */
-final class StorageServiceProvider implements ServiceProvider
+final readonly class StorageServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

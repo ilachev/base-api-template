@@ -18,7 +18,7 @@ use App\Infrastructure\Storage\Session\PostgreSQLSessionRepository;
 /**
  * @implements ServiceProvider<object>
  */
-final class SessionServiceProvider implements ServiceProvider
+final readonly class SessionServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {

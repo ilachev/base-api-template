@@ -14,7 +14,7 @@ use App\Infrastructure\DI\ServiceProvider;
 /**
  * @implements ServiceProvider<object>
  */
-final class CacheServiceProvider implements ServiceProvider
+final readonly class CacheServiceProvider implements ServiceProvider
 {
     public function register(Container $container): void
     {
