@@ -8,12 +8,13 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Console\CacheClearCommand;
 use App\Infrastructure\DI\Container;
+use App\Infrastructure\DI\DIContainer;
 use App\Infrastructure\Logger\Logger;
 
 /** @var callable(Container<object>): void $containerConfig */
 $containerConfig = require __DIR__ . '/../config/container.php';
 
-$container = new Container();
+$container = new DIContainer();
 $containerConfig($container);
 
 $cacheService = $container->get(CacheService::class);

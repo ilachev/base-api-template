@@ -85,7 +85,7 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
         $sessionId = $session->id;
 
         // Выполняем запрос с сессией
-        $request = $this->createRequest(
+        $this->createRequest(
             'GET',
             '/api/v1/home',
             ['User-Agent' => 'PHPUnit Test Browser'],

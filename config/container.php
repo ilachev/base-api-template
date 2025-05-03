@@ -10,6 +10,8 @@ use App\Application\Client\GeoLocationConfig;
 use App\Application\Client\GeoLocationService;
 use App\Application\Client\SessionPayloadFactory;
 use App\Application\Handlers\HandlerFactoryInterface;
+use App\Application\Handlers\HomeHandler;
+use App\Application\Http\JsonResponse;
 use App\Application\Mappers\HomeMapper;
 use App\Application\Middleware\ApiStatsMiddleware;
 use App\Application\Middleware\SessionMiddleware;
@@ -27,6 +29,7 @@ use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\Cache\RoadRunnerCacheService;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerHandlerFactory;
+use App\Infrastructure\DI\DIContainer;
 use App\Infrastructure\GeoLocation\IP2LocationGeoLocationService;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
@@ -49,7 +52,6 @@ use App\Infrastructure\Storage\Stats\SQLiteApiStatRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\Storage\StorageInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
@@ -58,7 +60,7 @@ use Spiral\RoadRunner\Worker;
 use Spiral\RoadRunner\WorkerInterface;
 
 return static function (Container $container): void {
-    $container->bind(ContainerInterface::class, Container::class);
+    $container->bind(Container::class, DIContainer::class);
 
     // Регистрация сервиса кеширования
     $container->bind(CacheService::class, RoadRunnerCacheService::class);
@@ -73,7 +75,7 @@ return static function (Container $container): void {
     // Storage configuration and factory
     $container->set(
         StorageFactory::class,
-        static function (ContainerInterface $container): StorageFactory {
+        static function (Container $container): StorageFactory {
             /** @var array{
              *     engine: string,
              *     sqlite?: array{database: string},
@@ -99,7 +101,7 @@ return static function (Container $container): void {
     // Storage implementation based on configuration
     $container->set(
         StorageInterface::class,
-        static function (ContainerInterface $container): StorageInterface {
+        static function (Container $container): StorageInterface {
             /** @var StorageFactory $factory */
             $factory = $container->get(StorageFactory::class);
 
@@ -110,7 +112,7 @@ return static function (Container $container): void {
     // Query factory based on storage engine
     $container->set(
         QueryFactory::class,
-        static function (ContainerInterface $container): QueryFactory {
+        static function (Container $container): QueryFactory {
             /** @var StorageFactory $factory */
             $factory = $container->get(StorageFactory::class);
 
@@ -119,18 +121,28 @@ return static function (Container $container): void {
     );
 
     $container->bind(HandlerFactoryInterface::class, ContainerHandlerFactory::class);
+    $container->set(
+        ContainerHandlerFactory::class,
+        static fn(Container $container): ContainerHandlerFactory => new ContainerHandlerFactory($container),
+    );
+
     $container->bind(RouterInterface::class, Router::class);
     $container->set(
         RouteDefinitionInterface::class,
         static fn() => new RouteDefinition(__DIR__ . '/routes.php'),
     );
+
+    // Then bind interface to it
     $container->bind(HydratorInterface::class, Hydrator::class);
+
+    // Register JsonResponse
+    $container->bind(JsonResponse::class, JsonResponse::class);
 
     // JSON field adapter
     $container->bind(JsonFieldAdapter::class, DefaultJsonFieldAdapter::class);
     $container->set(
         DefaultJsonFieldAdapter::class,
-        static function (ContainerInterface $container): DefaultJsonFieldAdapter {
+        static function (Container $container): DefaultJsonFieldAdapter {
             /** @var HydratorInterface $hydrator */
             $hydrator = $container->get(HydratorInterface::class);
 
@@ -209,7 +221,7 @@ return static function (Container $container): void {
     // IP2Location implementation
     $container->set(
         IP2LocationGeoLocationService::class,
-        static function (ContainerInterface $container): IP2LocationGeoLocationService {
+        static function (Container $container): IP2LocationGeoLocationService {
             /** @var GeoLocationConfig $config */
             $config = $container->get(GeoLocationConfig::class);
 
@@ -227,7 +239,7 @@ return static function (Container $container): void {
     $container->bind(SessionPayloadFactory::class, DefaultSessionPayloadFactory::class);
     $container->set(
         DefaultSessionPayloadFactory::class,
-        static function (ContainerInterface $container): DefaultSessionPayloadFactory {
+        static function (Container $container): DefaultSessionPayloadFactory {
             /** @var GeoLocationService $geoLocationService */
             $geoLocationService = $container->get(GeoLocationService::class);
 
@@ -238,7 +250,7 @@ return static function (Container $container): void {
     // Client detector service
     $container->set(
         ClientDetector::class,
-        static function (ContainerInterface $container): ClientDetector {
+        static function (Container $container): ClientDetector {
             /** @var SessionRepository $sessionRepository */
             $sessionRepository = $container->get(SessionRepository::class);
 
@@ -261,7 +273,7 @@ return static function (Container $container): void {
     // Session service
     $container->set(
         SessionService::class,
-        static function (ContainerInterface $container): SessionService {
+        static function (Container $container): SessionService {
             /** @var SessionRepository $repository */
             $repository = $container->get(SessionRepository::class);
 
@@ -277,14 +289,14 @@ return static function (Container $container): void {
     // Repository bindings based on storage engine
     $container->set(
         SessionRepository::class,
-        static function (ContainerInterface $container): SessionRepository {
+        static function (Container $container): SessionRepository {
             /** @var array{engine: string} $storageConfig */
             $storageConfig = require __DIR__ . '/storage.php';
             $engine = $storageConfig['engine'];
 
             // Choose the appropriate repository implementation based on the storage engine
             $baseRepositoryClass = match ($engine) {
-                'pgsql' => 'App\Infrastructure\Storage\Session\PostgreSQLSessionRepository',
+                'pgsql' => PostgreSQLSessionRepository::class,
                 default => 'App\Infrastructure\Storage\Session\SQLiteSessionRepository',
             };
 
@@ -308,25 +320,18 @@ return static function (Container $container): void {
     // ApiStat Repository binding based on storage engine
     $container->set(
         ApiStatRepository::class,
-        static function (ContainerInterface $container): ApiStatRepository {
+        static function (Container $container): ApiStatRepository {
             /** @var array{engine: string} $storageConfig */
             $storageConfig = require __DIR__ . '/storage.php';
             $engine = $storageConfig['engine'];
 
             // Choose the appropriate repository implementation based on the storage engine
             $repositoryClass = match ($engine) {
-                'pgsql' => 'App\Infrastructure\Storage\Stats\PostgreSQLApiStatRepository',
+                'pgsql' => PostgreSQLApiStatRepository::class,
                 default => 'App\Infrastructure\Storage\Stats\SQLiteApiStatRepository',
             };
 
-            $repository = $container->get($repositoryClass);
-
-            // Ensure proper type checking
-            if (!$repository instanceof ApiStatRepository) {
-                throw new RuntimeException("Repository {$repositoryClass} does not implement ApiStatRepository");
-            }
-
-            return $repository;
+            return $container->get($repositoryClass);
         },
     );
 
@@ -337,7 +342,7 @@ return static function (Container $container): void {
     // Migration services
     $container->set(
         MigrationLoader::class,
-        static function (ContainerInterface $container): MigrationLoader {
+        static function (Container $container): MigrationLoader {
             /** @var array{
              *     engine: string,
              *     sqlite?: array{migrations_path: string},
@@ -359,7 +364,7 @@ return static function (Container $container): void {
 
     $container->set(
         MigrationRepository::class,
-        static function (ContainerInterface $container): MigrationRepository {
+        static function (Container $container): MigrationRepository {
             /** @var StorageInterface $storage */
             $storage = $container->get(StorageInterface::class);
 
@@ -369,7 +374,7 @@ return static function (Container $container): void {
 
     $container->set(
         MigrationService::class,
-        static function (ContainerInterface $container): MigrationService {
+        static function (Container $container): MigrationService {
             /** @var StorageInterface $storage */
             $storage = $container->get(StorageInterface::class);
 
@@ -384,12 +389,37 @@ return static function (Container $container): void {
     );
 
     // Application services and mappers
-    $container->bind(HomeMapper::class, HomeMapper::class);
+    $container->set(
+        HomeMapper::class,
+        static function (Container $container): HomeMapper {
+            /** @var HydratorInterface $hydrator */
+            $hydrator = $container->get(HydratorInterface::class);
+
+            return new HomeMapper($hydrator);
+        },
+    );
+
+    // Register HomeHandler
+    $container->set(
+        HomeHandler::class,
+        static function (Container $container): HomeHandler {
+            /** @var HomeService $homeService */
+            $homeService = $container->get(HomeService::class);
+
+            /** @var HomeMapper $homeMapper */
+            $homeMapper = $container->get(HomeMapper::class);
+
+            /** @var JsonResponse $jsonResponse */
+            $jsonResponse = $container->get(JsonResponse::class);
+
+            return new HomeHandler($homeService, $homeMapper, $jsonResponse);
+        },
+    );
 
     // Set up session middleware
     $container->set(
         SessionMiddleware::class,
-        static function (ContainerInterface $container): SessionMiddleware {
+        static function (Container $container): SessionMiddleware {
             /** @var SessionService $sessionService */
             $sessionService = $container->get(SessionService::class);
 
@@ -426,7 +456,7 @@ return static function (Container $container): void {
 
     $container->set(
         PSR7Worker::class,
-        static function (ContainerInterface $container): PSR7Worker {
+        static function (Container $container): PSR7Worker {
             /** @var WorkerInterface $worker */
             $worker = $container->get(Worker::class);
 
@@ -453,7 +483,7 @@ return static function (Container $container): void {
     // Set up API stats middleware
     $container->set(
         ApiStatsMiddleware::class,
-        static function (ContainerInterface $container): ApiStatsMiddleware {
+        static function (Container $container): ApiStatsMiddleware {
             /** @var ApiStatService $apiStatService */
             $apiStatService = $container->get(ApiStatService::class);
 

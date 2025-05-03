@@ -8,12 +8,13 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Application\Client\GeoLocationConfig;
 use App\Infrastructure\Console\UpdateGeoIPCommand;
 use App\Infrastructure\DI\Container;
+use App\Infrastructure\DI\DIContainer;
 use Psr\Log\LoggerInterface;
 
 /** @var callable(Container<object>): void $containerConfig */
 $containerConfig = require __DIR__ . '/../config/container.php';
 
-$container = new Container();
+$container = new DIContainer();
 $containerConfig($container);
 
 $config = $container->get(GeoLocationConfig::class);

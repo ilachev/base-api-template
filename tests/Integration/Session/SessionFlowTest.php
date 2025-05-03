@@ -23,10 +23,12 @@ final class SessionFlowTest extends IntegrationTestCase
 
     protected function setUp(): void
     {
-        $this->sessionService = self::$app->getContainer()->get(SessionService::class);
-        $this->clientDetector = self::$app->getContainer()->get(ClientDetector::class);
-        $this->sessionPayloadFactory = self::$app->getContainer()->get(SessionPayloadFactory::class);
-        $this->jsonAdapter = self::$app->getContainer()->get(JsonFieldAdapter::class);
+        parent::setUp();
+
+        $this->sessionService = $this->container->get(SessionService::class);
+        $this->clientDetector = $this->container->get(ClientDetector::class);
+        $this->sessionPayloadFactory = $this->container->get(SessionPayloadFactory::class);
+        $this->jsonAdapter = $this->container->get(JsonFieldAdapter::class);
     }
 
     /**

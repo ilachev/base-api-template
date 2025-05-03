@@ -6,8 +6,8 @@ namespace Tests\Unit\Infrastructure\DI;
 
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ContainerException;
+use App\Infrastructure\DI\DIContainer;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Tests\Unit\Infrastructure\DI\Fixtures\{
     Circular1,
     Dependency,
@@ -28,13 +28,13 @@ use Tests\Unit\Infrastructure\DI\Fixtures\{
 final class ContainerTest extends TestCase
 {
     /**
-     * @var Container<object>
+     * @var DIContainer<object>
      */
     private Container $container;
 
     protected function setUp(): void
     {
-        $this->container = new Container();
+        $this->container = new DIContainer();
     }
 
     public function testSetAndGetService(): void
@@ -187,7 +187,7 @@ final class ContainerTest extends TestCase
     {
         // Arrange
         $containerPassed = null;
-        $this->container->set(\stdClass::class, static function (ContainerInterface $container) use (&$containerPassed) {
+        $this->container->set(\stdClass::class, static function (Container $container) use (&$containerPassed) {
             $containerPassed = $container;
 
             return new \stdClass();

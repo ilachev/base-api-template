@@ -16,13 +16,16 @@ use App\Application\Middleware\{
 };
 use App\Infrastructure\Cache\CacheService;
 use App\Infrastructure\DI\Container;
+use App\Infrastructure\DI\DIContainer;
 use App\Infrastructure\Logger\Logger;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
 
 /** @template T of object */
 final readonly class App
 {
-    /** @var Container<T> */
+    /** @var DIContainer<T> */
     private Container $container;
 
     private PSR7Worker $worker;
@@ -30,19 +33,24 @@ final readonly class App
     private Pipeline $pipeline;
 
     /**
-     * @return Container<T>
+     * @return DIContainer<T>
      */
     public function getContainer(): Container
     {
         return $this->container;
     }
 
+    public function handleRequest(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->pipeline->handle($request);
+    }
+
     public function __construct(string $configPath)
     {
-        /** @var callable(Container<T>): void $containerConfig */
+        /** @var callable(DIContainer<T>): void $containerConfig */
         $containerConfig = require $configPath;
 
-        $this->container = new Container();
+        $this->container = new DIContainer();
         $containerConfig($this->container);
 
         $this->worker = $this->container->get(PSR7Worker::class);
@@ -60,7 +68,7 @@ final readonly class App
                 break;
             }
 
-            $response = $this->pipeline->handle($request);
+            $response = $this->handleRequest($request);
             $this->worker->respond($response);
         }
     }

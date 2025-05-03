@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+NOTE: All communication with users must be in English only. Comments in code must always be in English.
+
+IMPORTANT: Never create hacks or workarounds for narrow scenarios. Always focus on proper solutions that address the root cause of issues. Avoid creating ad-hoc scripts, adding conditional code, or other approaches that don't solve the actual problem. Instead, diagnose issues thoroughly by examining logs, traces, and existing code to understand the underlying issue.
+
 ## Commands
 - Install: `task install` or `composer install`
 - Lint: `task lint` (dry-run) or `task fixcs` (fix issues)
@@ -86,8 +90,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - No global namespace imports
 - No "Interface" suffix in interface names (use `Repository` not `RepositoryInterface`)
 - Trailing commas in multiline arrays, arguments and parameters
-- Comments only when necessary and in English (not Russian)
+- Comments only when necessary and ALWAYS in English (not Russian)
 - Comments should explain "why", not "what" or "how" when the code is complex
+- All code comments must be in English, even in small debugging/temporary sections
 - Use `self::assert*` instead of `$this->assert*` in PHPUnit tests
 - Commit messages should be short, concise, and written in English
 - Each commit message should be a single sentence that conveys the essence of the change
