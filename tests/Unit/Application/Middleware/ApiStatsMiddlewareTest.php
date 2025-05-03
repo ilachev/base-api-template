@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Middleware;
 
+use App\Application\Http\RequestHandler;
 use App\Application\Middleware\ApiStatsMiddleware;
 use App\Application\Routing\RouteResult;
 use App\Application\Routing\RouteStatus;
@@ -17,7 +18,6 @@ use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Tests\Unit\Domain\Stats\TestApiStatRepository;
 use Tests\Unit\Infrastructure\Logger\TestLogger;
 
@@ -95,7 +95,7 @@ final class ApiStatsMiddlewareTest extends TestCase
 
         $response = new Response($statusCode);
 
-        $handler = new class ($response) implements RequestHandlerInterface {
+        $handler = new class ($response) implements RequestHandler {
             private ResponseInterface $response;
 
             public function __construct(ResponseInterface $response)
@@ -137,7 +137,7 @@ final class ApiStatsMiddlewareTest extends TestCase
         $request = new ServerRequest('GET', 'https://example.com/test');
         $response = new Response(200);
 
-        $handler = new class ($response) implements RequestHandlerInterface {
+        $handler = new class ($response) implements RequestHandler {
             private ResponseInterface $response;
 
             public function __construct(ResponseInterface $response)
@@ -173,7 +173,7 @@ final class ApiStatsMiddlewareTest extends TestCase
 
         $response = new Response($statusCode);
 
-        $handler = new class ($response) implements RequestHandlerInterface {
+        $handler = new class ($response) implements RequestHandler {
             private ResponseInterface $response;
 
             public function __construct(ResponseInterface $response)

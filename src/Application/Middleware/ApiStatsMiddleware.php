@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\Middleware;
+use App\Application\Http\RequestHandler;
 use App\Application\Routing\RouteResult;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionService;
@@ -12,10 +14,8 @@ use App\Domain\Stats\ApiStatService;
 use App\Infrastructure\Logger\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class ApiStatsMiddleware implements MiddlewareInterface
+final readonly class ApiStatsMiddleware implements Middleware
 {
     public function __construct(
         private ApiStatService $statsService,
@@ -25,7 +25,7 @@ final readonly class ApiStatsMiddleware implements MiddlewareInterface
 
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler,
+        RequestHandler $handler,
     ): ResponseInterface {
         $startTime = hrtime(true);
 

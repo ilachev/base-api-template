@@ -8,9 +8,8 @@ use App\Application\Handlers\HandlerFactoryInterface;
 use App\Application\Handlers\HandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class RouteHandlerResolver implements RequestHandlerInterface
+final readonly class RouteHandlerResolver implements RequestHandler
 {
     public function __construct(
         private HandlerFactoryInterface $handlerFactory,

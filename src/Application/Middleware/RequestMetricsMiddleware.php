@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\Middleware;
+use App\Application\Http\RequestHandler;
 use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Logger\RoadRunnerLogger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final class RequestMetricsMiddleware implements MiddlewareInterface
+final class RequestMetricsMiddleware implements Middleware
 {
     public function __construct(
         private Logger $logger,
@@ -19,7 +19,7 @@ final class RequestMetricsMiddleware implements MiddlewareInterface
 
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler,
+        RequestHandler $handler,
     ): ResponseInterface {
         $startTime = hrtime(true);
         $requestId = uniqid();

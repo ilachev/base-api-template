@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use App\Application\Http\Middleware;
 use App\Application\Http\RouteHandlerResolver;
 use App\Application\Middleware\ApiStatsMiddleware;
 use App\Application\Middleware\ErrorHandlerMiddleware;
@@ -19,7 +20,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 
 abstract class IntegrationTestCase extends TestCase
 {
@@ -105,7 +105,7 @@ abstract class IntegrationTestCase extends TestCase
                 /** @var RouteHandlerResolver $resolver */
                 $resolver = $this->container->get(RouteHandlerResolver::class);
 
-                /** @var array<MiddlewareInterface> $middlewares */
+                /** @var array<Middleware> $middlewares */
                 $middlewares = [
                     $this->container->get(ErrorHandlerMiddleware::class),
                     $this->container->get(RequestMetricsMiddleware::class),

@@ -6,6 +6,8 @@ namespace App\Application\Middleware;
 
 use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\SessionPayloadFactory;
+use App\Application\Http\Middleware;
+use App\Application\Http\RequestHandler;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
 use App\Domain\Session\SessionService;
@@ -13,10 +15,8 @@ use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Logger\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class SessionMiddleware implements MiddlewareInterface
+final readonly class SessionMiddleware implements Middleware
 {
     public function __construct(
         private SessionService $sessionService,
@@ -48,7 +48,7 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler,
+        RequestHandler $handler,
     ): ResponseInterface {
         // Try to find an existing session by cookie or header
         $sessionId = $this->extractSessionId($request);

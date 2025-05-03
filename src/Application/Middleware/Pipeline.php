@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\Middleware;
+use App\Application\Http\RequestHandler;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class Pipeline implements RequestHandlerInterface
+final readonly class Pipeline implements RequestHandler
 {
     /**
-     * @param MiddlewareInterface[] $middlewares
+     * @param Middleware[] $middlewares
      */
     public function __construct(
-        private RequestHandlerInterface $handler,
+        private RequestHandler $handler,
         private array $middlewares = [],
     ) {}
 

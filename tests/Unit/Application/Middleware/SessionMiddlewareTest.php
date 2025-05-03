@@ -7,6 +7,7 @@ namespace Tests\Unit\Application\Middleware;
 use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\ClientIdentity;
 use App\Application\Client\SessionPayloadFactory;
+use App\Application\Http\RequestHandler;
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionConfig;
@@ -19,7 +20,6 @@ use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Tests\Unit\Infrastructure\Logger\TestLogger;
 
 final class SessionMiddlewareTest extends TestCase
@@ -335,7 +335,7 @@ final class SessionMiddlewareTest extends TestCase
     }
 }
 
-final class TestRequestHandler implements RequestHandlerInterface
+final class TestRequestHandler implements RequestHandler
 {
     public ?ServerRequestInterface $lastRequest = null;
 

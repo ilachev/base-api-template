@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\Middleware;
+use App\Application\Http\RequestHandler;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Logger\Logger;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class AuthMiddleware implements MiddlewareInterface
+final readonly class AuthMiddleware implements Middleware
 {
     // Пути, требующие аутентифицированного пользователя
     private const array PROTECTED_PATHS = [
@@ -30,7 +30,7 @@ final readonly class AuthMiddleware implements MiddlewareInterface
 
     public function process(
         ServerRequestInterface $request,
-        RequestHandlerInterface $handler,
+        RequestHandler $handler,
     ): ResponseInterface {
         // Пытаемся найти существующую сессию
         $sessionId = $this->extractSessionId($request);
