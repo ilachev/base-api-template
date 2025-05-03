@@ -6,21 +6,18 @@ namespace App\Infrastructure\Logger;
 
 final class RoadRunnerLogger implements Logger
 {
-    private ?string $requestId = null;
+    public ?string $requestId = null {
+        get {
+            return $this->requestId;
+        }
+        set {
+            $this->requestId = $value;
+        }
+    }
 
     public function __construct(
         private readonly ReadableOutputLogger $logger,
     ) {}
-
-    public function setRequestId(?string $requestId): void
-    {
-        $this->requestId = $requestId;
-    }
-
-    public function getRequestId(): ?string
-    {
-        return $this->requestId;
-    }
 
     /**
      * @param array<mixed> $context

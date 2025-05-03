@@ -26,7 +26,7 @@ final class RequestMetricsMiddleware implements MiddlewareInterface
 
         // Устанавливаем requestId в логгере, если это RoadRunnerLogger
         if ($this->logger instanceof RoadRunnerLogger) {
-            $this->logger->setRequestId($requestId);
+            $this->logger->requestId = $requestId;
         }
 
         $response = $handler->handle(
