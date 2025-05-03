@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
-abstract class AbstractStorage implements StorageInterface
+abstract class AbstractStorage implements Storage
 {
     protected \PDO $connection;
 

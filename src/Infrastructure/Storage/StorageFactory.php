@@ -34,7 +34,7 @@ final readonly class StorageFactory
     /**
      * Create a storage implementation based on configuration.
      */
-    public function createStorage(): StorageInterface
+    public function createStorage(): Storage
     {
         $engine = $this->config['engine'];
 

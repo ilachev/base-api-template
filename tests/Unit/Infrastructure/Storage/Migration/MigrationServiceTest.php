@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\Storage\Migration;
 
-use App\Infrastructure\Storage\Migration\MigrationInterface;
+use App\Infrastructure\Storage\Migration\Migration;
 use App\Infrastructure\Storage\Migration\MigrationLoader;
 use App\Infrastructure\Storage\Migration\MigrationRepository;
 use App\Infrastructure\Storage\Migration\MigrationService;
@@ -42,7 +42,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateExecutesNewMigrationsInOrder(): void
     {
         // Arrange
-        $migration1 = new class implements MigrationInterface {
+        $migration1 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -59,7 +59,7 @@ final class MigrationServiceTest extends TestCase
             }
         };
 
-        $migration2 = new class implements MigrationInterface {
+        $migration2 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317002';
@@ -97,7 +97,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateHandlesMultipleStatements(): void
     {
         // Arrange
-        $migration = new class implements MigrationInterface {
+        $migration = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -144,7 +144,7 @@ final class MigrationServiceTest extends TestCase
     public function testRollbackExecutesMigrationsInReverseOrder(): void
     {
         // Arrange - execute migrations first
-        $migration1 = new class implements MigrationInterface {
+        $migration1 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -161,7 +161,7 @@ final class MigrationServiceTest extends TestCase
             }
         };
 
-        $migration2 = new class implements MigrationInterface {
+        $migration2 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317002';
@@ -198,7 +198,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateSkipsAlreadyExecutedMigrations(): void
     {
         // Arrange
-        $migration1 = new class implements MigrationInterface {
+        $migration1 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -215,7 +215,7 @@ final class MigrationServiceTest extends TestCase
             }
         };
 
-        $migration2 = new class implements MigrationInterface {
+        $migration2 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317002';
@@ -258,7 +258,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateHandlesInvalidSql(): void
     {
         // Arrange
-        $migration = new class implements MigrationInterface {
+        $migration = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -287,7 +287,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateHandlesEmptyMigration(): void
     {
         // Arrange
-        $migration = new class implements MigrationInterface {
+        $migration = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -319,7 +319,7 @@ final class MigrationServiceTest extends TestCase
     public function testMigrateHandlesVersionConflict(): void
     {
         // Arrange
-        $migration1 = new class implements MigrationInterface {
+        $migration1 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -336,7 +336,7 @@ final class MigrationServiceTest extends TestCase
             }
         };
 
-        $migration2 = new class implements MigrationInterface {
+        $migration2 = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';
@@ -375,7 +375,7 @@ final class MigrationServiceTest extends TestCase
     public function testMultiStatementMigration(): void
     {
         // Arrange
-        $migration = new class implements MigrationInterface {
+        $migration = new class implements Migration {
             public function getVersion(): string
             {
                 return '20240317001';

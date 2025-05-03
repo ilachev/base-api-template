@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Migration;
 
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 final readonly class MigrationRepository
 {
     public function __construct(
-        private StorageInterface $storage,
+        private Storage $storage,
     ) {
         $this->createMigrationsTable();
     }

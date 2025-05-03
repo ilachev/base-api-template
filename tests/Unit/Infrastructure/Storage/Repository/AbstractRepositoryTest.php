@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Tests\Unit\Infrastructure\Storage\Repository;
 
 use App\Infrastructure\Hydrator\Hydrator;
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use App\Infrastructure\Storage\Query\QueryBuilder;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Query\SQLiteQueryBuilder;
 use App\Infrastructure\Storage\Repository\AbstractRepository;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 use PHPUnit\Framework\TestCase;
 
 final class AbstractRepositoryTest extends TestCase
 {
     private TestStorage $storage;
 
-    private HydratorInterface $hydrator;
+    private Hydrator $hydrator;
 
     private QueryBuilderFactory $queryBuilderFactory;
 
@@ -26,7 +26,7 @@ final class AbstractRepositoryTest extends TestCase
     protected function setUp(): void
     {
         $this->storage = new TestStorage();
-        $this->hydrator = new Hydrator();
+        $this->hydrator = new ReflectionHydrator();
         $this->queryBuilderFactory = new QueryBuilderFactory();
 
         $this->repository = new ConcreteRepository(
@@ -262,7 +262,7 @@ final class SimpleDTO
 /**
  * Тестовое хранилище для имитации работы с базой данных.
  */
-final class TestStorage implements StorageInterface
+final class TestStorage implements Storage
 {
     /**
      * @var array<string>

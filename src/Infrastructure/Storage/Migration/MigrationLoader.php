@@ -14,7 +14,7 @@ final readonly class MigrationLoader
     ) {}
 
     /**
-     * @return array<MigrationInterface>
+     * @return array<Migration>
      */
     public function loadMigrations(): array
     {
@@ -44,7 +44,7 @@ final readonly class MigrationLoader
 
             $migration = new $className();
 
-            if ($migration instanceof MigrationInterface) {
+            if ($migration instanceof Migration) {
                 $migrations[] = $migration;
                 $this->logger->info("Loaded migration: {$className}");
             } else {

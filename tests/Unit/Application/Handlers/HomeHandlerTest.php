@@ -9,7 +9,7 @@ use App\Application\Http\JsonResponse;
 use App\Application\Mappers\DataTransferObjectMapper;
 use App\Application\Mappers\HomeMapper;
 use App\Domain\Home\HomeService;
-use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +20,7 @@ final class HomeHandlerTest extends TestCase
     protected function setUp(): void
     {
         $homeService = new HomeService();
-        $hydrator = new Hydrator();
+        $hydrator = new ReflectionHydrator();
         $dtoMapper = new DataTransferObjectMapper($hydrator);
         $homeMapper = new HomeMapper($dtoMapper);
         $this->handler = new HomeHandler($homeService, $homeMapper, new JsonResponse());

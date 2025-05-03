@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\DI\ServiceProviders;
 
-use App\Application\Client\ClientDetectorInterface;
+use App\Application\Client\ClientDetector;
 use App\Application\Client\SessionPayloadFactory;
 use App\Application\Handlers\HomeHandler;
 use App\Application\Http\JsonResponse;
@@ -18,8 +18,8 @@ use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ServiceProvider;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
-use App\Infrastructure\Hydrator\HydratorInterface;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use App\Infrastructure\Logger\Logger;
 
 /**
@@ -33,15 +33,15 @@ final readonly class ApplicationServiceProvider implements ServiceProvider
         $container->bind(JsonResponse::class, JsonResponse::class);
 
         // Hydrator
-        $container->bind(HydratorInterface::class, Hydrator::class);
+        $container->bind(Hydrator::class, ReflectionHydrator::class);
 
         // JSON field adapter
         $container->bind(JsonFieldAdapter::class, DefaultJsonFieldAdapter::class);
         $container->set(
             DefaultJsonFieldAdapter::class,
             static function (Container $container): DefaultJsonFieldAdapter {
-                /** @var HydratorInterface $hydrator */
-                $hydrator = $container->get(HydratorInterface::class);
+                /** @var Hydrator $hydrator */
+                $hydrator = $container->get(Hydrator::class);
 
                 return new DefaultJsonFieldAdapter($hydrator);
             },
@@ -54,8 +54,8 @@ final readonly class ApplicationServiceProvider implements ServiceProvider
         $container->set(
             DataTransferObjectMapper::class,
             static function (Container $container): DataTransferObjectMapper {
-                /** @var HydratorInterface $hydrator */
-                $hydrator = $container->get(HydratorInterface::class);
+                /** @var Hydrator $hydrator */
+                $hydrator = $container->get(Hydrator::class);
 
                 return new DataTransferObjectMapper($hydrator);
             },
@@ -108,8 +108,8 @@ final readonly class ApplicationServiceProvider implements ServiceProvider
                 /** @var JsonFieldAdapter $jsonAdapter */
                 $jsonAdapter = $container->get(JsonFieldAdapter::class);
 
-                /** @var ClientDetectorInterface $clientDetector */
-                $clientDetector = $container->get(ClientDetectorInterface::class);
+                /** @var ClientDetector $clientDetector */
+                $clientDetector = $container->get(ClientDetector::class);
 
                 return new SessionMiddleware(
                     $sessionService,

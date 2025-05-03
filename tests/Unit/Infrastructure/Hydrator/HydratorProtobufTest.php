@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure\Hydrator;
 
 use App\Api\V1\HomeData;
 use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Infrastructure\Hydrator\Fixtures\TestEntity;
 
@@ -15,7 +16,7 @@ final class HydratorProtobufTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hydrator = new Hydrator();
+        $this->hydrator = new ReflectionHydrator();
     }
 
     public function testHydrateProtobufObject(): void

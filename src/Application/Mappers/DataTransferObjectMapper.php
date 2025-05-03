@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Mappers;
 
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\Hydrator;
 use Google\Protobuf\Internal\Message;
 
 /**
@@ -14,7 +14,7 @@ use Google\Protobuf\Internal\Message;
 final readonly class DataTransferObjectMapper
 {
     public function __construct(
-        private HydratorInterface $hydrator,
+        private Hydrator $hydrator,
     ) {}
 
     /**

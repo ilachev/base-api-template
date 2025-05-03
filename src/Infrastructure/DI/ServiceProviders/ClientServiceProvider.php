@@ -6,8 +6,8 @@ namespace App\Infrastructure\DI\ServiceProviders;
 
 use App\Application\Client\ClientConfig;
 use App\Application\Client\ClientDetector;
-use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\DefaultSessionPayloadFactory;
+use App\Application\Client\FingerprintClientDetector;
 use App\Application\Client\GeoLocationService;
 use App\Application\Client\SessionPayloadFactory;
 use App\Domain\Session\SessionRepository;
@@ -62,7 +62,7 @@ final readonly class ClientServiceProvider implements ServiceProvider
                 /** @var ClientConfig $clientConfig */
                 $clientConfig = $container->get(ClientConfig::class);
 
-                return new ClientDetector(
+                return new FingerprintClientDetector(
                     $sessionRepository,
                     $clientConfig,
                 );
@@ -70,6 +70,6 @@ final readonly class ClientServiceProvider implements ServiceProvider
         );
 
         // Bind interface to implementation
-        $container->bind(ClientDetectorInterface::class, ClientDetector::class);
+        $container->bind(ClientDetector::class, FingerprintClientDetector::class);
     }
 }

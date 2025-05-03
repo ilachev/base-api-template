@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Repository;
 
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Storage\Query\QueryBuilder;
 use App\Infrastructure\Storage\Query\QueryFactory;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 abstract class AbstractRepository
 {
     public function __construct(
-        protected readonly StorageInterface $storage,
-        protected readonly HydratorInterface $hydrator,
+        protected readonly Storage $storage,
+        protected readonly Hydrator $hydrator,
         protected readonly QueryFactory $queryBuilderFactory,
     ) {}
 

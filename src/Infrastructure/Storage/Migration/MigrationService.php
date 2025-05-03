@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage\Migration;
 
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 final class MigrationService
 {
-    /** @var array<MigrationInterface> */
+    /** @var array<Migration> */
     private array $migrations = [];
 
     public function __construct(
-        private readonly StorageInterface $storage,
+        private readonly Storage $storage,
         private readonly MigrationRepository $repository,
         private readonly MigrationLoader $loader,
     ) {}
@@ -28,7 +28,7 @@ final class MigrationService
     /**
      * Add a migration manually.
      */
-    public function addMigration(MigrationInterface $migration): void
+    public function addMigration(Migration $migration): void
     {
         $this->migrations[] = $migration;
     }
@@ -40,7 +40,7 @@ final class MigrationService
 
         usort(
             $this->migrations,
-            static fn(MigrationInterface $a, MigrationInterface $b) => strcmp($a->getVersion(), $b->getVersion()),
+            static fn(Migration $a, Migration $b) => strcmp($a->getVersion(), $b->getVersion()),
         );
 
         foreach ($this->migrations as $migration) {
@@ -72,12 +72,12 @@ final class MigrationService
 
         $migrations = array_filter(
             $this->migrations,
-            static fn(MigrationInterface $migration) => \in_array($migration->getVersion(), $executedMigrations, true),
+            static fn(Migration $migration) => \in_array($migration->getVersion(), $executedMigrations, true),
         );
 
         usort(
             $migrations,
-            static fn(MigrationInterface $a, MigrationInterface $b) => strcmp($b->getVersion(), $a->getVersion()),
+            static fn(Migration $a, Migration $b) => strcmp($b->getVersion(), $a->getVersion()),
         );
 
         foreach ($migrations as $migration) {

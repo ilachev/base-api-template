@@ -6,10 +6,10 @@ namespace App\Infrastructure\Storage\Stats;
 
 use App\Domain\Stats\ApiStat;
 use App\Domain\Stats\ApiStatRepository;
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Storage\Query\QueryFactory;
 use App\Infrastructure\Storage\Repository\AbstractRepository;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 /**
  * PostgreSQL implementation of the API stats repository.
@@ -19,8 +19,8 @@ final class PostgreSQLApiStatRepository extends AbstractRepository implements Ap
     private const TABLE_NAME = 'api_stats';
 
     public function __construct(
-        StorageInterface $storage,
-        HydratorInterface $hydrator,
+        Storage $storage,
+        Hydrator $hydrator,
         QueryFactory $queryFactory,
     ) {
         parent::__construct($storage, $hydrator, $queryFactory);

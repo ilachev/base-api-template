@@ -7,11 +7,11 @@ namespace App\Infrastructure\Storage\Session;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionPayload;
 use App\Domain\Session\SessionRepository;
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
 use App\Infrastructure\Storage\Query\QueryFactory;
 use App\Infrastructure\Storage\Repository\AbstractRepository;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 /**
  * PostgreSQL implementation of the session repository.
@@ -21,8 +21,8 @@ final class PostgreSQLSessionRepository extends AbstractRepository implements Se
     private const TABLE_NAME = 'sessions';
 
     public function __construct(
-        StorageInterface $storage,
-        HydratorInterface $hydrator,
+        Storage $storage,
+        Hydrator $hydrator,
         QueryFactory $queryFactory,
         private readonly JsonFieldAdapter $jsonFieldAdapter,
     ) {

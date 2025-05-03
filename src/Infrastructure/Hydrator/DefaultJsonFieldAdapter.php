@@ -11,7 +11,7 @@ namespace App\Infrastructure\Hydrator;
 final readonly class DefaultJsonFieldAdapter implements JsonFieldAdapter
 {
     public function __construct(
-        private HydratorInterface $hydrator,
+        private Hydrator $hydrator,
     ) {}
 
     /**

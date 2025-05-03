@@ -7,14 +7,14 @@ namespace Tests\Integration\Stats;
 use App\Application\Client\SessionPayloadFactory;
 use App\Domain\Session\SessionService;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 use Tests\Integration\IntegrationTestCase;
 
 final class ApiStatsIntegrationTest extends IntegrationTestCase
 {
     private SessionService $sessionService;
 
-    private StorageInterface $storage;
+    private Storage $storage;
 
     private SessionPayloadFactory $sessionPayloadFactory;
 
@@ -28,8 +28,8 @@ final class ApiStatsIntegrationTest extends IntegrationTestCase
         $sessionService = $this->container->get(SessionService::class);
         $this->sessionService = $sessionService;
 
-        /** @var StorageInterface $storage */
-        $storage = $this->container->get(StorageInterface::class);
+        /** @var Storage $storage */
+        $storage = $this->container->get(Storage::class);
         $this->storage = $storage;
 
         /** @var SessionPayloadFactory $sessionPayloadFactory */

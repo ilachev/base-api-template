@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure\Hydrator;
 
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\HydratorException;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Infrastructure\Hydrator\Fixtures\{
     EmptyEntity,
@@ -21,7 +22,7 @@ final class HydratorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hydrator = new Hydrator();
+        $this->hydrator = new ReflectionHydrator();
     }
 
     public function testHydrateCreatesObject(): void
@@ -150,15 +151,6 @@ final class HydratorTest extends TestCase
         $data = $this->hydrator->extract($object);
 
         self::assertSame([], $data);
-    }
-
-    public function testExtractWithNonObject(): void
-    {
-        $this->expectException(HydratorException::class);
-        $this->expectExceptionMessage('Failed to extract data: argument must be an object');
-
-        /** @psalm-suppress InvalidArgument */
-        $this->hydrator->extract('not an object');
     }
 
     public function testExtractWithPrivatePropertyThrowsException(): void

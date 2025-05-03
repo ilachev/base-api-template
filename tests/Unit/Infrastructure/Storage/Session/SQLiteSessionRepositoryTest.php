@@ -6,10 +6,10 @@ namespace Tests\Unit\Infrastructure\Storage\Session;
 
 use App\Domain\Session\Session;
 use App\Infrastructure\Hydrator\Hydrator;
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 use PHPUnit\Framework\TestCase;
 
 final class SQLiteSessionRepositoryTest extends TestCase
@@ -18,14 +18,14 @@ final class SQLiteSessionRepositoryTest extends TestCase
 
     private InMemoryTestStorage $storage;
 
-    private HydratorInterface $hydrator;
+    private Hydrator $hydrator;
 
     private QueryBuilderFactory $queryBuilderFactory;
 
     protected function setUp(): void
     {
         $this->storage = new InMemoryTestStorage();
-        $this->hydrator = new Hydrator();
+        $this->hydrator = new ReflectionHydrator();
         $this->queryBuilderFactory = new QueryBuilderFactory();
 
         $this->repository = new SQLiteSessionRepository(
@@ -158,7 +158,7 @@ final class SQLiteSessionRepositoryTest extends TestCase
 /**
  * Test implementation of StorageInterface that stores data in memory.
  */
-final class InMemoryTestStorage implements StorageInterface
+final class InMemoryTestStorage implements Storage
 {
     /** @var array<string, array<int, array<string, mixed>>> */
     private array $tables = [];

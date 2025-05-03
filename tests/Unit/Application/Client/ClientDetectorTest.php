@@ -6,6 +6,7 @@ namespace Tests\Unit\Application\Client;
 
 use App\Application\Client\ClientConfig;
 use App\Application\Client\ClientDetector;
+use App\Application\Client\FingerprintClientDetector;
 use App\Domain\Session\Session;
 use App\Domain\Session\SessionRepository;
 use Nyholm\Psr7\ServerRequest;
@@ -23,7 +24,7 @@ final class ClientDetectorTest extends TestCase
     {
         $this->repository = new TestSessionRepository();
         $this->config = new ClientConfig();
-        $this->detector = new ClientDetector($this->repository, $this->config);
+        $this->detector = new FingerprintClientDetector($this->repository, $this->config);
     }
 
     public function testFindSimilarClientsWithNoSessions(): void

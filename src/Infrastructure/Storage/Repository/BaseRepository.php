@@ -6,9 +6,9 @@ namespace App\Infrastructure\Storage\Repository;
 
 use App\Domain\Entity;
 use App\Domain\EntityRepository;
-use App\Infrastructure\Hydrator\HydratorInterface;
+use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Storage\Query\QueryFactory;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 /**
  * Base implementation of EntityRepository that can be used for any entity.
@@ -20,8 +20,8 @@ abstract class BaseRepository extends AbstractRepository implements EntityReposi
     private string $primaryKey;
 
     public function __construct(
-        StorageInterface $storage,
-        HydratorInterface $hydrator,
+        Storage $storage,
+        Hydrator $hydrator,
         QueryFactory $queryBuilderFactory,
         string $tableName,
         string $primaryKey = 'id',

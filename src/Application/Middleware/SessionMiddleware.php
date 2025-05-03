@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
-use App\Application\Client\ClientDetectorInterface;
+use App\Application\Client\ClientDetector;
 use App\Application\Client\SessionPayloadFactory;
 use App\Application\Http\Middleware;
 use App\Application\Http\RequestHandler;
@@ -24,7 +24,7 @@ final readonly class SessionMiddleware implements Middleware
         private SessionConfig $config,
         private SessionPayloadFactory $sessionPayloadFactory,
         private JsonFieldAdapter $jsonAdapter,
-        private ClientDetectorInterface $clientDetector,
+        private ClientDetector $clientDetector,
     ) {}
 
     /**

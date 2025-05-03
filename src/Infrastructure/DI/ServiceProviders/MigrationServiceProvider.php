@@ -11,7 +11,7 @@ use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Storage\Migration\MigrationLoader;
 use App\Infrastructure\Storage\Migration\MigrationRepository;
 use App\Infrastructure\Storage\Migration\MigrationService;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 
 /**
  * @implements ServiceProvider<object>
@@ -45,8 +45,8 @@ final readonly class MigrationServiceProvider implements ServiceProvider
         $container->set(
             MigrationRepository::class,
             static function (Container $container): MigrationRepository {
-                /** @var StorageInterface $storage */
-                $storage = $container->get(StorageInterface::class);
+                /** @var Storage $storage */
+                $storage = $container->get(Storage::class);
 
                 return new MigrationRepository($storage);
             },
@@ -56,8 +56,8 @@ final readonly class MigrationServiceProvider implements ServiceProvider
         $container->set(
             MigrationService::class,
             static function (Container $container): MigrationService {
-                /** @var StorageInterface $storage */
-                $storage = $container->get(StorageInterface::class);
+                /** @var Storage $storage */
+                $storage = $container->get(Storage::class);
 
                 /** @var MigrationRepository $repository */
                 $repository = $container->get(MigrationRepository::class);

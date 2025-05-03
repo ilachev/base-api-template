@@ -7,7 +7,7 @@ namespace Tests\Unit\Application\Mappers;
 use App\Api\V1\HomeData;
 use App\Api\V1\HomeResponse;
 use App\Application\Mappers\DataTransferObjectMapper;
-use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use PHPUnit\Framework\TestCase;
 
 final class DataTransferObjectMapperTest extends TestCase
@@ -16,7 +16,7 @@ final class DataTransferObjectMapperTest extends TestCase
 
     protected function setUp(): void
     {
-        $hydrator = new Hydrator();
+        $hydrator = new ReflectionHydrator();
         $this->mapper = new DataTransferObjectMapper($hydrator);
     }
 

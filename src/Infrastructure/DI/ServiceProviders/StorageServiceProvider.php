@@ -9,8 +9,8 @@ use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ServiceProvider;
 use App\Infrastructure\Logger\Logger;
 use App\Infrastructure\Storage\Query\QueryFactory;
+use App\Infrastructure\Storage\Storage;
 use App\Infrastructure\Storage\StorageFactory;
-use App\Infrastructure\Storage\StorageInterface;
 
 /**
  * @implements ServiceProvider<object>
@@ -46,8 +46,8 @@ final readonly class StorageServiceProvider implements ServiceProvider
 
         // PostgreSQL storage implementation
         $container->set(
-            StorageInterface::class,
-            static function (Container $container): StorageInterface {
+            Storage::class,
+            static function (Container $container): Storage {
                 /** @var StorageFactory $factory */
                 $factory = $container->get(StorageFactory::class);
 

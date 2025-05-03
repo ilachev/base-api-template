@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Middleware;
 
-use App\Application\Client\ClientDetectorInterface;
+use App\Application\Client\ClientDetector;
 use App\Application\Client\ClientIdentity;
 use App\Application\Client\SessionPayloadFactory;
 use App\Application\Http\RequestHandler;
@@ -484,9 +484,9 @@ final readonly class TestJsonFieldAdapterImpl implements JsonFieldAdapter
 }
 
 /**
- * Тестовая имплементация ClientDetectorInterface.
+ * Тестовая имплементация ClientDetector.
  */
-final readonly class TestClientDetectorImpl implements ClientDetectorInterface
+final readonly class TestClientDetectorImpl implements ClientDetector
 {
     /**
      * @param array<ClientIdentity> $similarClients Клиенты, которые будут возвращены

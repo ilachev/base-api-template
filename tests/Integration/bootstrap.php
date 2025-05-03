@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Infrastructure\App;
 use App\Infrastructure\Console\MigrateCommand;
 use App\Infrastructure\Storage\Migration\MigrationService;
-use App\Infrastructure\Storage\StorageInterface;
+use App\Infrastructure\Storage\Storage;
 use Tests\Integration\TestAppFactory;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -25,8 +25,8 @@ try {
     // Get services from the container
     $container = $app->getContainer();
 
-    /** @var StorageInterface $storage */
-    $storage = $container->get(StorageInterface::class);
+    /** @var Storage $storage */
+    $storage = $container->get(Storage::class);
 
     try {
         $tables = $storage->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");

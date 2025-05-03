@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure\Hydrator;
 
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\ProtobufAdapter;
+use App\Infrastructure\Hydrator\ReflectionHydrator;
 use PHPUnit\Framework\TestCase;
 
 final class CacheLimitTest extends TestCase
@@ -76,7 +77,7 @@ final class CacheLimitTest extends TestCase
      */
     public function testHydratorCacheLimitDefinition(): void
     {
-        $reflection = new \ReflectionClass(Hydrator::class);
+        $reflection = new \ReflectionClass(ReflectionHydrator::class);
         $maxCacheSize = $reflection->getConstant('MAX_INHERITANCE_CACHE_SIZE');
 
         self::assertIsInt($maxCacheSize);
@@ -90,7 +91,7 @@ final class CacheLimitTest extends TestCase
     public function testHydratorHasCacheLimitingMechanism(): void
     {
         // Verify the hydrator class has cache limiting code
-        $filename = (new \ReflectionClass(Hydrator::class))->getFileName();
+        $filename = (new \ReflectionClass(ReflectionHydrator::class))->getFileName();
         self::assertNotFalse($filename);
         $source = file_get_contents((string) $filename);
         self::assertNotFalse($source);
@@ -110,8 +111,7 @@ final class CacheLimitTest extends TestCase
      */
     public function testHydratorCacheLimitingLogic(): void
     {
-        $hydrator = new Hydrator();
-        $reflection = new \ReflectionClass(Hydrator::class);
+        $reflection = new \ReflectionClass(ReflectionHydrator::class);
 
         // Get access to isProtobufMessage method
         $method = $reflection->getMethod('isProtobufMessage');
@@ -122,7 +122,7 @@ final class CacheLimitTest extends TestCase
         self::assertIsInt($maxCacheSize);
 
         // Extract the method source code
-        $methodReflection = new \ReflectionMethod(Hydrator::class, 'isProtobufMessage');
+        $methodReflection = new \ReflectionMethod(ReflectionHydrator::class, 'isProtobufMessage');
         $methodStartLine = $methodReflection->getStartLine();
         $methodEndLine = $methodReflection->getEndLine();
 
@@ -148,8 +148,8 @@ final class CacheLimitTest extends TestCase
      */
     public function testMemoryUsageWithRepeatedCalls(): void
     {
-        $hydrator = new Hydrator();
-        $reflection = new \ReflectionClass(Hydrator::class);
+        $hydrator = new ReflectionHydrator();
+        $reflection = new \ReflectionClass(ReflectionHydrator::class);
 
         // Get the isProtobufMessage method to test
         $method = $reflection->getMethod('isProtobufMessage');
