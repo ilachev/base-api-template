@@ -6,6 +6,7 @@ namespace Tests\Unit\Application\Handlers;
 
 use App\Application\Handlers\HomeHandler;
 use App\Application\Http\JsonResponse;
+use App\Application\Mappers\DataTransferObjectMapper;
 use App\Application\Mappers\HomeMapper;
 use App\Domain\Home\HomeService;
 use App\Infrastructure\Hydrator\Hydrator;
@@ -20,7 +21,8 @@ final class HomeHandlerTest extends TestCase
     {
         $homeService = new HomeService();
         $hydrator = new Hydrator();
-        $homeMapper = new HomeMapper($hydrator);
+        $dtoMapper = new DataTransferObjectMapper($hydrator);
+        $homeMapper = new HomeMapper($dtoMapper);
         $this->handler = new HomeHandler($homeService, $homeMapper, new JsonResponse());
     }
 

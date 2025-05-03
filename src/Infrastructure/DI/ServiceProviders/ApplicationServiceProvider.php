@@ -8,6 +8,7 @@ use App\Application\Client\ClientDetectorInterface;
 use App\Application\Client\SessionPayloadFactory;
 use App\Application\Handlers\HomeHandler;
 use App\Application\Http\JsonResponse;
+use App\Application\Mappers\DataTransferObjectMapper;
 use App\Application\Mappers\HomeMapper;
 use App\Application\Middleware\SessionMiddleware;
 use App\Domain\Home\HomeService;
@@ -49,14 +50,25 @@ final readonly class ApplicationServiceProvider implements ServiceProvider
         // Home service
         $container->bind(HomeService::class, HomeService::class);
 
+        // DataTransferObjectMapper
+        $container->set(
+            DataTransferObjectMapper::class,
+            static function (Container $container): DataTransferObjectMapper {
+                /** @var HydratorInterface $hydrator */
+                $hydrator = $container->get(HydratorInterface::class);
+
+                return new DataTransferObjectMapper($hydrator);
+            },
+        );
+
         // Home mapper
         $container->set(
             HomeMapper::class,
             static function (Container $container): HomeMapper {
-                /** @var HydratorInterface $hydrator */
-                $hydrator = $container->get(HydratorInterface::class);
+                /** @var DataTransferObjectMapper $dtoMapper */
+                $dtoMapper = $container->get(DataTransferObjectMapper::class);
 
-                return new HomeMapper($hydrator);
+                return new HomeMapper($dtoMapper);
             },
         );
 
