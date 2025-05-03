@@ -9,6 +9,7 @@ use App\Infrastructure\DI\ServiceProviders\CacheServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\ClientServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\CoreServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\GeoLocationServiceProvider;
+use App\Infrastructure\DI\ServiceProviders\HydratorServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\MigrationServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\RoutingServiceProvider;
 use App\Infrastructure\DI\ServiceProviders\SessionServiceProvider;
@@ -27,6 +28,7 @@ return static function (Container $container): void {
         new MigrationServiceProvider(),
         new RoutingServiceProvider(),
         new ApplicationServiceProvider(),
+        new HydratorServiceProvider(),
     ];
 
     // Register services from each provider

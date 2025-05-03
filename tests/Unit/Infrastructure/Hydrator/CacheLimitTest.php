@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\Hydrator;
 
-use App\Infrastructure\Hydrator\Hydrator;
-use App\Infrastructure\Hydrator\ProtobufAdapter;
-use App\Infrastructure\Hydrator\ReflectionHydrator;
+use App\Infrastructure\Hydrator\LimitedReflectionCache;
+use App\Infrastructure\Hydrator\ProtobufHydration;
+use App\Infrastructure\Hydrator\SetterProtobufHydration;
+use Google\Protobuf\Internal\Message;
 use PHPUnit\Framework\TestCase;
 
 final class CacheLimitTest extends TestCase
 {
     /**
-     * Verify that ProtobufAdapter has a size limiting constant.
+     * Verify that the cache has a size limiting property.
      */
-    public function testProtobufAdapterLimitDefinition(): void
+    public function testReflectionCacheLimitDefinition(): void
     {
-        $reflection = new \ReflectionClass(ProtobufAdapter::class);
-        $maxCacheSize = $reflection->getConstant('MAX_CACHE_SIZE');
+        $cache = new LimitedReflectionCache();
+        $reflection = new \ReflectionClass(LimitedReflectionCache::class);
+        $property = $reflection->getProperty('maxCacheSize');
+        $property->setAccessible(true);
+        $maxCacheSize = $property->getValue($cache);
 
         self::assertIsInt($maxCacheSize);
         self::assertGreaterThan(10, $maxCacheSize, 'Cache size should be reasonably large');
@@ -25,73 +29,24 @@ final class CacheLimitTest extends TestCase
     }
 
     /**
-     * Verifies that we have cache limiting mechanism in ProtobufAdapter.
+     * Verifies that SetterProtobufHydration exists as replacement for ProtobufAdapter.
      */
-    public function testProtobufAdapterHasCacheLimitingMechanism(): void
+    public function testProtobufHydrationExists(): void
     {
-        // Verify the adapter class has cache limiting code
-        $filename = new \ReflectionClass(ProtobufAdapter::class)->getFileName();
-        self::assertNotFalse($filename);
-        $source = file_get_contents((string) $filename);
-        self::assertNotFalse($source);
+        self::assertTrue(interface_exists(ProtobufHydration::class));
+        self::assertTrue(class_exists(SetterProtobufHydration::class));
 
-        // Using simple string checking to verify cache limiting code exists
-        self::assertStringContainsString('reset(self::$propertySetterCache)', $source);
-        self::assertStringContainsString('key(self::$propertySetterCache)', $source);
-        self::assertStringContainsString('unset(self::$propertySetterCache', $source);
-
-        // Verify the specific limiting logic is present
-        self::assertStringContainsString('if (\count(self::$propertySetterCache) >= self::MAX_CACHE_SIZE)', $source);
+        $implementation = new SetterProtobufHydration();
+        self::assertInstanceOf(ProtobufHydration::class, $implementation);
     }
 
     /**
-     * This test directly checks the cache limiting logic in ProtobufAdapter.
+     * Verifies that LimitedReflectionCache has cache limiting mechanism.
      */
-    public function testProtobufAdapterCacheLimitingLogic(): void
+    public function testCacheHasCacheLimitingMechanism(): void
     {
-        $adapter = new ProtobufAdapter();
-        $reflection = new \ReflectionClass(ProtobufAdapter::class);
-
-        // Extract the method source code to verify implementation
-        $methodReflection = new \ReflectionMethod(ProtobufAdapter::class, 'mapProperties');
-        $methodStartLine = $methodReflection->getStartLine();
-        $methodEndLine = $methodReflection->getEndLine();
-
-        $filename = (string) $reflection->getFileName();
-        self::assertFileExists($filename);
-        $sourceCode = file_get_contents($filename);
-        self::assertNotFalse($sourceCode);
-
-        $sourceLines = explode("\n", $sourceCode);
-        $methodSource = implode("\n", \array_slice($sourceLines, $methodStartLine - 1, $methodEndLine - $methodStartLine + 1));
-
-        // Verify the cache limiting code structure is present and correct
-        self::assertStringContainsString('if (\count(self::$propertySetterCache) >= self::MAX_CACHE_SIZE)', $methodSource);
-        self::assertStringContainsString('reset(self::$propertySetterCache)', $methodSource);
-        self::assertStringContainsString('$firstKey = key(self::$propertySetterCache)', $methodSource);
-        self::assertStringContainsString('unset(self::$propertySetterCache[$firstKey])', $methodSource);
-    }
-
-    /**
-     * Verify that the Hydrator has a cache size limiting constant.
-     */
-    public function testHydratorCacheLimitDefinition(): void
-    {
-        $reflection = new \ReflectionClass(ReflectionHydrator::class);
-        $maxCacheSize = $reflection->getConstant('MAX_INHERITANCE_CACHE_SIZE');
-
-        self::assertIsInt($maxCacheSize);
-        self::assertGreaterThan(10, $maxCacheSize, 'Cache size should be reasonably large');
-        self::assertLessThan(1000, $maxCacheSize, 'Cache size should be bounded');
-    }
-
-    /**
-     * Verifies that Hydrator has cache limiting mechanism.
-     */
-    public function testHydratorHasCacheLimitingMechanism(): void
-    {
-        // Verify the hydrator class has cache limiting code
-        $filename = (new \ReflectionClass(ReflectionHydrator::class))->getFileName();
+        // Verify the cache class has cache limiting code
+        $filename = (new \ReflectionClass(LimitedReflectionCache::class))->getFileName();
         self::assertNotFalse($filename);
         $source = file_get_contents((string) $filename);
         self::assertNotFalse($source);
@@ -102,29 +57,20 @@ final class CacheLimitTest extends TestCase
         self::assertStringContainsString('unset($cache[$firstKey])', $source);
 
         // Verify the specific limiting logic is present
-        self::assertStringContainsString('if (\count($cache) >= self::MAX_INHERITANCE_CACHE_SIZE)', $source);
+        self::assertStringContainsString('if (\count($cache) >= $this->maxCacheSize)', $source);
     }
 
     /**
-     * This test directly checks the cache limiting logic in Hydrator by creating
-     * a controlled environment and verifying the exact behavior when limit is reached.
+     * This test directly checks the cache limiting logic in LimitedReflectionCache.
      */
-    public function testHydratorCacheLimitingLogic(): void
+    public function testCacheLimitingLogic(): void
     {
-        $reflection = new \ReflectionClass(ReflectionHydrator::class);
+        $reflection = new \ReflectionClass(LimitedReflectionCache::class);
 
-        // Get access to isProtobufMessage method
-        $method = $reflection->getMethod('isProtobufMessage');
-        $method->setAccessible(true);
-
-        // Get MAX_INHERITANCE_CACHE_SIZE value
-        $maxCacheSize = $reflection->getConstant('MAX_INHERITANCE_CACHE_SIZE');
-        self::assertIsInt($maxCacheSize);
-
-        // Extract the method source code
-        $methodReflection = new \ReflectionMethod(ReflectionHydrator::class, 'isProtobufMessage');
-        $methodStartLine = $methodReflection->getStartLine();
-        $methodEndLine = $methodReflection->getEndLine();
+        // Extract the manageCache method
+        $manageCacheMethod = $reflection->getMethod('manageCache');
+        $manageCacheStartLine = $manageCacheMethod->getStartLine();
+        $manageCacheEndLine = $manageCacheMethod->getEndLine();
 
         $filename = (string) $reflection->getFileName();
         self::assertFileExists($filename);
@@ -132,55 +78,130 @@ final class CacheLimitTest extends TestCase
         self::assertNotFalse($sourceCode);
 
         $sourceLines = explode("\n", $sourceCode);
-        $methodSource = implode("\n", \array_slice($sourceLines, $methodStartLine - 1, $methodEndLine - $methodStartLine + 1));
+        $manageCacheSource = implode("\n", \array_slice($sourceLines, $manageCacheStartLine - 1, $manageCacheEndLine - $manageCacheStartLine + 1));
 
         // Verify the cache limiting code structure is present and correct
-        self::assertStringContainsString('if (\count($cache) >= self::MAX_INHERITANCE_CACHE_SIZE)', $methodSource);
-        self::assertStringContainsString('reset($cache)', $methodSource);
-        self::assertStringContainsString('$firstKey = key($cache)', $methodSource);
-        self::assertStringContainsString('unset($cache[$firstKey])', $methodSource);
+        self::assertStringContainsString('if (\count($cache) >= $this->maxCacheSize)', $manageCacheSource);
+        self::assertStringContainsString('reset($cache)', $manageCacheSource);
+        self::assertStringContainsString('$firstKey = key($cache)', $manageCacheSource);
+        self::assertStringContainsString('unset($cache[$firstKey])', $manageCacheSource);
     }
 
     /**
-     * Test memory usage when repeatedly calling the same method.
-     * This is the most practical test - ensuring memory won't grow unbounded
-     * when repeatedly calling the same method many times.
+     * Тест на проверку поведения кеша protobufCache через прямую манипуляцию.
      */
-    public function testMemoryUsageWithRepeatedCalls(): void
+    public function testProtobufCacheLimiting(): void
     {
-        $hydrator = new ReflectionHydrator();
-        $reflection = new \ReflectionClass(ReflectionHydrator::class);
+        // Создаем кеш с маленьким размером
+        $cache = new LimitedReflectionCache(5);
 
-        // Get the isProtobufMessage method to test
-        $method = $reflection->getMethod('isProtobufMessage');
-        $method->setAccessible(true);
+        // Получаем доступ к приватным полям и методам
+        $reflection = new \ReflectionClass(LimitedReflectionCache::class);
+        $protobufCacheProperty = $reflection->getProperty('protobufCache');
+        $protobufCacheProperty->setAccessible(true);
 
-        // Execute many calls to populate the cache
-        $memoryBefore = memory_get_usage(true);
+        $manageCacheMethod = $reflection->getMethod('manageCache');
+        $manageCacheMethod->setAccessible(true);
 
-        $maxCalls = 1000; // Should be much larger than the cache limit
+        // Получаем исходное состояние кеша
+        /** @var array<string, bool> $cacheData */
+        $cacheData = $protobufCacheProperty->getValue($cache);
 
-        for ($i = 1; $i <= $maxCalls; ++$i) {
-            $className = "App\\TestNamespace\\TestClass{$i}";
+        // Начинаем с пустого кеша
+        self::assertCount(0, $cacheData, 'Начальный кеш должен быть пустым');
 
-            try {
-                $method->invoke($hydrator, $className);
-            } catch (\Throwable) {
-                // Ignore errors
-            }
+        // Вручную добавляем элементы в кеш через метод manageCache
+        for ($i = 0; $i < 10; ++$i) {
+            $className = 'TestClass' . $i;
+            $value = ($i % 2) === 0;
+
+            /** @var array<string, bool> $cacheRef */
+            $cacheRef = $protobufCacheProperty->getValue($cache);
+            $manageCacheMethod->invokeArgs($cache, [&$cacheRef, $className, $value]);
+            $protobufCacheProperty->setValue($cache, $cacheRef);
         }
 
-        $memoryAfter = memory_get_usage(true);
+        // Получаем итоговое состояние кеша
+        /** @var array<string, bool> $finalCacheData */
+        $finalCacheData = $protobufCacheProperty->getValue($cache);
 
-        // Memory growth should be bounded if cache is limited
-        // This is a practical test - ensuring memory won't explode
-        $growth = $memoryAfter - $memoryBefore;
-
-        // Memory growth should be modest (less than 10MB)
-        self::assertLessThan(
-            10 * 1024 * 1024, // 10MB max growth
-            $growth,
-            'Memory growth should be bounded if cache is limited',
+        // Проверяем, что размер кеша не превышает установленный лимит
+        self::assertLessThanOrEqual(
+            5,
+            \count($finalCacheData),
+            'Размер кеша protobufCache должен быть ограничен максимальным значением',
         );
+    }
+
+    /**
+     * Проверяет поведение механизма кеширования для рефлексии классов.
+     */
+    public function testReflectionClassCacheBehavior(): void
+    {
+        // Создаем кеш с очень маленьким размером
+        $cache = new LimitedReflectionCache(3);
+
+        // Получаем доступ к приватному полю reflectionCache
+        $reflection = new \ReflectionClass(LimitedReflectionCache::class);
+        $reflectionCacheProperty = $reflection->getProperty('reflectionCache');
+        $reflectionCacheProperty->setAccessible(true);
+
+        // Список существующих классов для тестирования
+        $classesToTest = [
+            self::class,
+            TestCase::class,
+            LimitedReflectionCache::class,
+            \stdClass::class,
+            \Exception::class,
+        ];
+
+        // Вызываем метод getReflectionClass для каждого из классов
+        foreach ($classesToTest as $className) {
+            $cache->getReflectionClass($className);
+        }
+
+        // Получаем актуальное состояние кеша
+        /** @var array<string, \ReflectionClass<object>> $reflectionCacheData */
+        $reflectionCacheData = $reflectionCacheProperty->getValue($cache);
+
+        // Проверяем, что размер кеша ограничен
+        self::assertLessThanOrEqual(
+            3,
+            \count($reflectionCacheData),
+            'Размер кеша reflectionCache должен быть ограничен',
+        );
+    }
+
+    public function testIsProtobufMessageWithExistingClasses(): void
+    {
+        $cache = new LimitedReflectionCache();
+
+        $result = $cache->isProtobufMessage(TestCase::class);
+        self::assertFalse($result, 'TestCase не должен определяться как Protobuf-сообщение');
+
+        $result = $cache->isProtobufMessage(Message::class);
+        self::assertFalse($result, 'Message::class не должен определяться как подкласс самого себя');
+    }
+
+    public function testIsProtobufMessageCaching(): void
+    {
+        $cache = new LimitedReflectionCache();
+
+        $cache->isProtobufMessage(TestCase::class);
+
+        $reflection = new \ReflectionClass(LimitedReflectionCache::class);
+        $protobufCacheProperty = $reflection->getProperty('protobufCache');
+        $protobufCacheProperty->setAccessible(true);
+
+        /** @var array<string, bool> $cacheData */
+        $cacheData = $protobufCacheProperty->getValue($cache);
+
+        self::assertArrayHasKey(TestCase::class, $cacheData);
+        self::assertFalse($cacheData[TestCase::class]);
+        $cacheData[TestCase::class] = true;
+        $protobufCacheProperty->setValue($cache, $cacheData);
+
+        $result = $cache->isProtobufMessage(TestCase::class);
+        self::assertTrue($result, 'Метод должен вернуть значение из кеша');
     }
 }

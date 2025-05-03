@@ -6,7 +6,9 @@ namespace Tests\Unit\Infrastructure\Storage\Session;
 
 use App\Domain\Session\Session;
 use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\LimitedReflectionCache;
 use App\Infrastructure\Hydrator\ReflectionHydrator;
+use App\Infrastructure\Hydrator\SetterProtobufHydration;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Session\SQLiteSessionRepository;
 use App\Infrastructure\Storage\Storage;
@@ -25,7 +27,9 @@ final class SQLiteSessionRepositoryTest extends TestCase
     protected function setUp(): void
     {
         $this->storage = new InMemoryTestStorage();
-        $this->hydrator = new ReflectionHydrator();
+        $cache = new LimitedReflectionCache();
+        $protobufHydration = new SetterProtobufHydration();
+        $this->hydrator = new ReflectionHydrator($cache, $protobufHydration);
         $this->queryBuilderFactory = new QueryBuilderFactory();
 
         $this->repository = new SQLiteSessionRepository(

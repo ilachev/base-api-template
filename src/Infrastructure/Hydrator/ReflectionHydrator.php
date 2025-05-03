@@ -4,35 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Hydrator;
 
-use Google\Protobuf\Internal\Message;
-
-final class ReflectionHydrator implements Hydrator
+final readonly class ReflectionHydrator implements Hydrator
 {
-    /**
-     * Maximum number of constructor parameters to cache.
-     */
-    private const int MAX_CONSTRUCTOR_PARAMS_CACHE_SIZE = 100;
-
-    /**
-     * Cache for constructor parameters by class name.
-     *
-     * @var array<string, array<\ReflectionParameter>>
-     */
-    private static array $constructorParamsCache = [];
-
-    /**
-     * Cache for class reflection objects.
-     *
-     * @var array<string, \ReflectionClass<object>>
-     */
-    private static array $reflectionCache = [];
-
-    /**
-     * Cache for public properties by class.
-     *
-     * @var array<string, array<\ReflectionProperty>>
-     */
-    private static array $propertiesCache = [];
+    public function __construct(
+        private ReflectionCache $cache,
+        private ProtobufHydration $protobufHydration,
+    ) {}
 
     /**
      * @template T of object
@@ -43,65 +20,30 @@ final class ReflectionHydrator implements Hydrator
      */
     public function hydrate(string $className, array $data): object
     {
-        // Check if this is a Protobuf object (has Message in inheritance chain)
-        if ($this->isProtobufMessage($className)) {
+        if ($this->cache->isProtobufMessage($className)) {
             /** @var array<string, mixed> $typedData */
             $typedData = $data;
 
-            return $this->hydrateProtobuf($className, $typedData);
+            /** @var T */
+            return $this->protobufHydration->hydrate($className, $typedData);
         }
 
-        // Standard hydration for regular objects with public properties
         try {
-            // Get cached reflection if available
-            if (isset(self::$reflectionCache[$className])) {
-                /** @var \ReflectionClass<object> */
-                $reflection = self::$reflectionCache[$className];
-            } else {
-                $reflection = new \ReflectionClass($className);
-                // Limit cache size
-                if (\count(self::$reflectionCache) >= self::MAX_CONSTRUCTOR_PARAMS_CACHE_SIZE) {
-                    // Discard oldest entry
-                    reset(self::$reflectionCache);
-                    $firstKey = key(self::$reflectionCache);
-                    // First key can never be null in a non-empty array
-                    unset(self::$reflectionCache[$firstKey]);
-                }
-                self::$reflectionCache[$className] = $reflection;
-            }
-
+            $reflection = $this->cache->getReflectionClass($className);
             $this->validateClassVisibility($reflection);
 
-            // Get constructor parameters from cache if available
-            if (isset(self::$constructorParamsCache[$className])) {
-                /** @var array<\ReflectionParameter> */
-                $constructorParams = self::$constructorParamsCache[$className];
-            } else {
-                $constructor = $reflection->getConstructor();
-                if ($constructor === null) {
-                    throw new HydratorException('Class must have a constructor');
-                }
-                $constructorParams = $constructor->getParameters();
-
-                // Limit cache size
-                if (\count(self::$constructorParamsCache) >= self::MAX_CONSTRUCTOR_PARAMS_CACHE_SIZE) {
-                    // Discard oldest entry
-                    reset(self::$constructorParamsCache);
-                    $firstKey = key(self::$constructorParamsCache);
-                    // First key can never be null in a non-empty array
-                    unset(self::$constructorParamsCache[$firstKey]);
-                }
-                self::$constructorParamsCache[$className] = $constructorParams;
-            }
-
+            $constructorParams = $this->cache->getConstructorParams($className);
             $parameters = [];
+
             foreach ($constructorParams as $parameter) {
                 $paramName = $parameter->getName();
+
                 if (!\array_key_exists($paramName, $data) && !$parameter->isOptional()) {
                     throw new HydratorException(
                         "Missing required constructor parameter: {$paramName}",
                     );
                 }
+
                 $parameters[] = \array_key_exists($paramName, $data)
                     ? $data[$paramName]
                     : $parameter->getDefaultValue();
@@ -123,65 +65,6 @@ final class ReflectionHydrator implements Hydrator
     }
 
     /**
-     * Maximum number of class inheritance lookups to cache.
-     */
-    private const int MAX_INHERITANCE_CACHE_SIZE = 100;
-
-    /**
-     * Checks if a class is a Protobuf Message.
-     *
-     * @param class-string $className
-     */
-    private function isProtobufMessage(string $className): bool
-    {
-        if (!class_exists($className)) {
-            return false;
-        }
-
-        /** @var array<string, bool> $cache */
-        static $cache = [];
-
-        if (isset($cache[$className])) {
-            return $cache[$className];
-        }
-
-        // Prevent unlimited growth of the cache in long-running processes
-        if (\count($cache) >= self::MAX_INHERITANCE_CACHE_SIZE) {
-            // Discard oldest entry
-            reset($cache);
-            $firstKey = key($cache);
-            // First key can never be null in a non-empty array
-            unset($cache[$firstKey]);
-        }
-
-        $isProtobuf = is_subclass_of($className, Message::class);
-        $cache[$className] = $isProtobuf;
-
-        return $isProtobuf;
-    }
-
-    /**
-     * Hydrates a Protobuf message using its setter methods.
-     *
-     * @template T of object
-     * @param class-string<T> $className
-     * @param array<string, mixed> $data
-     * @return T
-     */
-    private function hydrateProtobuf(string $className, array $data): object
-    {
-        /** @var ProtobufAdapter|null $adapter */
-        static $adapter = null;
-
-        if ($adapter === null) {
-            $adapter = new ProtobufAdapter();
-        }
-
-        /** @var T */
-        return $adapter->hydrate($className, $data);
-    }
-
-    /**
      * @return array<string, mixed>
      * @throws HydratorException
      */
@@ -194,46 +77,10 @@ final class ReflectionHydrator implements Hydrator
         $className = $object::class;
 
         try {
-            // Use cached reflection if available
-            if (isset(self::$reflectionCache[$className])) {
-                /** @var \ReflectionClass<object> */
-                $reflection = self::$reflectionCache[$className];
-            } else {
-                $reflection = new \ReflectionClass($object);
-
-                // Limit cache size
-                if (\count(self::$reflectionCache) >= self::MAX_CONSTRUCTOR_PARAMS_CACHE_SIZE) {
-                    // Discard oldest entry
-                    reset(self::$reflectionCache);
-                    $firstKey = key(self::$reflectionCache);
-                    // First key can never be null in a non-empty array
-                    unset(self::$reflectionCache[$firstKey]);
-                }
-
-                self::$reflectionCache[$className] = $reflection;
-            }
-
+            $reflection = $this->cache->getReflectionClass($className);
             $this->validateClassVisibility($reflection);
 
-            // Use cached properties if available
-            if (isset(self::$propertiesCache[$className])) {
-                /** @var array<\ReflectionProperty> */
-                $properties = self::$propertiesCache[$className];
-            } else {
-                $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-
-                // Limit cache size
-                if (\count(self::$propertiesCache) >= self::MAX_CONSTRUCTOR_PARAMS_CACHE_SIZE) {
-                    // Discard oldest entry
-                    reset(self::$propertiesCache);
-                    $firstKey = key(self::$propertiesCache);
-                    // First key can never be null in a non-empty array
-                    unset(self::$propertiesCache[$firstKey]);
-                }
-
-                self::$propertiesCache[$className] = $properties;
-            }
-
+            $properties = $this->cache->getPublicProperties($className);
             $data = [];
 
             foreach ($properties as $property) {

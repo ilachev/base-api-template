@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Infrastructure\Storage\Repository;
 
 use App\Infrastructure\Hydrator\Hydrator;
+use App\Infrastructure\Hydrator\LimitedReflectionCache;
 use App\Infrastructure\Hydrator\ReflectionHydrator;
+use App\Infrastructure\Hydrator\SetterProtobufHydration;
 use App\Infrastructure\Storage\Query\QueryBuilder;
 use App\Infrastructure\Storage\Query\QueryBuilderFactory;
 use App\Infrastructure\Storage\Query\SQLiteQueryBuilder;
@@ -26,7 +28,9 @@ final class AbstractRepositoryTest extends TestCase
     protected function setUp(): void
     {
         $this->storage = new TestStorage();
-        $this->hydrator = new ReflectionHydrator();
+        $cache = new LimitedReflectionCache();
+        $protobufHydration = new SetterProtobufHydration();
+        $this->hydrator = new ReflectionHydrator($cache, $protobufHydration);
         $this->queryBuilderFactory = new QueryBuilderFactory();
 
         $this->repository = new ConcreteRepository(
