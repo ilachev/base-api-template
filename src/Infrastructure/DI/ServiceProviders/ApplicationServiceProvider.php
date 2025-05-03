@@ -19,7 +19,6 @@ use App\Infrastructure\DI\ServiceProvider;
 use App\Infrastructure\Hydrator\DefaultJsonFieldAdapter;
 use App\Infrastructure\Hydrator\Hydrator;
 use App\Infrastructure\Hydrator\JsonFieldAdapter;
-use App\Infrastructure\Hydrator\ReflectionHydrator;
 use App\Infrastructure\Logger\Logger;
 
 /**
@@ -31,9 +30,6 @@ final readonly class ApplicationServiceProvider implements ServiceProvider
     {
         // JsonResponse
         $container->bind(JsonResponse::class, JsonResponse::class);
-
-        // Hydrator
-        $container->bind(Hydrator::class, ReflectionHydrator::class);
 
         // JSON field adapter
         $container->bind(JsonFieldAdapter::class, DefaultJsonFieldAdapter::class);
