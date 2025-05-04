@@ -7,7 +7,7 @@ namespace App\Infrastructure\DI\ServiceProviders;
 use App\Infrastructure\DI\Container;
 use App\Infrastructure\DI\ServiceProvider;
 use App\Infrastructure\Hydrator\Hydrator;
-use App\Infrastructure\Hydrator\LimitedReflectionCache;
+use App\Infrastructure\Hydrator\LRUReflectionCache;
 use App\Infrastructure\Hydrator\ProtobufHydration;
 use App\Infrastructure\Hydrator\ReflectionCache;
 use App\Infrastructure\Hydrator\ReflectionHydrator;
@@ -24,11 +24,11 @@ final readonly class HydratorServiceProvider implements ServiceProvider
         $container->bind(Hydrator::class, ReflectionHydrator::class);
 
         // Кэш рефлексии
-        $container->bind(ReflectionCache::class, LimitedReflectionCache::class);
+        $container->bind(ReflectionCache::class, LRUReflectionCache::class);
         $container->set(
-            LimitedReflectionCache::class,
+            LRUReflectionCache::class,
             static function () {
-                return new LimitedReflectionCache(100); // Размер кэша настраивается здесь
+                return new LRUReflectionCache(100); // Размер кэша настраивается здесь
             },
         );
 

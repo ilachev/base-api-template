@@ -41,6 +41,6 @@ abstract class BaseRepository extends AbstractRepository implements EntityReposi
 
     final public function save(Entity $entity): Entity
     {
-        return $this->saveEntity($entity, $this->tableName, $this->primaryKey, $entity->id);
+        return $this->saveEntityAndReturn($entity, $this->tableName, $this->primaryKey, $entity->id);
     }
 }

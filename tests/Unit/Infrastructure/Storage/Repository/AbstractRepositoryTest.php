@@ -241,7 +241,7 @@ final class ConcreteRepository extends AbstractRepository
 
     public function testSaveEntity(object $entity, string $table, string $primaryKey, mixed $primaryKeyValue): void
     {
-        $this->saveEntity($entity, $table, $primaryKey, $primaryKeyValue);
+        $this->saveEntityAndReturn($entity, $table, $primaryKey, $primaryKeyValue);
     }
 
     public function testDeleteEntity(string $table, string $primaryKey, mixed $primaryKeyValue): void

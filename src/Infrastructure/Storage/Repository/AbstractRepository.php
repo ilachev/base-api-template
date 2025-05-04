@@ -100,14 +100,16 @@ abstract class AbstractRepository
     }
 
     /**
-     * Сохранить объект в БД.
-     *
      * @template T of object
      * @param T $entity
      * @return T
      */
-    protected function saveEntity(object $entity, string $table, string $primaryKey, mixed $primaryKeyValue): object
-    {
+    protected function saveEntityAndReturn(
+        object $entity,
+        string $table,
+        string $primaryKey,
+        mixed $primaryKeyValue,
+    ): object {
         $data = $this->extractEntityData($entity);
         $isInsert = $primaryKeyValue === null;
 
@@ -142,6 +144,29 @@ abstract class AbstractRepository
         }
 
         return $entity;
+    }
+
+    protected function saveEntity(object $entity, string $table, string $primaryKey, mixed $primaryKeyValue): void
+    {
+        $data = $this->extractEntityData($entity);
+        $isInsert = $primaryKeyValue === null;
+
+        if ($isInsert) {
+            unset($data[$primaryKey]);
+            $insertQuery = $this->query($table);
+            [$sql, $params] = $insertQuery->buildInsertQuery($data);
+        } else {
+            if (!isset($data[$primaryKey])) {
+                $data[$primaryKey] = $primaryKeyValue;
+            }
+
+            $insertQuery = $this->query($table);
+            [$sql, $params] = $insertQuery->buildUpsertQuery($data, $primaryKey);
+        }
+
+        /** @var array<string, scalar|null> $castParams */
+        $castParams = $params;
+        $this->storage->execute($sql, $castParams);
     }
 
     /**

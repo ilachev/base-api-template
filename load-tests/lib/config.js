@@ -6,10 +6,10 @@ export const DEFAULT_HEADERS = {
 
 export const HIGH_LOAD_OPTIONS = {
     stages: [
-        { duration: '30s', target: 1000 },     // Плавный разогрев до 100 VUs
-        { duration: '30s', target: 3000 },     // Увеличение до 300 VUs
-        { duration: '1m', target: 5000 },      // Увеличение до 500 VUs
-        { duration: '1m', target: 5000 },      // Поддержание 500 VUs
+        { duration: '30s', target: 200 },     // Плавный разогрев до 100 VUs
+        { duration: '30s', target: 600 },     // Увеличение до 300 VUs
+        { duration: '1m', target: 1000 },      // Увеличение до 500 VUs
+        { duration: '1m', target: 1000 },      // Поддержание 500 VUs
         { duration: '30s', target: 0 },       // Плавное снижение
     ],
     thresholds: {
