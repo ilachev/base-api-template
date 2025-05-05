@@ -20,32 +20,32 @@ final class RoadRunnerCacheService implements CacheService
         private readonly Logger $logger,
     ) {
         try {
-            // Проверяем, не находимся ли мы в тестовом окружении
+            // Check if we're in a testing environment
             if ($this->isTestingEnvironment()) {
-                // В тестовом окружении используем заглушку
+                // In test environment use a fallback storage
                 $this->storage = new FallbackStorage();
                 $this->available = true;
 
                 return;
             }
 
-            // Создаем RPC соединение
+            // Create RPC connection
             $address = !empty($this->config->address) ? $this->config->address : 'tcp://127.0.0.1:6001';
             $rpc = RPC::create($address);
 
-            // Создаем фабрику и получаем хранилище
+            // Create factory and get storage
             $factory = new Factory($rpc);
             $engine = $this->config->engine === '' ? 'local-memory' : $this->config->engine;
 
             try {
-                // Получаем хранилище
+                // Get storage
                 $storage = $factory->select($engine);
 
-                // Проверяем доступность хранилища путем простой операции has
+                // Check storage availability with a simple has operation
                 $testKey = 'cache_test_key';
                 $storage->has($testKey);
 
-                // Если операция успешна, сохраняем хранилище и отмечаем как доступное
+                // If operation succeeds, save storage and mark as available
                 $this->storage = $storage;
                 $this->available = true;
                 $this->logger->info('KV storage is available');
@@ -59,21 +59,21 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Создаем хранилище-заглушку, которое ничего не хранит
-            // Это позволяет приложению работать даже если кеш недоступен
+            // Create a dummy storage that doesn't store anything
+            // This allows the application to work even if cache is unavailable
             $this->storage = new FallbackStorage();
             $this->available = false;
         }
     }
 
     /**
-     * Проверяет, находимся ли мы в тестовом окружении.
+     * Checks if we're in a testing environment.
      */
     private function isTestingEnvironment(): bool
     {
-        // Проверяем наличие PHPUnit в окружении
+        // Check for PHPUnit in the environment
         return \defined('PHPUNIT_COMPOSER_INSTALL') || \defined('__PHPUNIT_PHAR__')
-               || isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'testing';
+            || isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'testing';
     }
 
     public function isAvailable(): bool
@@ -84,7 +84,7 @@ final class RoadRunnerCacheService implements CacheService
     public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         if (!$this->available) {
-            return true; // Притворяемся, что всё в порядке
+            return true; // Pretend everything is okay
         }
 
         $prefixedKey = $this->prefixKey($key);
@@ -100,7 +100,7 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Отмечаем кеш как недоступный после ошибки
+            // Mark cache as unavailable after error
             $this->available = false;
 
             return false;
@@ -129,7 +129,7 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Отмечаем кеш как недоступный после ошибки
+            // Mark cache as unavailable after error
             $this->available = false;
 
             return $default;
@@ -152,7 +152,7 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Отмечаем кеш как недоступный после ошибки
+            // Mark cache as unavailable after error
             $this->available = false;
 
             return false;
@@ -162,7 +162,7 @@ final class RoadRunnerCacheService implements CacheService
     public function delete(string $key): bool
     {
         if (!$this->available) {
-            return true; // Притворяемся, что всё в порядке
+            return true; // Pretend everything is okay
         }
 
         $prefixedKey = $this->prefixKey($key);
@@ -175,7 +175,7 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Отмечаем кеш как недоступный после ошибки
+            // Mark cache as unavailable after error
             $this->available = false;
 
             return false;
@@ -183,29 +183,29 @@ final class RoadRunnerCacheService implements CacheService
     }
 
     /**
-     * Флаг, указывающий, что операция очистки кеша в процессе.
+     * Flag indicating that cache clear operation is in progress.
      */
     private bool $clearInProgress = false;
 
     /**
-     * Очищает весь кеш с защитой от одновременного вызова.
+     * Clears the entire cache with protection against concurrent calls.
      */
     public function clear(): bool
     {
-        // Если кеш недоступен или очистка уже идет, просто возвращаем успех
+        // If cache is unavailable or clearing is already in progress, simply return success
         if (!$this->available || $this->clearInProgress) {
             $this->logger->debug('Cache clear skipped', [
                 'reason' => !$this->available ? 'cache unavailable' : 'already in progress',
             ]);
 
-            return true; // Притворяемся, что всё в порядке
+            return true; // Pretend everything is okay
         }
 
-        // Устанавливаем флаг, что очистка в процессе
+        // Set flag that clearing is in progress
         $this->clearInProgress = true;
 
         try {
-            // Пробуем очистить кеш с повторными попытками
+            // Try to clear cache with retries
             $maxRetries = 3;
             $retryCount = 0;
             $success = false;
@@ -217,16 +217,16 @@ final class RoadRunnerCacheService implements CacheService
                 } catch (\Throwable $e) {
                     ++$retryCount;
                     if ($retryCount >= $maxRetries) {
-                        throw $e; // Пробрасываем исключение после исчерпания попыток
+                        throw $e; // Throw exception after exhausting attempts
                     }
 
-                    // Логируем ошибку и делаем задержку перед следующей попыткой
+                    // Log error and delay before next attempt
                     $this->logger->warning('Cache clear retry', [
                         'attempt' => $retryCount,
                         'error' => $e->getMessage(),
                     ]);
 
-                    // Ждем перед повторной попыткой (50ms, 100ms, 200ms)
+                    // Wait before retrying (50ms, 100ms, 200ms)
                     usleep($retryCount * 50000);
                 }
             }
@@ -242,12 +242,12 @@ final class RoadRunnerCacheService implements CacheService
                 'exception' => $e,
             ]);
 
-            // Отмечаем кеш как недоступный после ошибки
+            // Mark cache as unavailable after error
             $this->available = false;
 
             return false;
         } finally {
-            // В любом случае сбрасываем флаг очистки
+            // In any case reset the clearing flag
             $this->clearInProgress = false;
         }
     }
@@ -255,7 +255,7 @@ final class RoadRunnerCacheService implements CacheService
     public function getOrSet(string $key, callable $callback, ?int $ttl = null): mixed
     {
         if (!$this->available) {
-            return $callback(); // Просто вызываем функцию без кеширования
+            return $callback(); // Just call the function without caching
         }
 
         $value = $this->get($key);
@@ -271,7 +271,7 @@ final class RoadRunnerCacheService implements CacheService
     }
 
     /**
-     * Добавляет префикс к ключу кеша.
+     * Adds a prefix to the cache key.
      */
     private function prefixKey(string $key): string
     {

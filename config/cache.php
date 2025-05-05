@@ -3,15 +3,24 @@
 declare(strict_types=1);
 
 return [
-    // Название хранилища в RoadRunner KV (должно соответствовать имени в .rr.yaml: local-memory, redis)
-    'engine' => 'local-memory',
+    // Storage name in RoadRunner KV (must match the name in .rr.yaml)
+    'engine' => 'redis',
 
-    // Адрес RPC соединения с RoadRunner
+    // RPC connection address for RoadRunner
     'address' => 'tcp://127.0.0.1:6001',
 
-    // Префикс для ключей - помогает избежать конфликтов при использовании общего Redis
+    // Key prefix - helps avoid conflicts when using shared Redis
     'default_prefix' => 'app:',
 
-    // Время жизни кеша по умолчанию в секундах (1 час)
+    // Default cache TTL in seconds (1 hour)
     'default_ttl' => 3600,
+
+    // Enable data compression for large values (to save memory)
+    'compression' => true,
+
+    // Compression threshold in bytes (compress values larger than this size)
+    'compression_threshold' => 1024,
+
+    // Maximum key storage time (7 days) - Redis limitation
+    'max_ttl' => 604800,
 ];
