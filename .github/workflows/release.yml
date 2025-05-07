@@ -137,7 +137,7 @@ jobs:
             .
           
           # Copy OpenAPI docs
-          cp ./docs/api.swagger.json release_assets/api-swagger-${{ github.event.release.tag_name }}.json
+          cp ./docs/api/api.swagger.json release_assets/api-swagger-${{ github.event.release.tag_name }}.json
       
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
