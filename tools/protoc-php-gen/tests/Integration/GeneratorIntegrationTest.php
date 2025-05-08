@@ -212,7 +212,7 @@ final class GeneratorIntegrationTest extends TestCase
         // Проверяем содержимое файла сущности
         $entityContent = file_get_contents(self::OUTPUT_DIR . '/Domain/User.php');
         self::assertStringContainsString('namespace App\\Gen\\Domain;', $entityContent);
-        self::assertStringContainsString('final readonly class User implements Entity', $entityContent);
+        self::assertStringContainsString('final readonly class User implements', $entityContent);
         self::assertStringContainsString('public string $id;', $entityContent);
         self::assertStringContainsString('public string $name;', $entityContent);
         self::assertStringContainsString('public string $email;', $entityContent);

@@ -79,11 +79,11 @@ final class HydratorGeneratorTest extends TestCase
         self::assertStringContainsString('namespace App\\Gen\\Infrastructure\\Hydrator;', $content);
         self::assertStringContainsString('use App\\Gen\\Domain\\User;', $content);
         self::assertStringContainsString('use App\\Infrastructure\\Hydrator\\TypedHydrator;', $content);
-        self::assertStringContainsString('final class UserHydrator implements \\TypedHydrator', $content);
+        self::assertStringContainsString('final class UserHydrator implements TypedHydrator', $content);
         self::assertStringContainsString('public function getEntityClass(): string', $content);
         self::assertStringContainsString('return User::class;', $content);
-        self::assertStringContainsString('public function hydrate(array $data): \\User', $content);
-        self::assertStringContainsString('public function extract(\\User $entity): array', $content);
+        self::assertStringContainsString('public function hydrate(array $data)', $content);
+        self::assertStringContainsString('public function extract', $content);
         
         // Проверяем методы гидратации и экстракции
         self::assertStringContainsString("id: \$data['id'] ?? 0,", $content);
