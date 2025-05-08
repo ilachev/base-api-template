@@ -33,13 +33,19 @@ final readonly class EntityGenerator implements Generator
 
         // Add namespace
         $namespace = $file->addNamespace($this->config->getNamespace() . '\Domain');
-        $namespace->addUse($this->config->getEntityInterface());
+        $entityInterface = $this->config->getEntityInterface();
+        if ($entityInterface !== null) {
+            $namespace->addUse($entityInterface);
+        }
 
         // Create entity class
         $class = $namespace->addClass($descriptor->getName());
         $class->setFinal(true)
-              ->setReadOnly(true)
-              ->addImplement($this->config->getEntityInterface());
+              ->setReadOnly(true);
+
+        if ($entityInterface !== null) {
+            $class->addImplement($this->getShortName($entityInterface));
+        }
 
         // Add docblock for entity
         $class->addComment("Entity class for {$descriptor->getTableName()} table");
