@@ -48,37 +48,37 @@ final readonly class RepositoryGenerator implements Generator
 
         // Add common repository methods to interface
         $interface->addMethod('findById')
-            ->setReturnType("?{$descriptor->getName()}")
+            ->setReturnType("?{$entityNamespace}\\{$descriptor->getName()}")
             ->addParameter('id');
 
         $interface->addMethod('findAll')
             ->setReturnType('array');
 
         $interface->addMethod('save')
-            ->setReturnType($descriptor->getName())
+            ->setReturnType("{$entityNamespace}\\{$descriptor->getName()}")
             ->addParameter('entity')
-            ->setType($descriptor->getName());
+            ->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $interface->addMethod('delete')
             ->setReturnType('bool')
             ->addParameter('entity')
-            ->setType($descriptor->getName());
+            ->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
         // Create PostgreSQL repository implementation
         $postgresClassName = "PostgreSQL{$descriptor->getName()}Repository";
         $postgresClass = $namespace->addClass($postgresClassName);
         $postgresClass->setFinal(true)
             ->setExtends('App\Infrastructure\Storage\Repository\AbstractRepository')
-            ->addImplement($interfaceName);
+            ->addImplement("{$repositoryNamespace}\\{$interfaceName}");
 
         $postgresClass->addComment("PostgreSQL implementation of {$interfaceName}");
 
         // Add constructor
         $constructor = $postgresClass->addMethod('__construct');
         $constructor->addParameter('storage')
-            ->setType('Storage');
+            ->setType('App\Infrastructure\Storage\Storage');
         $constructor->addParameter('hydrator')
-            ->setType('Hydrator');
+            ->setType('App\Infrastructure\Hydrator\Hydrator');
         $constructor->setBody('parent::__construct($storage, $hydrator);');
 
         // Add getTableName method
@@ -96,7 +96,7 @@ final readonly class RepositoryGenerator implements Generator
         // Add findById method
         $findById = $postgresClass->addMethod('findById')
             ->setPublic()
-            ->setReturnType("?{$descriptor->getName()}");
+            ->setReturnType("?{$entityNamespace}\\{$descriptor->getName()}");
 
         $findById->addParameter('id');
 
@@ -118,10 +118,10 @@ final readonly class RepositoryGenerator implements Generator
         // Add save method
         $save = $postgresClass->addMethod('save')
             ->setPublic()
-            ->setReturnType($descriptor->getName());
+            ->setReturnType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $save->addParameter('entity')
-            ->setType($descriptor->getName());
+            ->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $save->setBody(
             'return $this->saveEntity($entity);',
@@ -133,7 +133,7 @@ final readonly class RepositoryGenerator implements Generator
             ->setReturnType('bool');
 
         $delete->addParameter('entity')
-            ->setType($descriptor->getName());
+            ->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $delete->setBody(
             'return $this->deleteEntity($entity);',

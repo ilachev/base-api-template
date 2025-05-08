@@ -42,7 +42,7 @@ final readonly class HydratorGenerator implements Generator
         // Create hydrator class
         $class = $namespace->addClass($descriptor->getName() . 'Hydrator');
         $class->setFinal(true)
-              ->addImplement('TypedHydrator');
+              ->addImplement('App\Infrastructure\Hydrator\TypedHydrator');
 
         $class->addComment("Hydrator for {$descriptor->getName()} entity");
 
@@ -56,7 +56,7 @@ final readonly class HydratorGenerator implements Generator
 
         // Add hydrate method
         $hydrateMethod = $class->addMethod('hydrate')
-            ->setReturnType($descriptor->getName());
+            ->setReturnType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $dataParam = $hydrateMethod->addParameter('data')
             ->setType('array');
@@ -86,7 +86,7 @@ final readonly class HydratorGenerator implements Generator
             ->setReturnType('array');
 
         $entityParam = $extractMethod->addParameter('entity')
-            ->setType($descriptor->getName());
+            ->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
         $extractMethod->addComment('Extract data from entity to array');
         $extractMethod->addComment("@param {$descriptor->getName()} \$entity");

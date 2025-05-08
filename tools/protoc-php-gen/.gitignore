@@ -9,6 +9,9 @@ composer.lock
 .phpstan.cache/
 /.phpstan.result.cache
 
+# Temporary and generated files
+/var/
+
 # IDE
 .idea/
 .vscode/

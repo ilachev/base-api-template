@@ -39,7 +39,7 @@ final readonly class EntityGenerator implements Generator
         $class = $namespace->addClass($descriptor->getName());
         $class->setFinal(true)
               ->setReadOnly(true)
-              ->addImplement($this->getShortName($this->config->getEntityInterface()));
+              ->addImplement($this->config->getEntityInterface());
 
         // Add docblock for entity
         $class->addComment("Entity class for {$descriptor->getTableName()} table");

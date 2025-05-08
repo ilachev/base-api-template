@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package app.domain;
+
+import "google/protobuf/descriptor.proto";
+
+option php_namespace = "App\\Domain\\User";
+
+extend google.protobuf.MessageOptions {
+  optional bool is_entity = 50000 [default = false];
+  optional string table_name = 50001;
+  optional string primary_key = 50002 [default = "id"];
+}
+
+message User {
+  option (is_entity) = true;
+  option (table_name) = "users";
+  option (primary_key) = "id";
+
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  bool is_active = 4;
+  repeated string roles = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
