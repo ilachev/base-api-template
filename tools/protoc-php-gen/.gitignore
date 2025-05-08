@@ -1,0 +1,19 @@
+# Composer
+/vendor/
+composer.lock
+
+# PHP-CS-Fixer
+.php-cs-fixer.cache
+
+# PHPStan
+.phpstan.cache/
+/.phpstan.result.cache
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# OS generated files
+.DS_Store
+Thumbs.db

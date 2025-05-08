@@ -9,6 +9,7 @@ vars:
 
 tasks:
   install:
+    desc: Install project dependencies
     cmd: "{{.COMPOSER}} install"
     sources:
       - composer.json
@@ -23,37 +24,42 @@ tasks:
     internal: true
 
   fixcs:
+    desc: Fix code style issues
     deps: [ var, install ]
     cmds:
       - "PHP_CS_FIXER_IGNORE_ENV=true {{.PHP}} vendor/bin/php-cs-fixer fix --verbose {{.CLI_ARGS}}"
 
   lint:
+    desc: Check code style (dry-run)
     cmds:
       - task: fixcs
         vars:
           CLI_ARGS: "--dry-run {{.CLI_ARGS}}"
 
   verify:
+    desc: Run all verification steps (lint, phpstan, tests)
     deps: [ var, install, lint, phpstan, cache:clear, test ]
 
   phpstan:
+    desc: Run static analysis
     deps: [ var, install ]
     cmds:
       - "{{.PHP}} vendor/bin/phpstan analyse --memory-limit=256M {{.CLI_ARGS}}"
 
   cache:clear:
-    deps: [ var, install ]
     desc: Clear application cache
+    deps: [ var, install ]
     cmds:
       - "{{.PHP}} bin/cache-clear.php"
 
   test:
+    desc: Run unit and integration tests
     deps: [ var, install, cache:clear ]
     cmds:
       - "{{.PHP}} vendor/bin/phpunit --colors=never {{.CLI_ARGS}}"
 
   proto:gen:sdk:
-    desc: Generate PHP classes from proto files
+    desc: Generate PHP SDK classes from proto files
     cmds:
       - rm -rf {{.SDK_GEN_DIR}}/*
       - >
@@ -64,14 +70,14 @@ tasks:
         {{.PROTO_DIR}}/google/api/*.proto
 
   proto:gen:docs:
-   desc: Generate OpenApi spec
-   cmds:
-     - rm -rf {{.DOCS_GEN_DIR}}/*
-     - >
-       protoc -I={{.PROTO_DIR}}
-       --openapiv2_out=logtostderr=true:{{.DOCS_GEN_DIR}}
-       --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api
-       {{.PROTO_DIR}}/app/v1/*.proto
+    desc: Generate OpenAPI spec from proto files
+    cmds:
+      - rm -rf {{.DOCS_GEN_DIR}}/*
+      - >
+        protoc -I={{.PROTO_DIR}}
+        --openapiv2_out=logtostderr=true:{{.DOCS_GEN_DIR}}
+        --openapiv2_opt=json_names_for_fields=true,allow_merge=true,merge_file_name=api
+        {{.PROTO_DIR}}/app/v1/*.proto
        
   proto:gen:routes:
     desc: Generate routes from proto definitions
@@ -79,20 +85,61 @@ tasks:
     cmds:
       - "{{.PHP}} bin/generate-routes.php"
       
+  proto:gen:entities:
+    desc: Generate domain entities from proto files
+    deps: [ tools:proto:setup ]
+    cmds:
+      - mkdir -p gen/Domain gen/Infrastructure/Hydrator gen/Infrastructure/Storage
+      - >
+        PROTOC_PHP_GEN_DEBUG=true protoc -I={{.PROTO_DIR}}
+        --plugin=protoc-php-gen=php ./tools/protoc-php-gen/bin/protoc-php-gen.php
+        --php-gen_out=namespace=App\\Gen,output_dir=gen:./
+        {{.PROTO_DIR}}/app/domain/*.proto
+
   proto:gen:all:
     desc: Generate all artifacts from proto files
-    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes ]
+    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes, proto:gen:entities ]
 
+  tools:proto:setup:
+    desc: Setup protoc-php-gen plugin
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} install
+      - chmod +x tools/protoc-php-gen/bin/protoc-php-gen.php
+      - echo "Proto code generator setup complete"
+
+  tools:proto:lint:
+    desc: Run PHP-CS-Fixer on the protoc-php-gen library
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} cs
+
+  tools:proto:fixcs:
+    desc: Fix code style issues in the protoc-php-gen library
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} cs-fix
+
+  tools:proto:phpstan:
+    desc: Run PHPStan on the protoc-php-gen library
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} phpstan
+
+  tools:proto:check:
+    desc: Run all code quality checks on the protoc-php-gen library
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} check
+
+  # Задачи для производительности
   perf:test:
+    desc: Run single performance test
     deps: [ var, install ]
     cmds:
       - k6 run load-tests/scenarios/{{.CLI_ARGS | default "home.js"}}
 
   perf:test:all:
+    desc: Run all performance tests
     deps: [ var, install ]
     cmds:
       - for f in load-tests/scenarios/*.js; do k6 run "$f"; done
-      
+
   services:start:
     desc: Start all application services
     cmds:

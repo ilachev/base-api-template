@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package app.domain;
+
+import "google/protobuf/descriptor.proto";
+
+option php_namespace = "App\\Domain\\Session";
+
+extend google.protobuf.MessageOptions {
+  optional bool is_entity = 50000;
+  optional string table_name = 50001;
+  optional string primary_key = 50002;
+}
+
+message Session {
+  option (is_entity) = true;
+  option (table_name) = "sessions";
+  option (primary_key) = "id";
+
+  string id = 1;
+  optional int64 user_id = 2;
+  string payload = 3;
+  int64 expires_at = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
