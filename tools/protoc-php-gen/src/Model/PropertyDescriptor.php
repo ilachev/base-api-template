@@ -18,12 +18,12 @@ final readonly class PropertyDescriptor
      * @param bool $repeated Whether the field is repeated in protobuf
      */
     public function __construct(
-        public readonly string $name,
-        public readonly string $type,
-        public readonly bool $nullable = false,
-        public readonly ?string $columnName = null,
-        public readonly ?string $protoType = null,
-        public readonly bool $repeated = false,
+        public string $name,
+        public string $type,
+        public bool $nullable = false,
+        public ?string $columnName = null,
+        public ?string $protoType = null,
+        public bool $repeated = false,
     ) {}
 
     /**

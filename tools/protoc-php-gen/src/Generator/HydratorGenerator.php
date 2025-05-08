@@ -12,7 +12,7 @@ use ProtoPhpGen\Model\EntityDescriptor;
 /**
  * Generator for entity-specific hydrators.
  */
-final class HydratorGenerator implements Generator
+final readonly class HydratorGenerator implements Generator
 {
     private PsrPrinter $printer;
 

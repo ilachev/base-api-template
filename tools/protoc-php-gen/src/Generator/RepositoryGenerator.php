@@ -12,7 +12,7 @@ use ProtoPhpGen\Model\EntityDescriptor;
 /**
  * Generator for entity repositories.
  */
-final class RepositoryGenerator implements Generator
+final readonly class RepositoryGenerator implements Generator
 {
     private PsrPrinter $printer;
 

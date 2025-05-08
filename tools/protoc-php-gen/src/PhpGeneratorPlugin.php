@@ -22,7 +22,7 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
      *
      * @var array<int, string>
      */
-    private const PROTO_TYPE_MAP = [
+    private const array PROTO_TYPE_MAP = [
         1 => 'double',   // TYPE_DOUBLE
         2 => 'float',    // TYPE_FLOAT
         3 => 'int',      // TYPE_INT64

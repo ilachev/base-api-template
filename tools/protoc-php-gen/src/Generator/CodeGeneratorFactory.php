@@ -9,7 +9,7 @@ use ProtoPhpGen\Config\GeneratorConfig;
 /**
  * Factory to create appropriate code generators.
  */
-final class CodeGeneratorFactory
+final readonly class CodeGeneratorFactory
 {
     public function __construct(
         private GeneratorConfig $config,

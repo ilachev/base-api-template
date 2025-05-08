@@ -15,7 +15,7 @@ use ProtoPhpGen\Model\PropertyDescriptor;
 /**
  * Generator for entity classes.
  */
-final class EntityGenerator implements Generator
+final readonly class EntityGenerator implements Generator
 {
     private PsrPrinter $printer;
 
