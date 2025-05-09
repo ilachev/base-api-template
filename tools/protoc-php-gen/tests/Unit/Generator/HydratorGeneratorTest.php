@@ -23,16 +23,16 @@ final class HydratorGeneratorTest extends TestCase
         $this->config = new GeneratorConfig(
             namespace: 'App\\Gen',
             outputDir: 'gen',
-            entityInterface: 'App\\Domain\\Entity',
+            hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateHydrators: true,
         );
         $this->generator = new HydratorGenerator($this->config);
     }
 
     /**
-     * Тест генерации гидратора для сущности.
+     * Test generation of basic hydrator for entity.
      */
-    public function testGenerateHydrator(): void
+    public function testGenerate(): void
     {
         // Arrange
         $descriptor = new EntityDescriptor(
@@ -68,13 +68,13 @@ final class HydratorGeneratorTest extends TestCase
 
         // Assert
         self::assertCount(1, $files);
-        
+
         $filePath = 'gen/Infrastructure/Hydrator/UserHydrator.php';
         self::assertSame($filePath, $files[0]->getName());
-        
+
         $content = $files[0]->getContent();
 
-        // Проверяем основные элементы сгенерированного кода
+        // Check generated code main elements
         self::assertStringContainsString('declare(strict_types=1);', $content);
         self::assertStringContainsString('namespace App\\Gen\\Infrastructure\\Hydrator;', $content);
         self::assertStringContainsString('use App\\Gen\\Domain\\User;', $content);
@@ -84,8 +84,8 @@ final class HydratorGeneratorTest extends TestCase
         self::assertStringContainsString('return User::class;', $content);
         self::assertStringContainsString('public function hydrate(array $data)', $content);
         self::assertStringContainsString('public function extract', $content);
-        
-        // Проверяем методы гидратации и экстракции
+
+        // Check hydration and extraction methods
         self::assertStringContainsString("id: \$processedData['id'] ?? 0,", $content);
         self::assertStringContainsString("name: \$processedData['name'] ?? '',", $content);
         self::assertStringContainsString("email: \$processedData['email'] ?? null,", $content);
@@ -95,7 +95,103 @@ final class HydratorGeneratorTest extends TestCase
     }
 
     /**
-     * Тест отключения генерации гидраторов.
+     * Test generation with custom output path pattern.
+     */
+    public function testGenerateWithCustomOutputPath(): void
+    {
+        // Arrange
+        $config = new GeneratorConfig(
+            namespace: 'App\\Gen',
+            outputDir: 'gen',
+            hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
+            generateHydrators: true,
+            outputPattern: '{outputDir}/Custom/{className}Hydrator.php',
+        );
+        $generator = new HydratorGenerator($config);
+
+        $descriptor = new EntityDescriptor(
+            name: 'Product',
+            namespace: 'App\\Domain\\Product',
+            tableName: 'products',
+            primaryKey: 'id',
+        );
+
+        $descriptor->addProperty(new PropertyDescriptor(
+            name: 'id',
+            type: 'int',
+            nullable: false,
+            columnName: 'id',
+        ));
+
+        // Act
+        $files = $generator->generate($descriptor);
+
+        // Assert
+        self::assertCount(1, $files);
+
+        // Check custom output path based on pattern
+        $filePath = 'gen/Custom/ProductHydrator.php';
+        self::assertSame($filePath, $files[0]->getName());
+    }
+
+    /**
+     * Test with different type mappings.
+     */
+    public function testGenerateWithTypeMapping(): void
+    {
+        // Arrange
+        $config = new GeneratorConfig(
+            namespace: 'App\\Gen',
+            outputDir: 'gen',
+            hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
+            generateHydrators: true,
+            typeMapping: [
+                '3' => 'int',     // INT64 -> int
+                '8' => 'bool',    // BOOL -> bool
+                '11' => 'object', // MESSAGE -> object
+            ],
+        );
+        $generator = new HydratorGenerator($config);
+
+        $descriptor = new EntityDescriptor(
+            name: 'Order',
+            namespace: 'App\\Domain\\Order',
+            tableName: 'orders',
+            primaryKey: 'id',
+        );
+
+        $descriptor->addProperty(new PropertyDescriptor(
+            name: 'id',
+            type: 'string', // Will be mapped to int
+            nullable: false,
+            columnName: 'id',
+            protoType: '3', // INT64
+        ));
+
+        $descriptor->addProperty(new PropertyDescriptor(
+            name: 'isActive',
+            type: 'int', // Will be mapped to bool
+            nullable: false,
+            columnName: 'is_active',
+            protoType: '8', // BOOL
+        ));
+
+        // Act
+        $files = $generator->generate($descriptor);
+
+        // Assert
+        self::assertCount(1, $files);
+        $content = $files[0]->getContent();
+
+        // The actual type mapping happens in ProtoHydratorGenerator, but
+        // we can check that the basic hydrator is generated correctly
+        self::assertStringContainsString('final class OrderHydrator implements TypedHydrator', $content);
+        self::assertStringContainsString("id: \$processedData['id'] ?? 0,", $content);
+        self::assertStringContainsString("isActive: \$processedData['isActive'] ?? false,", $content);
+    }
+
+    /**
+     * Test disabling hydrator generation.
      */
     public function testGenerateHydratorDisabled(): void
     {
@@ -103,7 +199,7 @@ final class HydratorGeneratorTest extends TestCase
         $config = new GeneratorConfig(
             namespace: 'App\\Gen',
             outputDir: 'gen',
-            entityInterface: 'App\\Domain\\Entity',
+            hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateHydrators: false,
         );
         $generator = new HydratorGenerator($config);
@@ -119,7 +215,7 @@ final class HydratorGeneratorTest extends TestCase
         $files = $generator->generate($descriptor);
 
         // Assert
-        // Если генерация гидраторов отключена, то должен быть пустой массив
+        // Should return empty array when hydrator generation is disabled
         self::assertCount(0, $files);
     }
 }
