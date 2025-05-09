@@ -16,6 +16,8 @@ final readonly class PropertyDescriptor
      * @param string|null $columnName Database column name (if different from property name)
      * @param string|null $protoType Original proto type
      * @param bool $repeated Whether the field is repeated in protobuf
+     * @param bool $isJson Whether the field should be stored as JSON
+     * @param bool $ignore Whether the field should be ignored in database operations
      */
     public function __construct(
         public string $name,
@@ -24,6 +26,8 @@ final readonly class PropertyDescriptor
         public ?string $columnName = null,
         public ?string $protoType = null,
         public bool $repeated = false,
+        public bool $isJson = false,
+        public bool $ignore = false,
     ) {}
 
     /**

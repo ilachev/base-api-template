@@ -65,8 +65,42 @@ final readonly class HydratorGenerator implements Generator
         $hydrateMethod->addComment('@param array $data');
         $hydrateMethod->addComment("@return {$descriptor->getName()}");
 
-        $hydrateBody = "return new {$descriptor->getName()}(\n";
+        // Add preparation code for handling JSON fields
+        $hasJsonFields = false;
         foreach ($descriptor->getProperties() as $property) {
+            if ($property->isJson) {
+                $hasJsonFields = true;
+                break;
+            }
+        }
+
+        // Hydration code
+        $hydrateBody = '';
+
+        // Add JSON decode logic if needed
+        if ($hasJsonFields) {
+            $hydrateBody .= "// Process JSON fields\n";
+            $hydrateBody .= "\$processedData = \$data;\n\n";
+
+            foreach ($descriptor->getProperties() as $property) {
+                if ($property->isJson) {
+                    $hydrateBody .= "// Decode JSON for {$property->name}\n";
+                    $hydrateBody .= "if (isset(\$data['{$property->getColumnName()}']) && is_string(\$data['{$property->getColumnName()}'])) {\n";
+                    $hydrateBody .= "    \$processedData['{$property->getColumnName()}'] = json_decode(\$data['{$property->getColumnName()}'], true);\n";
+                    $hydrateBody .= "}\n\n";
+                }
+            }
+        } else {
+            $hydrateBody .= "\$processedData = \$data;\n\n";
+        }
+
+        $hydrateBody .= "return new {$descriptor->getName()}(\n";
+        foreach ($descriptor->getProperties() as $property) {
+            // Skip ignored properties
+            if ($property->ignore) {
+                continue;
+            }
+
             $defaultValue = $property->nullable ? 'null'
                 : match ($property->type) {
                     'string' => "''",
@@ -76,7 +110,7 @@ final readonly class HydratorGenerator implements Generator
                     default => 'null',
                 };
 
-            $hydrateBody .= "    {$property->name}: \$data['{$property->getColumnName()}'] ?? {$defaultValue},\n";
+            $hydrateBody .= "    {$property->name}: \$processedData['{$property->getColumnName()}'] ?? {$defaultValue},\n";
         }
         $hydrateBody .= ');';
         $hydrateMethod->setBody($hydrateBody);
@@ -92,11 +126,51 @@ final readonly class HydratorGenerator implements Generator
         $extractMethod->addComment("@param {$descriptor->getName()} \$entity");
         $extractMethod->addComment('@return array');
 
-        $extractBody = "return [\n";
+        // Check if we have any JSON fields
+        $hasJsonFields = false;
         foreach ($descriptor->getProperties() as $property) {
-            $extractBody .= "    '{$property->getColumnName()}' => \$entity->{$property->name},\n";
+            if ($property->isJson) {
+                $hasJsonFields = true;
+                break;
+            }
         }
-        $extractBody .= '];';
+
+        // Start building the extract method body
+        $extractBody = '';
+
+        if ($hasJsonFields) {
+            $extractBody .= "\$data = [\n";
+            foreach ($descriptor->getProperties() as $property) {
+                // Skip ignored properties
+                if ($property->ignore) {
+                    continue;
+                }
+                $extractBody .= "    '{$property->getColumnName()}' => \$entity->{$property->name},\n";
+            }
+            $extractBody .= "];\n\n";
+
+            $extractBody .= "// Encode JSON fields\n";
+            foreach ($descriptor->getProperties() as $property) {
+                if ($property->isJson) {
+                    $extractBody .= "if (isset(\$data['{$property->getColumnName()}'])) {\n";
+                    $extractBody .= "    \$data['{$property->getColumnName()}'] = json_encode(\$data['{$property->getColumnName()}']);\n";
+                    $extractBody .= "}\n";
+                }
+            }
+
+            $extractBody .= "\nreturn \$data;";
+        } else {
+            $extractBody = "return [\n";
+            foreach ($descriptor->getProperties() as $property) {
+                // Skip ignored properties
+                if ($property->ignore) {
+                    continue;
+                }
+                $extractBody .= "    '{$property->getColumnName()}' => \$entity->{$property->name},\n";
+            }
+            $extractBody .= '];';
+        }
+
         $extractMethod->setBody($extractBody);
 
         // Generate code

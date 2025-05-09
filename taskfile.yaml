@@ -92,8 +92,8 @@ tasks:
       - mkdir -p gen/Domain gen/Infrastructure/Hydrator gen/Infrastructure/Storage
       - >
         PROTOC_PHP_GEN_DEBUG=true protoc -I={{.PROTO_DIR}}
-        --plugin=protoc-php-gen=php ./tools/protoc-php-gen/bin/protoc-php-gen.php
-        --php-gen_out=namespace=App\\Gen,output_dir=gen:./
+        --plugin=protoc-php-gen=./tools/protoc-php-gen/bin/protoc-php-gen.php
+        --php-gen_out=namespace=App\\Gen,output_dir=gen,entity_interface=App\\Domain\\Entity:./
         {{.PROTO_DIR}}/app/domain/*.proto
 
   proto:gen:all:

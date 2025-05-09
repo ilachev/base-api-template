@@ -209,12 +209,31 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
             return null;
         }
 
+        // Get message options
+        $options = $messageType['options'] ?? [];
+
+        // Check if this message has the is_entity option set to true
+        $isEntity = isset($options['is_entity']) && $options['is_entity'] === true;
+
+        // If this is not marked as an entity and not explicitly processing all messages, skip it
+        if (!$isEntity) {
+            $this->logDebug("Skipping non-entity message: {$messageName}");
+
+            return null;
+        }
+
+        // Get table name from options or use default naming convention
+        $tableName = $options['table_name'] ?? $this->camelToSnake($messageName) . 's';
+
+        // Get primary key from options or use default 'id'
+        $primaryKey = $options['primary_key'] ?? 'id';
+
         // Create entity descriptor
         $entityDescriptor = new EntityDescriptor(
             name: $messageName,
             namespace: $namespace,
-            tableName: $this->camelToSnake($messageName) . 's',
-            primaryKey: 'id',
+            tableName: $tableName,
+            primaryKey: $primaryKey,
         );
 
         // Add properties
@@ -247,14 +266,23 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
             return null;
         }
 
-        // Get field label (required, optional, repeated)
+        // Get field options
+        $options = $field['options'] ?? [];
+
+        // Get field label (proto3 has no required/optional, only repeated)
         $fieldLabel = $field['label'] ?? null;
 
         // Determine PHP type for the field
         $phpType = self::PROTO_TYPE_MAP[$fieldType] ?? 'mixed';
 
-        // Determine if the field is optional
-        $isOptional = $fieldLabel === 1; // LABEL_OPTIONAL
+        // In Proto3, all scalar fields are implicitly optional
+        // For message fields, proto3 has proto3_optional to make them explicitly optional
+        $isOptional = isset($options['proto3_optional']) && $options['proto3_optional'] === true;
+
+        // Message types are always nullable in proto3
+        if ($fieldType === 11) { // TYPE_MESSAGE
+            $isOptional = true;
+        }
 
         // Determine if the field is repeated
         $isRepeated = $fieldLabel === 3; // LABEL_REPEATED
@@ -262,16 +290,28 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
         // For repeated fields, type is always array
         if ($isRepeated) {
             $phpType = 'array';
+            $isOptional = false; // Repeated fields are never null, they're empty arrays
         }
+
+        // Get column name from options or use field name
+        $columnName = $options['db_column'] ?? $fieldName;
+
+        // Check if this field should be treated as JSON
+        $isJson = isset($options['is_json']) && $options['is_json'] === true;
+
+        // Check if this field should be ignored in the database
+        $ignore = isset($options['ignore']) && $options['ignore'] === true;
 
         // Create property descriptor
         return new PropertyDescriptor(
             name: $this->snakeToCamel($fieldName),
             type: $phpType,
             nullable: $isOptional,
-            columnName: $fieldName,
+            columnName: $columnName,
             protoType: (string) $fieldType,
             repeated: $isRepeated,
+            isJson: $isJson,
+            ignore: $ignore,
         );
     }
 
