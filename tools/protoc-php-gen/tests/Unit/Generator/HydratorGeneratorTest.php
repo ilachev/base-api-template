@@ -86,9 +86,9 @@ final class HydratorGeneratorTest extends TestCase
         self::assertStringContainsString('public function extract', $content);
         
         // Проверяем методы гидратации и экстракции
-        self::assertStringContainsString("id: \$data['id'] ?? 0,", $content);
-        self::assertStringContainsString("name: \$data['name'] ?? '',", $content);
-        self::assertStringContainsString("email: \$data['email'] ?? null,", $content);
+        self::assertStringContainsString("id: \$processedData['id'] ?? 0,", $content);
+        self::assertStringContainsString("name: \$processedData['name'] ?? '',", $content);
+        self::assertStringContainsString("email: \$processedData['email'] ?? null,", $content);
         self::assertStringContainsString("'id' => \$entity->id,", $content);
         self::assertStringContainsString("'name' => \$entity->name,", $content);
         self::assertStringContainsString("'email' => \$entity->email,", $content);
