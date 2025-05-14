@@ -1,0 +1,324 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API Service",
+    "version": "1.0",
+    "contact": {
+      "name": "Developer Team",
+      "url": "https://example.com",
+      "email": "dev@example.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "HomeService",
+      "description": "API для работы с домашней страницей",
+      "externalDocs": {
+        "description": "Документация по API",
+        "url": "https://example.com/docs"
+      }
+    },
+    {
+      "name": "AuthService",
+      "description": "Сервис аутентификации пользователей",
+      "externalDocs": {
+        "description": "Документация по аутентификации",
+        "url": "https://example.com/docs/auth"
+      }
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Вход пользователя",
+        "description": "Аутентификация пользователя по email и паролю",
+        "operationId": "AuthService_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Выход пользователя",
+        "description": "Завершение сессии пользователя",
+        "operationId": "AuthService_Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LogoutResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1LogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "summary": "Обновление токена",
+        "description": "Обновление access токена с помощью refresh токена",
+        "operationId": "AuthService_RefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/home": {
+      "get": {
+        "summary": "Получить данные домашней страницы",
+        "description": "Возвращает приветственное сообщение и другие данные",
+        "operationId": "HomeService_Home",
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "schema": {
+              "$ref": "#/definitions/v1HomeResponse"
+            },
+            "examples": {
+              "application/json": {
+                "data": {
+                  "message": "Добро пожаловать"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Home"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1HomeData": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Добро пожаловать",
+          "description": "Приветственное сообщение для пользователя",
+          "title": "Приветственное сообщение"
+        }
+      },
+      "title": "HomeData содержит информацию для отображения на домашней странице"
+    },
+    "v1HomeResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1HomeData",
+          "description": "Данные для отображения на домашней странице",
+          "title": "Данные домашней страницы"
+        }
+      },
+      "title": "HomeResponse ответ с данными домашней страницы"
+    },
+    "v1LoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "user@example.com",
+          "description": "Email пользователя"
+        },
+        "password": {
+          "type": "string",
+          "example": "password123",
+          "description": "Пароль пользователя"
+        }
+      },
+      "title": "Структура запроса для входа"
+    },
+    "v1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "description": "JWT токен доступа"
+        },
+        "refreshToken": {
+          "type": "string",
+          "description": "Токен для обновления access токена"
+        },
+        "expiresIn": {
+          "type": "string",
+          "format": "int64",
+          "example": "3600",
+          "description": "Время жизни токена в секундах"
+        }
+      },
+      "title": "Структура ответа при входе"
+    },
+    "v1LogoutRequest": {
+      "type": "object",
+      "title": "Структура запроса для выхода"
+    },
+    "v1LogoutResponse": {
+      "type": "object",
+      "title": "Структура ответа при выходе"
+    },
+    "v1RefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "description": "Refresh токен для обновления access токена"
+        }
+      },
+      "title": "Структура запроса для обновления токена"
+    },
+    "v1RefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "description": "Новый JWT токен доступа"
+        },
+        "refreshToken": {
+          "type": "string",
+          "description": "Новый refresh токен"
+        },
+        "expiresIn": {
+          "type": "string",
+          "format": "int64",
+          "example": "3600",
+          "description": "Время жизни токена в секундах"
+        }
+      },
+      "title": "Структура ответа при обновлении токена"
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ]
+}

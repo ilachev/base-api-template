@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\Handlers\AuthHandler;
 use App\Application\Handlers\HandlerInterface;
 use App\Application\Handlers\HomeHandler;
 
@@ -16,7 +17,25 @@ use App\Application\Handlers\HomeHandler;
  * }>
  */
 return [
-    // Домашняя страница
+    // AuthService.Login
+    [
+        'method' => 'POST',
+        'path' => '/api/v1/auth/login',
+        'handler' => AuthHandler::class,
+    ],
+    // AuthService.Logout
+    [
+        'method' => 'POST',
+        'path' => '/api/v1/auth/logout',
+        'handler' => AuthHandler::class,
+    ],
+    // AuthService.RefreshToken
+    [
+        'method' => 'POST',
+        'path' => '/api/v1/auth/refresh',
+        'handler' => AuthHandler::class,
+    ],
+    // HomeService.Home
     [
         'method' => 'GET',
         'path' => '/api/v1/home',

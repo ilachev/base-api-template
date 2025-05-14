@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Session;
 
 use App\Application\Client\GeoLocationData;
-use ProtoPhpGen\Attributes\ProtoMapping;
 use ProtoPhpGen\Attributes\ProtoField;
+use ProtoPhpGen\Attributes\ProtoMapping;
 
 /**
  * DTO for storing client data in the session.
  */
-#[ProtoMapping(class: "App\\Domain\\Session\\SessionPayload")]
+#[ProtoMapping(class: 'App\\Domain\\Session\\SessionPayload')]
 final readonly class SessionPayload
 {
     /**
@@ -32,49 +32,35 @@ final readonly class SessionPayload
      * @param GeoLocationData|null $geoLocation Geolocation data
      */
     public function __construct(
-        #[ProtoField(name: "ip")]
+        #[ProtoField(name: 'ip')]
         public string $ip,
-        
-        #[ProtoField(name: "user_agent")]
+        #[ProtoField(name: 'user_agent')]
         public ?string $userAgent,
-        
-        #[ProtoField(name: "accept_language")]
+        #[ProtoField(name: 'accept_language')]
         public ?string $acceptLanguage,
-        
-        #[ProtoField(name: "accept_encoding")]
+        #[ProtoField(name: 'accept_encoding')]
         public ?string $acceptEncoding,
-        
-        #[ProtoField(name: "x_forwarded_for")]
+        #[ProtoField(name: 'x_forwarded_for')]
         public ?string $xForwardedFor,
-        
-        #[ProtoField(name: "referer")]
+        #[ProtoField(name: 'referer')]
         public ?string $referer,
-        
-        #[ProtoField(name: "origin")]
+        #[ProtoField(name: 'origin')]
         public ?string $origin,
-        
-        #[ProtoField(name: "sec_ch_ua")]
+        #[ProtoField(name: 'sec_ch_ua')]
         public ?string $secChUa,
-        
-        #[ProtoField(name: "sec_ch_ua_platform")]
+        #[ProtoField(name: 'sec_ch_ua_platform')]
         public ?string $secChUaPlatform,
-        
-        #[ProtoField(name: "sec_ch_ua_mobile")]
+        #[ProtoField(name: 'sec_ch_ua_mobile')]
         public ?string $secChUaMobile,
-        
-        #[ProtoField(name: "dnt")]
+        #[ProtoField(name: 'dnt')]
         public ?string $dnt,
-        
-        #[ProtoField(name: "sec_fetch_dest")]
+        #[ProtoField(name: 'sec_fetch_dest')]
         public ?string $secFetchDest,
-        
-        #[ProtoField(name: "sec_fetch_mode")]
+        #[ProtoField(name: 'sec_fetch_mode')]
         public ?string $secFetchMode,
-        
-        #[ProtoField(name: "sec_fetch_site")]
+        #[ProtoField(name: 'sec_fetch_site')]
         public ?string $secFetchSite,
-        
-        #[ProtoField(name: "geo_location", type: "json")]
+        #[ProtoField(name: 'geo_location', type: 'json')]
         public ?GeoLocationData $geoLocation = null,
     ) {}
 

@@ -89,16 +89,25 @@ tasks:
     desc: Generate domain entities from proto files
     deps: [ tools:proto:setup ]
     cmds:
-      - mkdir -p gen/Domain gen/Infrastructure/Hydrator gen/Infrastructure/Storage
+      - mkdir -p gen/Infrastructure/Hydrator
+      - cp tools/protoc-php-gen/bin/protoc-php-gen.php protoc-gen-php-gen
+      - chmod +x protoc-gen-php-gen
       - >
-        PROTOC_PHP_GEN_DEBUG=true protoc -I={{.PROTO_DIR}}
-        --plugin=protoc-php-gen=./tools/protoc-php-gen/bin/protoc-php-gen.php
-        --php-gen_out=namespace=App\\Gen,output_dir=gen,entity_interface=App\\Domain\\Entity:./
+        PATH="$PATH:$PWD" PROTOC_PHP_GEN_DEBUG=true protoc -I={{.PROTO_DIR}}
+        --php-gen_out="namespace=App\\Gen;output_dir=gen"
         {{.PROTO_DIR}}/app/domain/*.proto
+      - rm protoc-gen-php-gen
+
+  proto:gen:hydrators:
+    desc: Generate hydrators from PHP attributes in domain classes
+    deps: [ tools:proto:setup ]
+    cmds:
+      - mkdir -p gen/Infrastructure/Hydrator
+      - "{{.PHP}} tools/protoc-php-gen/bin/generate-hydrators.php"
 
   proto:gen:all:
-    desc: Generate all artifacts from proto files
-    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes, proto:gen:entities ]
+    desc: Generate all artifacts from proto files and attributes
+    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes, proto:gen:entities, proto:gen:hydrators ]
 
   tools:proto:setup:
     desc: Setup protoc-php-gen plugin

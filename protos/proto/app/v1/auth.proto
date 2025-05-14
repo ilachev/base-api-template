@@ -69,11 +69,11 @@ service AuthService {
 message LoginRequest {
   string email = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Email пользователя"
-    example: ""user@example.com""
+    example: "\"user@example.com\""
   }];
   string password = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Пароль пользователя"
-    example: ""password123""
+    example: "\"password123\""
   }];
 }
 
@@ -87,7 +87,7 @@ message LoginResponse {
   }];
   int64 expires_in = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Время жизни токена в секундах"
-    example: ""3600""
+    example: "\"3600\""
   }];
 }
 
@@ -114,6 +114,6 @@ message RefreshTokenResponse {
   }];
   int64 expires_in = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Время жизни токена в секундах"
-    example: ""3600""
+    example: "\"3600\""
   }];
 }
