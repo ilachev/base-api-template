@@ -10,7 +10,7 @@ use ProtoPhpGen\Attributes\ProtoMapping;
 /**
  * Данные о геолокации по IP.
  */
-#[ProtoMapping(class: 'App\\Api\\V1\\GeoLocationData')]
+#[ProtoMapping(class: 'App\Api\V1\GeoLocationData')]
 final readonly class GeoLocationData
 {
     public function __construct(

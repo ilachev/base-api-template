@@ -11,7 +11,7 @@ use ProtoPhpGen\Attributes\ProtoMapping;
 /**
  * DTO for storing client data in the session.
  */
-#[ProtoMapping(class: 'App\\Api\\V1\\SessionPayload')]
+#[ProtoMapping(class: 'App\Api\V1\SessionPayload')]
 final readonly class SessionPayload
 {
     /**
