@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
 use ProtoPhpGen\Parser\AttributeParser;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Printer;
 
 // Конфигурация генератора
 $domainDir = __DIR__ . '/../../../src/Domain';
