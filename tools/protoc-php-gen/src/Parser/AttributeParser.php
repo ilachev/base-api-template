@@ -25,11 +25,11 @@ final class AttributeParser
 
         $reflectionClass = new \ReflectionClass($className);
         $protoMappingAttrs = $reflectionClass->getAttributes(ProtoMapping::class);
-        
+
         if (empty($protoMappingAttrs)) {
             return null;
         }
-        
+
         /** @var ProtoMapping $protoMapping */
         $protoMapping = $protoMappingAttrs[0]->newInstance();
         $classMapping = new ClassMapping(
@@ -37,17 +37,17 @@ final class AttributeParser
             $protoMapping->class,
             $protoMapping->transformerClass,
         );
-        
+
         foreach ($reflectionClass->getProperties() as $property) {
             $protoFieldAttrs = $property->getAttributes(ProtoField::class);
-            
+
             if (empty($protoFieldAttrs)) {
                 continue;
             }
-            
+
             /** @var ProtoField $protoField */
             $protoField = $protoFieldAttrs[0]->newInstance();
-            
+
             $fieldMapping = new FieldMapping(
                 $property->getName(),
                 $protoField->name,
@@ -55,10 +55,10 @@ final class AttributeParser
                 $protoField->transformer,
                 $protoField->options,
             );
-            
+
             $classMapping->addFieldMapping($fieldMapping);
         }
-        
+
         return $classMapping;
     }
 }

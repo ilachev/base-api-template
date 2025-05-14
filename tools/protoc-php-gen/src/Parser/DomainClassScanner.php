@@ -22,42 +22,42 @@ final class DomainClassScanner
 
     /**
      * Scan directory for domain classes with proto mapping.
-     * 
+     *
      * @return array<int, ClassMapping>
      */
     public function scan(): array
     {
         $mappings = [];
         $files = $this->findPhpFiles($this->config->getDomainDir());
-        
+
         foreach ($files as $file) {
             $className = $this->getClassNameFromFile($file);
             if ($className === null) {
                 continue;
             }
-            
+
             $fullClassName = $this->config->getDomainNamespace() . '\\' . $className;
-            
+
             if (!class_exists($fullClassName)) {
                 require_once $file;
             }
-            
+
             if (!class_exists($fullClassName)) {
                 continue;
             }
-            
+
             $mapping = $this->attributeParser->parse($fullClassName);
             if ($mapping !== null) {
                 $mappings[] = $mapping;
             }
         }
-        
+
         return $mappings;
     }
 
     /**
      * Find all PHP files in a directory recursively.
-     * 
+     *
      * @param string $dir Directory to scan
      * @return array<int, string> List of PHP files
      */
@@ -65,21 +65,21 @@ final class DomainClassScanner
     {
         $result = [];
         $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir)
+            new \RecursiveDirectoryIterator($dir),
         );
-        
+
         foreach ($files as $file) {
             if ($file->isFile() && $file->getExtension() === 'php') {
                 $result[] = $file->getPathname();
             }
         }
-        
+
         return $result;
     }
 
     /**
      * Extract class name from file path.
-     * 
+     *
      * @param string $file File path
      * @return string|null Class name
      */
@@ -89,34 +89,35 @@ final class DomainClassScanner
         if ($content === false) {
             return null;
         }
-        
+
         // Get namespace
         $namespaceMatches = [];
         preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches);
-        
+
         if (empty($namespaceMatches)) {
             return null;
         }
-        
+
         $namespace = $namespaceMatches[1];
-        
+
         // Get class name
         $classMatches = [];
         preg_match('/class\s+([^\s{]+)/', $content, $classMatches);
-        
+
         if (empty($classMatches)) {
             return null;
         }
-        
+
         $className = $classMatches[1];
-        
+
         // Remove namespace prefix if it matches the domain namespace
         $domainNamespace = $this->config->getDomainNamespace();
         if (strpos($namespace, $domainNamespace) === 0) {
-            $relativePath = substr($namespace, strlen($domainNamespace));
+            $relativePath = substr($namespace, \strlen($domainNamespace));
+
             return trim($relativePath, '\\') . '\\' . $className;
         }
-        
+
         return null;
     }
 }

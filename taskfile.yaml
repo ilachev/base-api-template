@@ -122,6 +122,11 @@ tasks:
     cmds:
       - cd tools/protoc-php-gen && {{.COMPOSER}} phpstan
 
+  tools:proto:test:
+    desc: Run PHP-CS-Fixer on the protoc-php-gen library
+    cmds:
+      - cd tools/protoc-php-gen && {{.COMPOSER}} test
+
   tools:proto:check:
     desc: Run all code quality checks on the protoc-php-gen library
     cmds:

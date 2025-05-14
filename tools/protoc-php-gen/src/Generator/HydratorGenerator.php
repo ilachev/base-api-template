@@ -61,11 +61,11 @@ final readonly class HydratorGenerator implements Generator
         $hydrate->addParameter('data')->setType('array');
 
         $hydrateBody = <<<EOT
-// Process data before creating entity
-\$processedData = \$data;
+            // Process data before creating entity
+            \$processedData = \$data;
 
-return new {$descriptor->getName()}(
-EOT;
+            return new {$descriptor->getName()}(
+            EOT;
 
         foreach ($properties as $property) {
             $defaultValue = 'null';
@@ -83,6 +83,7 @@ EOT;
                     case 'bool':
                         $defaultValue = 'false';
                         break;
+
                     default:
                         $defaultValue = 'null';
                 }
@@ -99,7 +100,7 @@ EOT;
         $extract->setReturnType('array');
         $extract->addParameter('entity')->setType("{$entityNamespace}\\{$descriptor->getName()}");
 
-        $extractBody = "return [";
+        $extractBody = 'return [';
         foreach ($properties as $property) {
             $extractBody .= "\n    '{$property->name}' => \$entity->{$property->name},";
         }

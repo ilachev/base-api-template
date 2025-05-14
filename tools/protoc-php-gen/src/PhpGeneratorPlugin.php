@@ -109,17 +109,7 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
                         $descriptor->getProperties(),
                     )));
 
-                    // Generate entity
-                    $descriptor->setType('entity');
-                    $generator = $generatorFactory->createGenerator($descriptor->getType());
-                    $files = $generator->generate($descriptor);
-
-                    foreach ($files as $file) {
-                        $response->addFile($file->getName(), $file->getContent());
-                        $this->logDebug("Generated file: {$file->getName()}");
-                    }
-
-                    // Generate hydrator if enabled
+                    // Generate only hydrators
                     if ($config->shouldGenerateHydrators()) {
                         $descriptor->setType('hydrator');
                         $generator = $generatorFactory->createGenerator($descriptor->getType());
@@ -131,9 +121,9 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
                         }
                     }
 
-                    // Generate repository if enabled
-                    if ($config->shouldGenerateRepositories()) {
-                        $descriptor->setType('repository');
+                    // Generate proto hydrators if enabled
+                    if ($config->shouldGenerateProtoHydrators()) {
+                        $descriptor->setType('proto_hydrator');
                         $generator = $generatorFactory->createGenerator($descriptor->getType());
                         $files = $generator->generate($descriptor);
 
@@ -172,18 +162,19 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
             $config->setOutputDir($request->getParameter('output_dir'));
         }
 
-        if ($request->hasParameter('entity_interface')) {
-            $config->setEntityInterface($request->getParameter('entity_interface'));
-        }
-
-        if ($request->hasParameter('generate_repositories')) {
-            $value = $request->getParameter('generate_repositories');
-            $config->setGenerateRepositories($value === 'true' || $value === '1');
-        }
-
         if ($request->hasParameter('generate_hydrators')) {
             $value = $request->getParameter('generate_hydrators');
             $config->setGenerateHydrators($value === 'true' || $value === '1');
+        }
+
+        if ($request->hasParameter('generate_proto_hydrators')) {
+            $value = $request->getParameter('generate_proto_hydrators');
+            $config->setGenerateProtoHydrators($value === 'true' || $value === '1');
+        }
+
+        if ($request->hasParameter('standalone_mode')) {
+            $value = $request->getParameter('standalone_mode');
+            $config->setStandaloneMode($value === 'true' || $value === '1');
         }
 
         return $config;

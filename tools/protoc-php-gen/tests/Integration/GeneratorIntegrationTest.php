@@ -61,8 +61,6 @@ final class GeneratorIntegrationTest extends TestCase
         $config = new GeneratorConfig(
             namespace: 'App\\Gen',
             outputDir: self::OUTPUT_DIR,
-            entityInterface: 'App\\Domain\\Entity',
-            generateRepositories: true,
             generateHydrators: true,
         );
 
@@ -136,8 +134,8 @@ final class GeneratorIntegrationTest extends TestCase
         $files = $response->getFiles();
         self::assertNotEmpty($files);
         
-        // Должно быть 3 файла: сущность, гидратор и репозиторий
-        self::assertCount(3, $files);
+        // Должен быть только файл гидратора
+        self::assertCount(1, $files);
         
         // Проверяем, что ошибок нет
         self::assertNull($response->getError());
@@ -155,10 +153,8 @@ final class GeneratorIntegrationTest extends TestCase
             self::assertFileExists($path);
         }
         
-        // Проверяем, что файлы сущности, гидратора и репозитория существуют
-        self::assertFileExists(self::OUTPUT_DIR . '/Domain/User.php');
+        // Проверяем, что файл гидратора существует
         self::assertFileExists(self::OUTPUT_DIR . '/Infrastructure/Hydrator/UserHydrator.php');
-        self::assertFileExists(self::OUTPUT_DIR . '/Infrastructure/Storage/PostgreSQLUserRepository.php');
     }
 
     /**
@@ -174,8 +170,6 @@ final class GeneratorIntegrationTest extends TestCase
         $config = new GeneratorConfig(
             namespace: 'App\\Gen',
             outputDir: self::OUTPUT_DIR,
-            entityInterface: 'App\\Domain\\Entity',
-            generateRepositories: true,
             generateHydrators: true,
         );
         
@@ -204,32 +198,15 @@ final class GeneratorIntegrationTest extends TestCase
             self::assertFileExists($path);
         }
         
-        // Проверяем, что файлы сущности, гидратора и репозитория существуют
-        self::assertFileExists(self::OUTPUT_DIR . '/Domain/User.php');
+        // Проверяем, что файл гидратора существует
         self::assertFileExists(self::OUTPUT_DIR . '/Infrastructure/Hydrator/UserHydrator.php');
-        self::assertFileExists(self::OUTPUT_DIR . '/Infrastructure/Storage/PostgreSQLUserRepository.php');
         
-        // Проверяем содержимое файла сущности
-        $entityContent = file_get_contents(self::OUTPUT_DIR . '/Domain/User.php');
-        self::assertStringContainsString('namespace App\\Gen\\Domain;', $entityContent);
-        self::assertStringContainsString('final readonly class User implements', $entityContent);
-        self::assertStringContainsString('public string $id;', $entityContent);
-        self::assertStringContainsString('public string $name;', $entityContent);
-        self::assertStringContainsString('public string $email;', $entityContent);
-        self::assertStringContainsString('public bool $isActive;', $entityContent);
-        self::assertStringContainsString('public array $roles;', $entityContent);
-        self::assertStringContainsString('public int $createdAt;', $entityContent);
-        self::assertStringContainsString('public int $updatedAt;', $entityContent);
-        
-        // Проверяем конструктор
-        self::assertStringContainsString('public function __construct(', $entityContent);
-        self::assertStringContainsString('string $id,', $entityContent);
-        self::assertStringContainsString('string $name,', $entityContent);
-        self::assertStringContainsString('string $email,', $entityContent);
-        self::assertStringContainsString('bool $isActive,', $entityContent);
-        self::assertStringContainsString('array $roles,', $entityContent);
-        self::assertStringContainsString('int $createdAt,', $entityContent);
-        self::assertStringContainsString('int $updatedAt', $entityContent);
+        // Проверяем содержимое файла гидратора
+        $hydratorContent = file_get_contents(self::OUTPUT_DIR . '/Infrastructure/Hydrator/UserHydrator.php');
+        self::assertStringContainsString('namespace App\\Gen\\Infrastructure\\Hydrator;', $hydratorContent);
+        self::assertStringContainsString('final class UserHydrator', $hydratorContent);
+        self::assertStringContainsString('public function hydrate(array $data)', $hydratorContent);
+        self::assertStringContainsString('public function extract(', $hydratorContent);
     }
 
     /**
@@ -243,9 +220,8 @@ final class GeneratorIntegrationTest extends TestCase
         $parameters = [
             'namespace' => $config->getNamespace(),
             'output_dir' => $config->getOutputDir(),
-            'entity_interface' => $config->getEntityInterface(),
-            'generate_repositories' => $config->shouldGenerateRepositories() ? 'true' : 'false',
             'generate_hydrators' => $config->shouldGenerateHydrators() ? 'true' : 'false',
+            'generate_proto_hydrators' => $config->shouldGenerateProtoHydrators() ? 'true' : 'false',
         ];
         
         $request->setParameter(http_build_query($parameters));
@@ -314,9 +290,8 @@ final class GeneratorIntegrationTest extends TestCase
         $parameters = [
             'namespace' => $config->getNamespace(),
             'output_dir' => $config->getOutputDir(),
-            'entity_interface' => $config->getEntityInterface(),
-            'generate_repositories' => $config->shouldGenerateRepositories() ? 'true' : 'false',
             'generate_hydrators' => $config->shouldGenerateHydrators() ? 'true' : 'false',
+            'generate_proto_hydrators' => $config->shouldGenerateProtoHydrators() ? 'true' : 'false',
         ];
         
         $request->setParameter(http_build_query($parameters));

@@ -80,7 +80,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $filePath = $this->config->getOutputPath(
             $className,
             'proto_hydrator',
-            $defaultPath
+            $defaultPath,
         );
 
         return [new GeneratedFile($filePath, $content)];
@@ -100,7 +100,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         ClassType $class,
         EntityDescriptor $descriptor,
         string $domainClass,
-        string $protoClass
+        string $protoClass,
     ): void {
         $domainShort = $this->getShortClassName($domainClass);
         $protoShort = $this->getShortClassName($protoClass);
@@ -111,7 +111,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $method->addComment('');
         $method->addComment("@param {$protoShort} \$proto Proto message");
         $method->addComment("@return {$domainShort} Domain entity");
-        $method->addComment("@throws \\RuntimeException If conversion fails due to missing or invalid data");
+        $method->addComment('@throws \\RuntimeException If conversion fails due to missing or invalid data');
 
         $method->addParameter('proto')
             ->setType($protoShort);
@@ -149,7 +149,7 @@ final readonly class ProtoHydratorGenerator implements Generator
                 $body .= "        } else {\n";
                 $body .= "            \$entity->{$setter}([]);\n";
                 $body .= "        }\n";
-            } elseif (str_contains($phpType, '\\') && $phpType !== '\\DateTime' && $phpType !== '\\DateTimeInterface') {
+            } elseif (str_contains($phpType, '\\') && $phpType !== '\DateTime' && $phpType !== '\DateTimeInterface') {
                 // Assume this is a complex type that needs instantiation
                 $body .= "        \$value = \$proto->{$getter}();\n";
                 $body .= "        if (\$value !== null) {\n";
@@ -214,7 +214,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $body .= "    return \$entity;\n";
         $body .= "} catch (\\Throwable \$e) {\n";
         $body .= "    throw new \\RuntimeException('Failed to hydrate {$domainShort} entity: ' . \$e->getMessage(), 0, \$e);\n";
-        $body .= "}";
+        $body .= '}';
 
         $method->setBody($body);
     }
@@ -233,7 +233,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         ClassType $class,
         EntityDescriptor $descriptor,
         string $domainClass,
-        string $protoClass
+        string $protoClass,
     ): void {
         $domainShort = $this->getShortClassName($domainClass);
         $protoShort = $this->getShortClassName($protoClass);
@@ -244,7 +244,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $method->addComment('');
         $method->addComment("@param {$domainShort} \$entity Domain entity");
         $method->addComment("@return {$protoShort} Proto message");
-        $method->addComment("@throws \\RuntimeException If conversion fails due to missing or invalid data");
+        $method->addComment('@throws \\RuntimeException If conversion fails due to missing or invalid data');
 
         $method->addParameter('entity')
             ->setType($domainShort);
@@ -343,7 +343,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $body .= "    return \$proto;\n";
         $body .= "} catch (\\Throwable \$e) {\n";
         $body .= "    throw new \\RuntimeException('Failed to extract {$protoShort} message: ' . \$e->getMessage(), 0, \$e);\n";
-        $body .= "}";
+        $body .= '}';
 
         $method->setBody($body);
     }
@@ -380,9 +380,10 @@ final readonly class ProtoHydratorGenerator implements Generator
     private function getShortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
-    
+
     /**
      * Convert camelCase to snake_case with improved handling of special cases.
      *
@@ -413,8 +414,8 @@ final readonly class ProtoHydratorGenerator implements Generator
             $input = preg_replace($pattern, '_' . $replacement, $input) ?? $input;
 
             // Handle abbreviation at the beginning of the string
-            if (str_starts_with($input, $abbr) && strlen($input) > strlen($abbr)) {
-                $input = $replacement . substr($input, strlen($abbr));
+            if (str_starts_with($input, $abbr) && \strlen($input) > \strlen($abbr)) {
+                $input = $replacement . substr($input, \strlen($abbr));
             }
         }
 

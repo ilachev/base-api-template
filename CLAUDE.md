@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+@docs/design/protoc-php-gen-guidelines.md
+
 NOTE: All communication with users must be in Russian only. Comments in code must always be in English.
 
 IMPORTANT: Never create hacks or workarounds for narrow scenarios. Always focus on proper solutions that address the root cause of issues. Avoid creating ad-hoc scripts, adding conditional code, or other approaches that don't solve the actual problem. Instead, diagnose issues thoroughly by examining logs, traces, and existing code to understand the underlying issue.

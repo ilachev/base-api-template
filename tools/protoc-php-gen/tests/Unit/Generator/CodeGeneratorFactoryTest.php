@@ -7,9 +7,9 @@ namespace Tests\Unit\Generator;
 use PHPUnit\Framework\TestCase;
 use ProtoPhpGen\Config\GeneratorConfig;
 use ProtoPhpGen\Generator\CodeGeneratorFactory;
-use ProtoPhpGen\Generator\EntityGenerator;
 use ProtoPhpGen\Generator\HydratorGenerator;
-use ProtoPhpGen\Generator\RepositoryGenerator;
+use ProtoPhpGen\Generator\ProtoHydratorGenerator;
+use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
 
 /**
  * @covers \ProtoPhpGen\Generator\CodeGeneratorFactory
@@ -26,19 +26,7 @@ final class CodeGeneratorFactoryTest extends TestCase
     }
 
     /**
-     * Тест создания генератора сущностей.
-     */
-    public function testCreateEntityGenerator(): void
-    {
-        // Act
-        $generator = $this->factory->createGenerator('entity');
-
-        // Assert
-        self::assertInstanceOf(EntityGenerator::class, $generator);
-    }
-
-    /**
-     * Тест создания генератора гидраторов.
+     * Тест создания генератора стандартных гидраторов.
      */
     public function testCreateHydratorGenerator(): void
     {
@@ -50,15 +38,27 @@ final class CodeGeneratorFactoryTest extends TestCase
     }
 
     /**
-     * Тест создания генератора репозиториев.
+     * Тест создания генератора прото-гидраторов.
      */
-    public function testCreateRepositoryGenerator(): void
+    public function testCreateProtoHydratorGenerator(): void
     {
         // Act
-        $generator = $this->factory->createGenerator('repository');
+        $generator = $this->factory->createGenerator('proto_hydrator');
 
         // Assert
-        self::assertInstanceOf(RepositoryGenerator::class, $generator);
+        self::assertInstanceOf(ProtoHydratorGenerator::class, $generator);
+    }
+
+    /**
+     * Тест создания автономного генератора гидраторов.
+     */
+    public function testCreateStandaloneHydratorGenerator(): void
+    {
+        // Act
+        $generator = $this->factory->createGenerator('standalone_hydrator');
+
+        // Assert
+        self::assertInstanceOf(StandaloneHydratorGenerator::class, $generator);
     }
 
     /**

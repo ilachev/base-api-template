@@ -18,6 +18,5 @@ final class ProtoMapping
     public function __construct(
         public readonly string $class,
         public readonly ?string $transformerClass = null,
-    ) {
-    }
+    ) {}
 }

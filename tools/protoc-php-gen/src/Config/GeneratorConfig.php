@@ -144,11 +144,17 @@ final class GeneratorConfig
         return $this;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getTypeMapping(): array
     {
         return $this->typeMapping;
     }
 
+    /**
+     * @param array<string, string> $typeMapping
+     */
     public function setTypeMapping(array $typeMapping): self
     {
         $this->typeMapping = $typeMapping;

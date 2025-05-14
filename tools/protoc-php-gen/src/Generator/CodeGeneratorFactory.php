@@ -26,7 +26,7 @@ final readonly class CodeGeneratorFactory
         return match ($type) {
             'hydrator' => new HydratorGenerator($this->config),
             'proto_hydrator' => new ProtoHydratorGenerator($this->config),
-            'standalone_hydrator' => new StandaloneHydratorGenerator($this->config),
+            'standalone_hydrator' => new StandaloneHydratorGenerator(),
             default => throw new \InvalidArgumentException("Unsupported generator type: {$type}"),
         };
     }

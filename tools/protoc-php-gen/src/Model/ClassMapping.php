@@ -18,8 +18,7 @@ final class ClassMapping
         private string $domainClass,
         private string $protoClass,
         private ?string $transformerClass = null,
-    ) {
-    }
+    ) {}
 
     public function getDomainClass(): string
     {
@@ -47,6 +46,7 @@ final class ClassMapping
     public function addFieldMapping(FieldMapping $fieldMapping): self
     {
         $this->fieldMappings[] = $fieldMapping;
+
         return $this;
     }
 }

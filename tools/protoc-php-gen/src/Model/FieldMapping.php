@@ -22,8 +22,7 @@ final class FieldMapping
         private string $type = 'default',
         private ?string $transformer = null,
         private array $options = [],
-    ) {
-    }
+    ) {}
 
     public function getDomainProperty(): string
     {

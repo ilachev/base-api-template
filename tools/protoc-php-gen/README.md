@@ -1,6 +1,6 @@
-# Proto PHP Generator
+# Proto PHP Hydrator Generator
 
-A protoc plugin that generates PHP entity classes, hydrators, and repositories from proto files.
+A protoc plugin that generates PHP hydrators for transforming between domain entities and proto messages.
 
 ## Installation
 
@@ -55,16 +55,16 @@ protoc -I=./protos/proto \
 
 - `namespace` - Base namespace for generated classes (default: `App\Gen`)
 - `output_dir` - Output directory for generated files (default: `gen`)
-- `entity_interface` - Fully qualified class name of the entity interface (default: `App\Domain\Entity`)
-- `generate_repositories` - Whether to generate repository classes (default: `true`)
-- `generate_hydrators` - Whether to generate hydrator classes (default: `true`)
+- `generate_hydrators` - Whether to generate standard hydrator classes (default: `true`)
+- `generate_proto_hydrators` - Whether to generate proto-specific hydrator classes (default: `false`)
+- `standalone_mode` - Whether to generate code without external dependencies (default: `false`)
 
 Example with parameters:
 
 ```
 protoc -I=./protos/proto \
   --plugin=protoc-php-gen=./tools/protoc-php-gen/bin/protoc-php-gen.php \
-  --php-gen_out=namespace=MyApp\\Gen,output_dir=output,entity_interface=MyApp\\Domain\\EntityInterface,generate_repositories=true,generate_hydrators=true \
+  --php-gen_out=namespace=MyApp\\Gen,output_dir=output,generate_hydrators=true,generate_proto_hydrators=true \
   ./protos/proto/app/domain/*.proto
 ```
 
@@ -72,9 +72,8 @@ protoc -I=./protos/proto \
 
 The plugin generates the following classes:
 
-- Entities - in the `{output_dir}/Domain/` directory
-- Hydrators - in the `{output_dir}/Infrastructure/Hydrator/` directory
-- Repositories - in the `{output_dir}/Infrastructure/Storage/` directory
+- Standard Hydrators - in the `{output_dir}/Infrastructure/Hydrator/` directory
+- Proto Hydrators - in the `{output_dir}/Infrastructure/Hydrator/Proto/` directory (when enabled)
 
 ## Proto3 Features Support
 

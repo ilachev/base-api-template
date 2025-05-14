@@ -5,11 +5,8 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use ProtoPhpGen\Config\StandaloneConfig;
-use ProtoPhpGen\Attributes\ProtoMapping;
-use ProtoPhpGen\Parser\AttributeParser;
-use ProtoPhpGen\Parser\DomainClassScanner;
-use ProtoPhpGen\Model\ClassMapping;
 use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
+use ProtoPhpGen\Parser\DomainClassScanner;
 
 // Parse command line arguments
 $options = getopt('', [
@@ -51,12 +48,12 @@ if (isset($options['output-dir']) && is_string($options['output-dir'])) {
     $outputDir = $options['output-dir'];
 }
 
-$domainNamespace = 'App\\Domain';
+$domainNamespace = 'App\Domain';
 if (isset($options['domain-namespace']) && is_string($options['domain-namespace'])) {
     $domainNamespace = $options['domain-namespace'];
 }
 
-$protoNamespace = 'App\\Api';
+$protoNamespace = 'App\Api';
 if (isset($options['proto-namespace']) && is_string($options['proto-namespace'])) {
     $protoNamespace = $options['proto-namespace'];
 }
@@ -66,12 +63,12 @@ $config = new StandaloneConfig(
     $protoDir,
     $outputDir,
     $domainNamespace,
-    $protoNamespace
+    $protoNamespace,
 );
 
 // Create output directory if it doesn't exist
 if (!is_dir($config->getOutputDir())) {
-    mkdir($config->getOutputDir(), 0755, true);
+    mkdir($config->getOutputDir(), 0o755, true);
 }
 
 // Scan domain classes
@@ -79,7 +76,7 @@ echo "Scanning domain classes in {$config->getDomainDir()}\n";
 $scanner = new DomainClassScanner($config);
 $mappings = $scanner->scan();
 
-echo "Found " . count($mappings) . " domain classes with proto mapping\n";
+echo 'Found ' . count($mappings) . " domain classes with proto mapping\n";
 
 // Generate hydrators
 $generator = new StandaloneHydratorGenerator();
@@ -88,10 +85,10 @@ $generatedFiles = [];
 foreach ($mappings as $mapping) {
     $domainClass = $mapping->getDomainClass();
     $protoClass = $mapping->getProtoClass();
-    
+
     echo "Generating hydrator for {$domainClass} <-> {$protoClass}\n";
-    $outputPath = $generator->generate($mapping, $config->getOutputDir());
+    $outputPath = $generator->generateFromMapping($mapping, $config->getOutputDir());
     $generatedFiles[] = $outputPath;
 }
 
-echo "Generation completed. Generated " . count($generatedFiles) . " hydrator classes.\n";
+echo 'Generation completed. Generated ' . count($generatedFiles) . " hydrator classes.\n";

@@ -14,10 +14,10 @@ final class ProtoField
     public const TYPE_JSON = 'json';
     public const TYPE_DATETIME = 'datetime';
     public const TYPE_ENUM = 'enum';
-    
+
     /**
      * @param string $name Field name in proto message
-     * @param string|null $transformer Optional transformer function name 
+     * @param string|null $transformer Optional transformer function name
      * @param string $type Field type (default, json, datetime, enum)
      * @param array<string, mixed> $options Additional options
      */
@@ -26,6 +26,5 @@ final class ProtoField
         public readonly ?string $transformer = null,
         public readonly string $type = self::TYPE_DEFAULT,
         public readonly array $options = [],
-    ) {
-    }
+    ) {}
 }

@@ -24,8 +24,7 @@ final class StandaloneConfig
         private string $domainNamespace,
         private string $protoNamespace,
         private array $transformers = [],
-    ) {
-    }
+    ) {}
 
     public function getDomainDir(): string
     {
@@ -51,7 +50,7 @@ final class StandaloneConfig
     {
         return $this->protoNamespace;
     }
-    
+
     /**
      * @return array<string, callable>
      */
@@ -59,15 +58,14 @@ final class StandaloneConfig
     {
         return $this->transformers;
     }
-    
+
     /**
-     * @param string $name
-     * @param callable $transformer
      * @return $this
      */
     public function addTransformer(string $name, callable $transformer): self
     {
         $this->transformers[$name] = $transformer;
+
         return $this;
     }
 }
