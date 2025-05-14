@@ -59,7 +59,13 @@ final class StandaloneHydratorGenerator implements Generator
 
         // Add imports
         $ns->addUse($domainClass);
-        $ns->addUse($protoClass);
+        
+        // Обработка случая, когда имена классов совпадают
+        if ($this->getShortClassName($domainClass) === $this->getShortClassName($protoClass) && $domainClass !== $protoClass) {
+            $ns->addUse($protoClass, $protoShortClass . '1');
+        } else {
+            $ns->addUse($protoClass);
+        }
 
         // Create the class
         $class = $ns->addClass($hydratorClassName);
@@ -90,18 +96,26 @@ final class StandaloneHydratorGenerator implements Generator
         $protoClass = $mapping->getProtoClass();
         $domainShortClass = $this->getShortClassName($domainClass);
         $protoShortClass = $this->getShortClassName($protoClass);
+        
+        $protoTypeHint = $protoClass;
+        // Если имена классов совпадают, но это разные классы, добавляем алиас
+        if ($domainShortClass === $protoShortClass && $domainClass !== $protoClass) {
+            $protoTypeHint = $protoShortClass . '1';
+        }
 
         $method = $class->addMethod('hydrate');
-        $method->setReturnType($domainShortClass);
+        $method->setReturnType($domainClass);
         $method->addComment("Convert {$protoShortClass} message to {$domainShortClass} entity.");
         $method->addComment('');
         $method->addComment("@param {$protoShortClass} \$proto Proto message");
         $method->addComment("@return {$domainShortClass} Domain entity");
 
         $method->addParameter('proto')
-            ->setType($protoShortClass);
+            ->setType($protoTypeHint);
 
-        $body = "\$entity = new {$domainShortClass}();\n\n";
+        // Добавляем обратный слеш в начало для использования полного имени класса
+        $fullDomainClass = '\\' . $domainClass;
+        $body = "\$entity = new {$fullDomainClass}();\n\n";
 
         foreach ($mapping->getFieldMappings() as $fieldMapping) {
             $body .= $this->generateHydrationCode($fieldMapping);
@@ -120,18 +134,26 @@ final class StandaloneHydratorGenerator implements Generator
         $protoClass = $mapping->getProtoClass();
         $domainShortClass = $this->getShortClassName($domainClass);
         $protoShortClass = $this->getShortClassName($protoClass);
+        
+        $protoTypeHint = $protoClass;
+        // Если имена классов совпадают, но это разные классы, добавляем алиас
+        if ($domainShortClass === $protoShortClass && $domainClass !== $protoClass) {
+            $protoTypeHint = $protoShortClass . '1';
+        }
 
         $method = $class->addMethod('extract');
-        $method->setReturnType($protoShortClass);
+        $method->setReturnType($protoTypeHint);
         $method->addComment("Convert {$domainShortClass} entity to {$protoShortClass} message.");
         $method->addComment('');
         $method->addComment("@param {$domainShortClass} \$entity Domain entity");
         $method->addComment("@return {$protoShortClass} Proto message");
 
         $method->addParameter('entity')
-            ->setType($domainShortClass);
+            ->setType($domainClass);
 
-        $body = "\$proto = new {$protoShortClass}();\n\n";
+        // Добавляем обратный слеш в начало для использования полного имени класса
+        $fullProtoClass = '\\' . $protoClass;
+        $body = "\$proto = new {$fullProtoClass}();\n\n";
 
         foreach ($mapping->getFieldMappings() as $fieldMapping) {
             $body .= $this->generateExtractionCode($fieldMapping);

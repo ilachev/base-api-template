@@ -1,94 +1,92 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
-use ProtoPhpGen\Config\StandaloneConfig;
 use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
-use ProtoPhpGen\Parser\DomainClassScanner;
+use ProtoPhpGen\Parser\AttributeParser;
+use Nette\PhpGenerator\PhpNamespace;
 
-// Parse command line arguments
-$options = getopt('', [
-    'domain-dir:',
-    'proto-dir:',
-    'output-dir:',
-    'domain-namespace:',
-    'proto-namespace:',
-    'help',
-]);
+// Конфигурация генератора
+$domainDir = __DIR__ . '/../../../src/Domain';
+$protoDir = __DIR__ . '/../../../protos/proto';
+$outputDir = __DIR__ . '/../../../gen/Infrastructure/Hydrator';
+$domainNamespace = 'App\\Domain';
+$protoNamespace = 'App\\Api';
 
-// Show help
-if (isset($options['help'])) {
-    echo "Hydrator Generator for Proto and Domain classes\n";
-    echo "Usage: php generate-hydrators.php [options]\n";
-    echo "Options:\n";
-    echo "  --domain-dir=<dir>          Directory with domain classes (default: src/Domain)\n";
-    echo "  --proto-dir=<dir>           Directory with proto classes (default: protos/gen)\n";
-    echo "  --output-dir=<dir>          Output directory (default: gen/Hydrator)\n";
-    echo "  --domain-namespace=<ns>     Namespace for domain classes (default: App\\Domain)\n";
-    echo "  --proto-namespace=<ns>      Namespace for proto classes (default: App\\Api)\n";
-    echo "  --help                      Show this help\n";
-    exit(0);
+// Создаем директорию для гидраторов, если она не существует
+if (!is_dir($outputDir)) {
+    mkdir($outputDir, 0755, true);
 }
 
-// Set up config with default values
-$domainDir = 'src/Domain';
-if (isset($options['domain-dir']) && is_string($options['domain-dir'])) {
-    $domainDir = $options['domain-dir'];
-}
+$attributeParser = new AttributeParser();
+$generator = new StandaloneHydratorGenerator();
 
-$protoDir = 'protos/gen';
-if (isset($options['proto-dir']) && is_string($options['proto-dir'])) {
-    $protoDir = $options['proto-dir'];
-}
+echo "Scanning domain classes in {$domainDir}\n";
 
-$outputDir = 'gen/Hydrator';
-if (isset($options['output-dir']) && is_string($options['output-dir'])) {
-    $outputDir = $options['output-dir'];
-}
-
-$domainNamespace = 'App\Domain';
-if (isset($options['domain-namespace']) && is_string($options['domain-namespace'])) {
-    $domainNamespace = $options['domain-namespace'];
-}
-
-$protoNamespace = 'App\Api';
-if (isset($options['proto-namespace']) && is_string($options['proto-namespace'])) {
-    $protoNamespace = $options['proto-namespace'];
-}
-
-$config = new StandaloneConfig(
-    $domainDir,
-    $protoDir,
-    $outputDir,
-    $domainNamespace,
-    $protoNamespace,
+// Поиск PHP-файлов в доменной директории
+$files = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($domainDir)
 );
 
-// Create output directory if it doesn't exist
-if (!is_dir($config->getOutputDir())) {
-    mkdir($config->getOutputDir(), 0o755, true);
+$classNames = [];
+foreach ($files as $file) {
+    if ($file->isFile() && $file->getExtension() === 'php') {
+        $content = file_get_contents($file->getPathname());
+        if ($content === false) {
+            continue;
+        }
+
+        // Получаем пространство имен
+        $namespaceMatches = [];
+        preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches);
+        if (empty($namespaceMatches)) {
+            continue;
+        }
+        $namespace = $namespaceMatches[1];
+
+        // Получаем имя класса
+        $classMatches = [];
+        preg_match('/class\s+([^\s{]+)/', $content, $classMatches);
+        if (empty($classMatches)) {
+            continue;
+        }
+        $className = $classMatches[1];
+
+        // Полное имя класса
+        $classNames[] = $namespace . '\\' . $className;
+    }
 }
 
-// Scan domain classes
-echo "Scanning domain classes in {$config->getDomainDir()}\n";
-$scanner = new DomainClassScanner($config);
-$mappings = $scanner->scan();
+// Загружаем и обрабатываем классы
+$generatedFiles = 0;
+foreach ($classNames as $className) {
+    try {
+        if (!class_exists($className)) {
+            // Пытаемся загрузить класс
+            @include_once str_replace('\\', '/', $className) . '.php';
+        }
 
-echo 'Found ' . count($mappings) . " domain classes with proto mapping\n";
+        if (!class_exists($className, false)) {
+            continue;
+        }
 
-// Generate hydrators
-$generator = new StandaloneHydratorGenerator();
-$generatedFiles = [];
-
-foreach ($mappings as $mapping) {
-    $domainClass = $mapping->getDomainClass();
-    $protoClass = $mapping->getProtoClass();
-
-    echo "Generating hydrator for {$domainClass} <-> {$protoClass}\n";
-    $outputPath = $generator->generateFromMapping($mapping, $config->getOutputDir());
-    $generatedFiles[] = $outputPath;
+        // Анализируем атрибуты и создаем маппинг
+        $mapping = $attributeParser->parse($className);
+        if ($mapping !== null) {
+            echo "Found mapping for class: {$className} -> {$mapping->getProtoClass()}\n";
+            
+            // Генерируем гидратор
+            $outputPath = $generator->generateFromMapping($mapping, $outputDir);
+            echo "Generated: {$outputPath}\n";
+            $generatedFiles++;
+        }
+    } catch (Throwable $e) {
+        echo "Error processing {$className}: {$e->getMessage()}\n";
+    }
 }
 
-echo 'Generation completed. Generated ' . count($generatedFiles) . " hydrator classes.\n";
+echo "Generation completed. Generated {$generatedFiles} files.\n";
