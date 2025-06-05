@@ -13,7 +13,7 @@ namespace App\Infrastructure\Hydrator;
 use App\Api\V1\User as V1User;
 use App\Domain\User\User as UserUser;
 
-final class UserProtoHydrator
+final class UserProtoMapper
 {
     /**
      * Convert User message to User entity.

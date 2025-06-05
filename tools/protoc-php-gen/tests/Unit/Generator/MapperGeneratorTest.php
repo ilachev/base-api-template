@@ -6,17 +6,17 @@ namespace Tests\Unit\Generator;
 
 use PHPUnit\Framework\TestCase;
 use ProtoPhpGen\Config\GeneratorConfig;
-use ProtoPhpGen\Generator\HydratorGenerator;
+use ProtoPhpGen\Generator\MapperGenerator;
 use ProtoPhpGen\Model\EntityDescriptor;
 use ProtoPhpGen\Model\PropertyDescriptor;
 
 /**
- * @covers \ProtoPhpGen\Generator\HydratorGenerator
+ * @covers \ProtoPhpGen\Generator\MapperGenerator
  */
-final class HydratorGeneratorTest extends TestCase
+final class MapperGeneratorTest extends TestCase
 {
     private GeneratorConfig $config;
-    private HydratorGenerator $generator;
+    private MapperGenerator $generator;
 
     protected function setUp(): void
     {
@@ -26,7 +26,7 @@ final class HydratorGeneratorTest extends TestCase
             hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateHydrators: true,
         );
-        $this->generator = new HydratorGenerator($this->config);
+        $this->generator = new MapperGenerator($this->config);
     }
 
     /**
@@ -107,7 +107,7 @@ final class HydratorGeneratorTest extends TestCase
             generateHydrators: true,
             outputPattern: '{outputDir}/Custom/{className}Hydrator.php',
         );
-        $generator = new HydratorGenerator($config);
+        $generator = new MapperGenerator($config);
 
         $descriptor = new EntityDescriptor(
             name: 'Product',
@@ -152,7 +152,7 @@ final class HydratorGeneratorTest extends TestCase
                 '11' => 'object', // MESSAGE -> object
             ],
         );
-        $generator = new HydratorGenerator($config);
+        $generator = new MapperGenerator($config);
 
         $descriptor = new EntityDescriptor(
             name: 'Order',
@@ -204,7 +204,7 @@ final class HydratorGeneratorTest extends TestCase
             hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateHydrators: false,
         );
-        $generator = new HydratorGenerator($config);
+        $generator = new MapperGenerator($config);
 
         $descriptor = new EntityDescriptor(
             name: 'User',

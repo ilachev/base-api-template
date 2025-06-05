@@ -13,7 +13,7 @@ namespace App\Infrastructure\Hydrator;
 use App\Api\V1\SessionPayload as V1SessionPayload;
 use App\Domain\Session\SessionPayload as SessionSessionPayload;
 
-final class SessionPayloadProtoHydrator
+final class SessionPayloadProtoMapper
 {
     /**
      * Convert SessionPayload message to SessionPayload entity.

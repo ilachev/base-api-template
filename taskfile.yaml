@@ -86,16 +86,16 @@ tasks:
       - "{{.PHP}} bin/generate-routes.php"
       
 
-  proto:gen:hydrators:
-    desc: Generate hydrators from PHP attributes in domain classes
+  proto:gen:mappers:
+    desc: Generate mappers from PHP attributes in domain classes
     deps: [ tools:proto:setup ]
     cmds:
       - mkdir -p gen/Infrastructure/Hydrator
-      - "{{.PHP}} tools/protoc-php-gen/bin/generate-hydrators.php"
+      - "{{.PHP}} tools/protoc-php-gen/bin/generate-mappers.php"
 
   proto:gen:all:
     desc: Generate all artifacts from proto files and attributes
-    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes, proto:gen:hydrators ]
+    deps: [ proto:gen:sdk, proto:gen:docs, proto:gen:routes, proto:gen:mappers ]
 
   tools:proto:setup:
     desc: Setup protoc-php-gen plugin

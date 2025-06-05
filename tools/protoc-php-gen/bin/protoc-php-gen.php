@@ -12,7 +12,7 @@ $possiblePaths = [
     $scriptDir . '/../vendor/autoload.php',
     $scriptDir . '/tools/protoc-php-gen/vendor/autoload.php',
     dirname($scriptDir) . '/vendor/autoload.php',
-    dirname(dirname($scriptDir)) . '/tools/protoc-php-gen/vendor/autoload.php',
+    dirname($scriptDir, 2) . '/tools/protoc-php-gen/vendor/autoload.php',
 ];
 
 $autoloadFile = null;

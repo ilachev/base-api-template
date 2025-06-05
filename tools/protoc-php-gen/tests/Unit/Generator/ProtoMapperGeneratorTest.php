@@ -6,18 +6,18 @@ namespace Tests\Unit\Generator;
 
 use PHPUnit\Framework\TestCase;
 use ProtoPhpGen\Config\GeneratorConfig;
-use ProtoPhpGen\Generator\ProtoHydratorGenerator;
+use ProtoPhpGen\Generator\ProtoMapperGenerator;
 use ProtoPhpGen\Model\EntityDescriptor;
 use ProtoPhpGen\Model\PropertyDescriptor;
 use RuntimeException;
 
 /**
- * @covers \ProtoPhpGen\Generator\ProtoHydratorGenerator
+ * @covers \ProtoPhpGen\Generator\ProtoMapperGenerator
  */
-final class ProtoHydratorGeneratorTest extends TestCase
+final class ProtoMapperGeneratorTest extends TestCase
 {
     private GeneratorConfig $config;
-    private ProtoHydratorGenerator $generator;
+    private ProtoMapperGenerator $generator;
 
     protected function setUp(): void
     {
@@ -27,7 +27,7 @@ final class ProtoHydratorGeneratorTest extends TestCase
             hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateProtoHydrators: true,
         );
-        $this->generator = new ProtoHydratorGenerator($this->config);
+        $this->generator = new ProtoMapperGenerator($this->config);
     }
 
     /**
@@ -121,7 +121,7 @@ final class ProtoHydratorGeneratorTest extends TestCase
             outputPattern: '{outputDir}/Hydrator/Proto/{className}.php',
         );
 
-        $generator = new ProtoHydratorGenerator($config);
+        $generator = new ProtoMapperGenerator($config);
 
         $descriptor = new EntityDescriptor(
             name: 'Order',
@@ -253,7 +253,7 @@ final class ProtoHydratorGeneratorTest extends TestCase
             hydratorInterface: 'App\\Infrastructure\\Hydrator\\TypedHydrator',
             generateProtoHydrators: false,
         );
-        $generator = new ProtoHydratorGenerator($config);
+        $generator = new ProtoMapperGenerator($config);
 
         $descriptor = new EntityDescriptor(
             name: 'User',

@@ -109,9 +109,9 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
                         $descriptor->getProperties(),
                     )));
 
-                    // Generate only hydrators
+                    // Generate only mappers
                     if ($config->shouldGenerateHydrators()) {
-                        $descriptor->setType('hydrator');
+                        $descriptor->setType('mapper');
                         $generator = $generatorFactory->createGenerator($descriptor->getType());
                         $files = $generator->generate($descriptor);
 
@@ -121,9 +121,9 @@ final readonly class PhpGeneratorPlugin extends ProtocPlugin
                         }
                     }
 
-                    // Generate proto hydrators if enabled
+                    // Generate proto mappers if enabled
                     if ($config->shouldGenerateProtoHydrators()) {
-                        $descriptor->setType('proto_hydrator');
+                        $descriptor->setType('proto_mapper');
                         $generator = $generatorFactory->createGenerator($descriptor->getType());
                         $files = $generator->generate($descriptor);
 

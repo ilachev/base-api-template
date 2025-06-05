@@ -5,36 +5,36 @@ declare(strict_types=1);
 namespace Tests\Unit\Generator;
 
 use PHPUnit\Framework\TestCase;
-use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
+use ProtoPhpGen\Generator\ProtoDomainMapperGenerator;
 use ProtoPhpGen\Model\ClassMapping;
 use ProtoPhpGen\Model\FieldMapping;
 
 /**
- * @covers \ProtoPhpGen\Generator\StandaloneHydratorGenerator
+ * @covers \ProtoPhpGen\Generator\ProtoDomainMapperGenerator
  */
-final class StandaloneHydratorGeneratorTest extends TestCase
+final class ProtoDomainMapperGeneratorTest extends TestCase
 {
-    private StandaloneHydratorGenerator $generator;
+    private ProtoDomainMapperGenerator $generator;
     private string $outputDir;
 
     protected function setUp(): void
     {
-        $this->outputDir = sys_get_temp_dir() . '/hydrator_test';
+        $this->outputDir = sys_get_temp_dir() . '/mapper_test';
         if (!is_dir($this->outputDir)) {
             mkdir($this->outputDir, 0755, true);
         }
-        $this->generator = new StandaloneHydratorGenerator();
+        $this->generator = new ProtoDomainMapperGenerator();
     }
 
     /**
-     * Test generation of standalone hydrator.
+     * Test generation of proto domain mapper.
      */
     public function testGenerate(): void
     {
         // Arrange
         $mapping = new ClassMapping(
-            'App\\Domain\\Product\\Product',
-            'App\\Api\\V1\\ProductProto',
+            'App\\Domain\\User\\User',
+            'App\\Api\\V1\\User',
         );
 
         $mapping->addFieldMapping(new FieldMapping(
@@ -44,61 +44,9 @@ final class StandaloneHydratorGeneratorTest extends TestCase
         ));
 
         $mapping->addFieldMapping(new FieldMapping(
-            'title',
-            'title',
+            'passwordHash',
+            'password_hash',
             'default',
-        ));
-
-        $mapping->addFieldMapping(new FieldMapping(
-            'price',
-            'price',
-            'default',
-        ));
-
-        // Act
-        $outputPath = $this->generator->generateFromMapping($mapping, $this->outputDir);
-
-        // Assert
-        self::assertFileExists($outputPath);
-        
-        $content = file_get_contents($outputPath);
-        
-        // Check for hydrator-specific elements
-        self::assertStringContainsString('class ProductProtoHydrator', $content);
-        self::assertStringContainsString('function hydrate', $content);
-        self::assertStringContainsString('function extract', $content);
-        
-        // Check hydration and extraction methods
-        self::assertStringContainsString('$entity->setId($proto->getId());', $content);
-        self::assertStringContainsString('$entity->setTitle($proto->getTitle());', $content);
-        self::assertStringContainsString('$entity->setPrice($proto->getPrice());', $content);
-        
-        self::assertStringContainsString('$proto->setId($entity->getId());', $content);
-        self::assertStringContainsString('$proto->setTitle($entity->getTitle());', $content);
-        self::assertStringContainsString('$proto->setPrice($entity->getPrice());', $content);
-    }
-
-    /**
-     * Test generation of standalone hydrator with complex types.
-     */
-    public function testGenerateWithComplexTypes(): void
-    {
-        // Arrange
-        $mapping = new ClassMapping(
-            'App\\Domain\\Order\\Order',
-            'App\\Api\\V1\\OrderProto',
-        );
-
-        $mapping->addFieldMapping(new FieldMapping(
-            'id',
-            'id',
-            'default',
-        ));
-
-        $mapping->addFieldMapping(new FieldMapping(
-            'items',
-            'items',
-            'json',
         ));
 
         $mapping->addFieldMapping(new FieldMapping(
@@ -115,9 +63,60 @@ final class StandaloneHydratorGeneratorTest extends TestCase
         
         $content = file_get_contents($outputPath);
         
+        // Check for mapper-specific elements
+        self::assertStringContainsString('class UserProtoMapper', $content);
+        self::assertStringContainsString('function hydrate', $content);
+        self::assertStringContainsString('function extract', $content);
+        
+        // Check hydration and extraction methods
+        self::assertStringContainsString('new UserUser(', $content);
+        self::assertStringContainsString('$proto->setPasswordHash', $content);
+        self::assertStringContainsString('$proto->setCreatedAt', $content);
+        
+        self::assertStringContainsString('$proto->setId($entity->id)', $content);
+        self::assertStringContainsString('$proto->setPasswordHash($entity->passwordHash)', $content);
+    }
+
+    /**
+     * Test generation of standalone hydrator with complex types.
+     */
+    public function testGenerateWithComplexTypes(): void
+    {
+        // Arrange
+        $mapping = new ClassMapping(
+            'App\\Domain\\Session\\Session',
+            'App\\Api\\V1\\Session',
+        );
+
+        $mapping->addFieldMapping(new FieldMapping(
+            'id',
+            'id',
+            'default',
+        ));
+
+        $mapping->addFieldMapping(new FieldMapping(
+            'payload',
+            'payload',
+            'json',
+        ));
+
+        $mapping->addFieldMapping(new FieldMapping(
+            'updatedAt',
+            'updated_at',
+            'datetime',
+        ));
+
+        // Act
+        $outputPath = $this->generator->generateFromMapping($mapping, $this->outputDir);
+
+        // Assert
+        self::assertFileExists($outputPath);
+        
+        $content = file_get_contents($outputPath);
+        
         // Check handling of complex types
-        self::assertStringContainsString('json_decode', $content);
-        self::assertStringContainsString('DateTime', $content);
+        self::assertStringContainsString('json_encode', $content);
+        self::assertStringContainsString('getTimestamp', $content);
     }
 
     /**
@@ -148,8 +147,8 @@ final class StandaloneHydratorGeneratorTest extends TestCase
     {
         // Arrange
         $mapping = new ClassMapping(
-            'App\\Domain\\Order\\Order',
-            'App\\Api\\V1\\OrderProto',
+            'App\\Domain\\Session\\Session',
+            'App\\Api\\V1\\Session',
         );
 
         $mapping->addFieldMapping(new FieldMapping(

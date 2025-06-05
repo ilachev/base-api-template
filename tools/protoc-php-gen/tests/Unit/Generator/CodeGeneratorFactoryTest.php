@@ -7,9 +7,9 @@ namespace Tests\Unit\Generator;
 use PHPUnit\Framework\TestCase;
 use ProtoPhpGen\Config\GeneratorConfig;
 use ProtoPhpGen\Generator\CodeGeneratorFactory;
-use ProtoPhpGen\Generator\HydratorGenerator;
-use ProtoPhpGen\Generator\ProtoHydratorGenerator;
-use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
+use ProtoPhpGen\Generator\MapperGenerator;
+use ProtoPhpGen\Generator\ProtoMapperGenerator;
+use ProtoPhpGen\Generator\ProtoDomainMapperGenerator;
 
 /**
  * @covers \ProtoPhpGen\Generator\CodeGeneratorFactory
@@ -26,39 +26,39 @@ final class CodeGeneratorFactoryTest extends TestCase
     }
 
     /**
-     * Тест создания генератора стандартных гидраторов.
+     * Тест создания генератора стандартных мапперов.
      */
-    public function testCreateHydratorGenerator(): void
+    public function testCreateMapperGenerator(): void
     {
         // Act
-        $generator = $this->factory->createGenerator('hydrator');
+        $generator = $this->factory->createGenerator('mapper');
 
         // Assert
-        self::assertInstanceOf(HydratorGenerator::class, $generator);
+        self::assertInstanceOf(MapperGenerator::class, $generator);
     }
 
     /**
-     * Тест создания генератора прото-гидраторов.
+     * Тест создания генератора прото-мапперов.
      */
-    public function testCreateProtoHydratorGenerator(): void
+    public function testCreateProtoMapperGenerator(): void
     {
         // Act
-        $generator = $this->factory->createGenerator('proto_hydrator');
+        $generator = $this->factory->createGenerator('proto_mapper');
 
         // Assert
-        self::assertInstanceOf(ProtoHydratorGenerator::class, $generator);
+        self::assertInstanceOf(ProtoMapperGenerator::class, $generator);
     }
 
     /**
-     * Тест создания автономного генератора гидраторов.
+     * Тест создания генератора прото-домен мапперов.
      */
-    public function testCreateStandaloneHydratorGenerator(): void
+    public function testCreateProtoDomainMapperGenerator(): void
     {
         // Act
-        $generator = $this->factory->createGenerator('standalone_hydrator');
+        $generator = $this->factory->createGenerator('proto_domain_mapper');
 
         // Assert
-        self::assertInstanceOf(StandaloneHydratorGenerator::class, $generator);
+        self::assertInstanceOf(ProtoDomainMapperGenerator::class, $generator);
     }
 
     /**

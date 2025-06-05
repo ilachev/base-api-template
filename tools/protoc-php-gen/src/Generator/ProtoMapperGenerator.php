@@ -11,9 +11,9 @@ use ProtoPhpGen\Config\GeneratorConfig;
 use ProtoPhpGen\Model\EntityDescriptor;
 
 /**
- * Generator for proto hydrators that map between domain entities and proto messages.
+ * Generator for proto mappers that map between domain entities and proto messages.
  */
-final readonly class ProtoHydratorGenerator implements Generator
+final readonly class ProtoMapperGenerator implements Generator
 {
     private PsrPrinter $printer;
 
@@ -111,7 +111,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $method->addComment('');
         $method->addComment("@param {$protoShort} \$proto Proto message");
         $method->addComment("@return {$domainShort} Domain entity");
-        $method->addComment('@throws \\RuntimeException If conversion fails due to missing or invalid data');
+        $method->addComment('@throws \RuntimeException If conversion fails due to missing or invalid data');
 
         $method->addParameter('proto')
             ->setType($protoShort);
@@ -244,7 +244,7 @@ final readonly class ProtoHydratorGenerator implements Generator
         $method->addComment('');
         $method->addComment("@param {$domainShort} \$entity Domain entity");
         $method->addComment("@return {$protoShort} Proto message");
-        $method->addComment('@throws \\RuntimeException If conversion fails due to missing or invalid data');
+        $method->addComment('@throws \RuntimeException If conversion fails due to missing or invalid data');
 
         $method->addParameter('entity')
             ->setType($domainShort);

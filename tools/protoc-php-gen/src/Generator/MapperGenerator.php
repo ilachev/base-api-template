@@ -10,9 +10,9 @@ use ProtoPhpGen\Config\GeneratorConfig;
 use ProtoPhpGen\Model\EntityDescriptor;
 
 /**
- * Generator for entity hydrators.
+ * Generator for entity mappers.
  */
-final readonly class HydratorGenerator implements Generator
+final readonly class MapperGenerator implements Generator
 {
     private PsrPrinter $printer;
 

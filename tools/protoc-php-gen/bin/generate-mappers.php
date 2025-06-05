@@ -6,31 +6,29 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../../../vendor/autoload.php';
 
-use ProtoPhpGen\Generator\StandaloneHydratorGenerator;
+use ProtoPhpGen\Generator\ProtoDomainMapperGenerator;
 use ProtoPhpGen\Parser\AttributeParser;
-use Nette\PhpGenerator\PhpNamespace;
-use Nette\PhpGenerator\Printer;
 
 // Конфигурация генератора
 $domainDir = __DIR__ . '/../../../src/Domain';
 $protoDir = __DIR__ . '/../../../protos/proto';
 $outputDir = __DIR__ . '/../../../gen/Infrastructure/Hydrator';
-$domainNamespace = 'App\\Domain';
-$protoNamespace = 'App\\Api';
+$domainNamespace = 'App\Domain';
+$protoNamespace = 'App\Api';
 
 // Создаем директорию для гидраторов, если она не существует
 if (!is_dir($outputDir)) {
-    mkdir($outputDir, 0755, true);
+    mkdir($outputDir, 0o755, true);
 }
 
 $attributeParser = new AttributeParser();
-$generator = new StandaloneHydratorGenerator();
+$generator = new ProtoDomainMapperGenerator();
 
 echo "Scanning domain classes in {$domainDir}\n";
 
 // Поиск PHP-файлов в доменной директории
 $files = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($domainDir)
+    new RecursiveDirectoryIterator($domainDir),
 );
 
 $classNames = [];
@@ -79,11 +77,11 @@ foreach ($classNames as $className) {
         $mapping = $attributeParser->parse($className);
         if ($mapping !== null) {
             echo "Found mapping for class: {$className} -> {$mapping->getProtoClass()}\n";
-            
+
             // Генерируем гидратор
             $outputPath = $generator->generateFromMapping($mapping, $outputDir);
             echo "Generated: {$outputPath}\n";
-            $generatedFiles++;
+            ++$generatedFiles;
         }
     } catch (Throwable $e) {
         echo "Error processing {$className}: {$e->getMessage()}\n";
